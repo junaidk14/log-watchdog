@@ -13,6 +13,7 @@ import subprocess
 import sys
 import tempfile
 import time
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import httpx
@@ -133,9 +134,93 @@ def main() -> None:
                 assert client.get("/api/datasets/live/events").json()["total"] == 100100
                 assert client.get("/api/datasets/demo/events").json()["total"] == 3600
                 assert client.get("/api/datasets/historical/events").json()["total"] == 0
+                states = []
+                for _ in range(5):
+                    response = client.post("/api/demo/advance")
+                    assert response.status_code == 200, response.text
+                    incidents = response.json()["incidents"]
+                    assert len(incidents) == 1
+                    states.append((incidents[0]["state"], incidents[0]["recovery_streak"]))
+                assert states == [
+                    ("open", 0),
+                    ("open", 0),
+                    ("open", 1),
+                    ("open", 2),
+                    ("recovered", 3),
+                ]
+                recorded = incidents[0]["measurement"]
+                late = client.post(
+                    "/api/datasets/demo/events",
+                    json={
+                        "events": [
+                            {
+                                "timestamp": recorded["start"],
+                                "service": "checkout",
+                                "severity": "ERROR",
+                                "message": "Late synthetic timeout",
+                                "event_id": "late-http-evidence",
+                            }
+                        ]
+                    },
+                )
+                assert late.status_code == 200
+                assert (
+                    client.get("/api/datasets/demo/overview").json()["incidents"][0]["measurement"]
+                    == recorded
+                )
+                process.terminate()
+                process.wait(timeout=10)
+                process = start()
+                assert (
+                    client.get("/api/datasets/demo/overview").json()["incidents"][0]["state"]
+                    == "recovered"
+                )
+                # Exercise the real background loop across one actual minute boundary.
+                window = datetime.now(UTC).replace(second=0, microsecond=0)
+                response = client.post(
+                    "/api/datasets/live/events",
+                    json={
+                        "events": [
+                            {
+                                "timestamp": window.isoformat(),
+                                "service": "http-worker-probe",
+                                "severity": "INFO",
+                                "message": "Synthetic real-clock worker check",
+                                "event_id": f"worker-probe-{i}",
+                            }
+                            for i in range(40)
+                        ]
+                    },
+                )
+                assert response.status_code == 200
+                deadline = time.monotonic() + 75
+                worker_measurement = None
+                while time.monotonic() < deadline:
+                    overview = client.get("/api/datasets/live/overview").json()
+                    worker_measurement = next(
+                        (
+                            row
+                            for row in overview["services"]
+                            if row["service"] == "http-worker-probe"
+                        ),
+                        None,
+                    )
+                    if worker_measurement:
+                        break
+                    time.sleep(0.5)
+                assert worker_measurement is not None, "Real-clock worker did not evaluate"
+                assert worker_measurement["total"] == 40
+                assert worker_measurement["status"] == "learning baseline"
+                assert datetime.fromisoformat(worker_measurement["end"]) == window + timedelta(
+                    minutes=1
+                )
                 print(
                     json.dumps(
                         {
+                            "demo_transitions": states,
+                            "late_evidence_unchanged": True,
+                            "incident_restart": "recovered",
+                            "real_clock_worker": worker_measurement["status"],
                             "python": platform.python_version(),
                             "platform": platform.platform(),
                             "bulk_events": 100000,

@@ -44,7 +44,7 @@ function readFilters(): Filters {
   };
 }
 function encodeFilters(filters: Filters): string {
-  const params = new URLSearchParams();
+  const params = new URLSearchParams({ view: "logs" });
   Object.entries(filters).forEach(([key, value]) => {
     if (value !== "") params.set(key, String(value));
   });
@@ -126,6 +126,7 @@ export function App() {
     setError(null);
     const params = new URLSearchParams(query);
     params.delete("dataset");
+    params.delete("view");
     params.set("page_size", "50");
     fetch(`/api/datasets/${filters.dataset}/events?${params}`, {
       signal: controller.signal,
@@ -258,6 +259,11 @@ export function App() {
         </a>
         <p className="local-label">Local workspace</p>
         <nav aria-label="Primary">
+          <a
+            href={`?view=overview&dataset=${filters.dataset === "historical" ? "live" : filters.dataset}`}
+          >
+            Overview
+          </a>
           <a href={`?${query}`} aria-current="page">
             Logs
           </a>
