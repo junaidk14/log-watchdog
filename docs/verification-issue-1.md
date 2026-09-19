@@ -54,3 +54,35 @@ Start with the README commands, then open http://127.0.0.1:8000/.
 - [ ] **Loading/empty/error and changed interactions:** throttle the local browser connection to inspect loading; choose empty Historical and clear already-clear filters; use a nonmatching message; apply unchanged filters; stop the API, refresh, confirm retained same-query results/error and Retry after restart. Change datasets while a request is slow to verify stale rows never appear under the new dataset.
 
 No screenshots or rendered accessibility pass are claimed.
+
+
+## PR #8 FIX verification — R1 and R2 (2026-09-19 UTC)
+
+Before fixes, `.venv/bin/pytest -q -k utc_overflow` failed all six cases with `OverflowError`. `npm --prefix frontend test -- --run -t 'latest scroll'` failed because Forward restored 0 instead of 600. After fixes, `.venv/bin/pytest -q -k 'utc_overflow or offset_filter'` passed seven cases and the same targeted frontend command passed.
+
+R1 covers both overflow directions in batches and each browse bound, exact field locations in 422 responses, zero persisted rows after invalid batches, and ordinary offset normalization. R2 traverses actual jsdom Back/Forward history across Demo and Live, updates positions after revisiting both entries, dispatches scroll during pending responses, and checks that restoration waits for results. Fetch and physical scroll are mocked; history state/traversal are not injected.
+
+All completed successfully on the fixed source:
+
+| Exact command | Result |
+| --- | --- |
+| `npm --prefix frontend run build` | TypeScript/Vite passed; 29 modules |
+| `npm --prefix frontend run typecheck` | Passed |
+| `npm --prefix frontend run lint` | Passed |
+| `npm --prefix frontend run format:check` | Passed |
+| `npm --prefix frontend test` | 15 passed, including axe DOM checks |
+| `.venv/bin/ruff check log_watchdog tests scripts` | Passed |
+| `.venv/bin/ruff format --check log_watchdog tests scripts` | 8 files formatted |
+| `.venv/bin/mypy` | Passed, 5 modules |
+| `.venv/bin/python scripts/check_contrast.py` | 9 pairs passed; minimum 5.19:1 |
+| `.venv/bin/pytest -q` | 38 passed; same two upstream deprecation warnings |
+| `.venv/bin/python scripts/validate_runtime.py` | Actual HTTP/startup/assets/ingestion/browsing/restart/isolation passed |
+| `git diff --check` | Passed |
+
+Runtime fixture: 100,000 events in 1.433 s; first-page median/max 3.11/3.40 ms, page 2000 5.22/5.41 ms, filtered browsing 9.46/10.00 ms. All 100 paced requests at target 20/second accepted in 4.959 s (median/max 5.92/7.78 ms). Restart counts: live 100,100, demo 3,600, historical 0. Temporary SQLite and synthetic data; these are measurements, not guarantees.
+
+Supported browser setup again returned `No browser is available`; after reading `bootstrap-troubleshooting`, recovery discovery returned `[]`. The manual checklist above remains pending, with this additional changed-interaction case:
+
+- [ ] **Logs repeated history:** scroll Demo to A, switch to Live and scroll to B, Back to Demo and scroll to C, Forward to Live and scroll to D, then Back/Forward again. Under throttled responses, confirm restoration waits for results and restores C/D, not A/B or zero. Repeat using keyboard scrolling.
+
+**Browser unavailable; rendered desktop, narrow-screen, and keyboard verification require a later manual check.** No rendered pass is claimed.

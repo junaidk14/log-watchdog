@@ -35,6 +35,7 @@ beforeEach(() => {
   window.history.replaceState({}, "", "/");
   vi.stubGlobal("fetch", fetchMock);
   vi.stubGlobal("scrollTo", vi.fn());
+  vi.stubGlobal("scrollY", 0);
   fetchMock.mockReset();
   fetchMock.mockImplementation(() => respond());
 });
@@ -243,4 +244,53 @@ describe("log explorer", () => {
     });
     expect(report.violations).toEqual([]);
   });
+});
+
+it("restores the latest scroll on repeated Back/Forward after delayed results", async () => {
+  const user = userEvent.setup();
+  const scroll = (y: number) => {
+    vi.stubGlobal("scrollY", y);
+    fireEvent.scroll(window);
+  };
+  render(<App />);
+  await screen.findByText(row.message);
+  scroll(420);
+  await user.selectOptions(screen.getByLabelText("Dataset"), "live");
+  await screen.findByText(row.message);
+  scroll(600);
+
+  async function traverse(
+    direction: "back" | "forward",
+    dataset: string,
+    y: number,
+  ) {
+    let resolve!: (value: Response) => void;
+    fetchMock.mockReturnValueOnce(
+      new Promise<Response>((r) => {
+        resolve = r;
+      }),
+    );
+    vi.mocked(window.scrollTo).mockClear();
+    await act(async () => {
+      const traversed = new Promise<void>((done) => {
+        window.addEventListener("popstate", () => done(), { once: true });
+      });
+      window.history[direction]();
+      await traversed;
+    });
+    expect(screen.getByLabelText("Dataset")).toHaveValue(dataset);
+    expect(screen.getByRole("status")).toHaveTextContent("Loading logs");
+    scroll(0); // Layout shrinking during loading must not erase saved positions.
+    expect(window.scrollTo).not.toHaveBeenCalled();
+    await act(async () => resolve(await respond()));
+    expect(window.scrollTo).toHaveBeenLastCalledWith(0, y);
+    scroll(y); // The browser emits a scroll event after restoration too.
+  }
+
+  await traverse("back", "demo", 420);
+  scroll(800);
+  await traverse("forward", "live", 600);
+  scroll(950);
+  await traverse("back", "demo", 800);
+  await traverse("forward", "live", 950);
 });

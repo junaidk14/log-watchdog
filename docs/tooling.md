@@ -104,3 +104,12 @@ Versions are omitted until verified from the environment or project dependency f
 | `domain-modeling` skill | Used | Record atomic batch identity and direct SQLite/offset-browsing decisions as ADR-023 and ADR-024. |
 
 No external runtime services, images, fonts, LLM calls, or webhook delivery are introduced by issue #1. Browser setup and supported recovery both found no usable browser; the policy's automated fallback was applied. Detailed evidence and pending manual checks are in [issue #1 verification](verification-issue-1.md).
+
+
+## PR #8 review fixes
+
+- `diagnosing-bugs` skill — Used to reproduce R1/R2 with failing API and history-traversal regressions before fixing them.
+- Pydantic `AfterValidator` — Used to normalize browse bounds during request validation, producing field-specific overflow errors before storage.
+- Vitest/jsdom and React Testing Library — Used for real `history.back()` / `history.forward()` traversal with scroll events and delayed mocked responses; does not establish rendered browser scrolling.
+- Browser skill — Used again for supported setup/recovery discovery; no browser available (`getForUrl` failed, recovery list empty). Manual rendered checks remain pending.
+- `pr` skill — Used to update the existing PR evidence. Existing Python/frontend verification tools were reused without dependency changes.

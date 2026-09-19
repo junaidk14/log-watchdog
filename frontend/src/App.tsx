@@ -174,6 +174,26 @@ export function App() {
     }
   }, [loading, results, error]);
 
+  useEffect(() => {
+    const saveScroll = () => {
+      // Ignore layout changes while fetching/restoring and events from a view
+      // whose history entry has already changed but React has not committed yet.
+      if (
+        !loading &&
+        restoreScroll.current === null &&
+        encodeFilters(readFilters()) === query
+      ) {
+        window.history.replaceState(
+          { ...window.history.state, scrollY: window.scrollY },
+          "",
+          window.location.href,
+        );
+      }
+    };
+    window.addEventListener("scroll", saveScroll, { passive: true });
+    return () => window.removeEventListener("scroll", saveScroll);
+  }, [loading, query]);
+
   function navigate(next: Filters) {
     if (encodeFilters(next) === query) {
       setDraft(next);
@@ -182,11 +202,14 @@ export function App() {
     }
     setLoading(true);
     setError(null);
-    window.history.replaceState(
-      { scrollY: window.scrollY },
-      "",
-      window.location.href,
-    );
+    if (!loading && restoreScroll.current === null) {
+      window.history.replaceState(
+        { ...window.history.state, scrollY: window.scrollY },
+        "",
+        window.location.href,
+      );
+    }
+    restoreScroll.current = null;
     window.history.pushState({}, "", `?${encodeFilters(next)}`);
     setFilters(next);
     setDraft(next);

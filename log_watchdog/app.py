@@ -8,10 +8,10 @@ from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import AwareDatetime
+from pydantic import AfterValidator, AwareDatetime
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
-from .models import Dataset, IngestRequest, Severity
+from .models import Dataset, IngestRequest, Severity, normalize_utc
 from .store import EventConflict, Store
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -50,8 +50,8 @@ def create_app(db_path: Path | None = None, frontend: Path | None = None) -> Fas
         dataset: Dataset,
         service: Annotated[str | None, Query(max_length=120)] = None,
         severity: Severity | None = None,
-        start: AwareDatetime | None = None,
-        end: AwareDatetime | None = None,
+        start: Annotated[AwareDatetime, AfterValidator(normalize_utc)] | None = None,
+        end: Annotated[AwareDatetime, AfterValidator(normalize_utc)] | None = None,
         message: Annotated[str, Query(max_length=16384)] = "",
         page: Annotated[int, Query(ge=1, le=10000000)] = 1,
         page_size: Annotated[int, Query(ge=1, le=100)] = 50,

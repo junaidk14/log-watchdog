@@ -199,3 +199,30 @@ def test_built_dashboard(tmp_path):
         assert "Log Watchdog" in response.text
         asset = next((build / "assets").glob("*.js"))
         assert client.get(f"/assets/{asset.name}").status_code == 200
+
+
+@pytest.mark.parametrize("timestamp", ["0001-01-01T00:00:00+01:00", "9999-12-31T23:59:59-01:00"])
+def test_utc_overflow_rejects_entire_batch(client, timestamp):
+    response = post(client, [event(), event(timestamp=timestamp)])
+    assert response.status_code == 422
+    error = response.json()["detail"][0]
+    assert error["loc"] == ["body", "events", 1, "timestamp"]
+    assert "representable in UTC" in error["msg"]
+    assert get(client).json()["total"] == 0
+
+
+@pytest.mark.parametrize("boundary", ["start", "end"])
+@pytest.mark.parametrize("timestamp", ["0001-01-01T00:00:00+01:00", "9999-12-31T23:59:59-01:00"])
+def test_utc_overflow_filter_is_field_specific(client, boundary, timestamp):
+    response = get(client, **{boundary: timestamp})
+    assert response.status_code == 422
+    error = response.json()["detail"][0]
+    assert error["loc"] == ["query", boundary]
+    assert "representable in UTC" in error["msg"]
+
+
+def test_offset_filter_normalization(client):
+    assert post(client, [event()]).status_code == 200
+    response = get(client, start="2026-01-01T17:30:00+05:30", end="2026-01-01T11:00:00-01:00")
+    assert response.status_code == 200
+    assert response.json()["total"] == 1
