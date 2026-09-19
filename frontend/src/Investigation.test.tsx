@@ -451,6 +451,80 @@ it("restores the incident and evaluation into visible detail after clearing sele
   expect(await screen.findByLabelText("Evaluated window")).toHaveValue("91");
 });
 
+it.each([
+  ["explicit Back", false],
+  ["explicit Back", true],
+  ["browser Back", false],
+  ["browser Back", true],
+] as const)(
+  "restores focus after a failed returning Overview via %s (delayed=%s)",
+  async (navigation, delayedFailure) => {
+    const user = userEvent.setup();
+    render(<Router />);
+    await user.click(
+      await screen.findByRole("link", {
+        name: "Investigate checkout incident #1",
+      }),
+    );
+    await user.click(
+      await screen.findByRole("link", { name: "View evaluated logs" }),
+    );
+    await screen.findByText(
+      /40 evaluated events · 40 matching current filters/,
+    );
+    let finish!: (response: unknown) => void;
+    const delayed = new Promise((resolve) => {
+      finish = resolve;
+    });
+    fetchMock.mockImplementationOnce(async () =>
+      delayedFailure ? delayed : { ok: false, status: 503 },
+    );
+    if (navigation === "browser Back") {
+      await act(async () => window.history.back());
+    } else {
+      await user.click(screen.getByRole("link", { name: "Back to incident" }));
+    }
+    if (delayedFailure) {
+      await screen.findByText("Loading overview…");
+      expect(
+        screen.getByRole("heading", { name: "Incidents", level: 1 }),
+      ).not.toHaveFocus();
+      await act(async () => finish({ ok: false, status: 503 }));
+    }
+    expect(await screen.findByRole("alert")).toHaveTextContent("HTTP 503");
+    const heading = screen.getByRole("heading", {
+      name: "Incidents",
+      level: 1,
+    });
+    await waitFor(() => {
+      expect(heading).toBeVisible();
+      expect(heading).toHaveFocus();
+    });
+    expect(window.location.search).toContain("incident=1");
+    expect(window.location.search).toContain("evaluation=91");
+    const retry = screen.getByRole("button", { name: "Retry refresh" });
+    expect(retry).toBeEnabled();
+    retry.focus();
+    await user.keyboard("{Enter}");
+    expect(await screen.findByLabelText("Evaluated window")).toHaveValue("91");
+    await screen.findByRole("link", { name: "View evaluated logs" });
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(window.location.search).toContain("incident=1");
+    expect(window.location.search).toContain("evaluation=91");
+    // Subsequent updates must not replay the completed return restoration.
+    const refresh = screen.getByRole("button", { name: "Refresh overview" });
+    fetchMock.mockClear();
+    await user.click(refresh);
+    await waitFor(() =>
+      expect(fetchMock).toHaveBeenCalledWith(
+        expect.stringContaining("/overview"),
+        expect.anything(),
+      ),
+    );
+    expect(refresh).toHaveFocus();
+  },
+);
+
 it.each([true, false])(
   "waits for returning evidence before restoring a control or falling back (success=%s)",
   async (ok) => {

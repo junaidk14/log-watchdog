@@ -234,3 +234,41 @@ Browser unavailable; rendered desktop, narrow-screen, and keyboard verification 
 ### Merge Danger
 
 **Door:** two-way. **Blast Radius:** focus. The shared navigation hook also serves Logs; all frontend regressions pass. No data/API changes. Both requested root prompt audits are recorded; protected runner files are unchanged. Independent review and merge remain separate gates; this FIX session never merges.
+
+
+## PR #10 remaining R1 — failed returning Overview
+
+FIX started clean at reviewed head `27666348d6d11df286c5dd6ad333fd3b41de9907` on the assigned branch and unchanged main base `755ebbf9568f08ec2f85ead34c1c77bd6204a6d2`. Scope is only failed-Overview return focus and necessary regressions/audit. The failure path has no incident/queue heading, so Overview now supplies its always-rendered page heading as fallback while no data exists. Successful returns keep their previous fallback; the shared restoration hook is unchanged. No new architecture or dependency. Fresh independent whole-PR review remains pending with the coordinator.
+
+- **Before:** `npm --prefix frontend test -- src/Investigation.test.tsx -t 'failed returning Overview'` reproduced four focus assertions receiving BODY: explicit Back and actual `window.history.back()`, each with immediate/delayed HTTP 503 on Overview. An initial test-authoring run used the wrong heading label; after correcting it to the actual Incidents page heading, all four reproduced the reported focus failure.
+- **After:** `npm --prefix frontend test -- src/Investigation.test.tsx` passed all 23 tests, including the four new cases. They assert visible page-heading focus after failure, pinned incident #1/evaluation 91, keyboard Retry recovery and subsequent refresh focus. Existing successful/delayed returns, failed evidence, primary Logs browser Back, reload snapshots and background-refresh regressions remain enabled.
+- Whole-issue API coverage verifies exact membership, half-open bounds, later arrivals, literal refinements, exact event links, pagination, isolation, recovery/restart persistence and unavailable-data fixtures. DOM tests cover selection, scope changes, pattern/sample/summary links, window-selector focus, metadata expansion and available axe checks. DOM HTTP is mocked; jsdom does not establish rendered layout or real-browser keyboard behavior.
+
+| Command | Completed result |
+| --- | --- |
+| `npm --prefix frontend run build` | Passed; 33 modules; JS 260.46 kB / 79.78 kB gzip |
+| `npm --prefix frontend run typecheck` | Passed |
+| `npm --prefix frontend run lint` | Passed |
+| `npm --prefix frontend run format:check` | Passed |
+| `npm --prefix frontend test` | 45 passed across 3 files, including axe DOM checks |
+| `.venv/bin/ruff check log_watchdog tests scripts` | Passed |
+| `.venv/bin/ruff format --check log_watchdog tests scripts` | Passed; 12 files |
+| `.venv/bin/mypy` | Passed; 7 source files |
+| `.venv/bin/python scripts/check_contrast.py` | Passed; all 9 palette checks |
+| `.venv/bin/pytest -q` | 50 passed; 2 existing upstream deprecation warnings |
+| `/Users/junaidahamad/.agents/skills/impeccable/scripts/impeccable detect --json frontend/src/Overview.tsx` | `[]`, no source findings |
+| `.venv/bin/python scripts/validate_runtime.py` | Passed actual loopback HTTP/assets, demo/evidence, restart/isolation and real-clock worker |
+| `git diff --check` | Passed |
+
+Runtime validation used the documented launcher and temporary synthetic SQLite data on macOS 15.6 arm64 / Python 3.14.5. Five demo transitions reached recovered/3; evaluated/broader evidence stayed 40/41, filters/sample/restart passed, and the real-clock worker evaluated live data. Bulk ingestion of 100k events took 1.440s; first/deep/filtered browse medians were 3.39/6.04/9.76ms; 100 events paced at 20/s took 4.960s, ingestion median/max 4.03/6.80ms. Restart preserved 100,100 live events and isolation. Local measurements only.
+
+### Manual UI verification pending
+
+Supported Browser `getForUrl("http://127.0.0.1:8000/")` returned **No browser is available**. Read supported recovery documentation; `agent.browsers.list()` returned `[]` (printed with the appropriate output helper after the string-only helper rejected the array). The project-authorized browser-unavailable fallback applies; these checks remain deferred, not passed.
+
+- [ ] **Rendered desktop:** Demo Overview → Advance → Investigate → select a window → evaluated Logs → Back. Check side-by-side queue/evidence, counts, patterns, samples and summary readability. Repeat with returning Overview delayed and failing; confirm the focused page heading is visible.
+- [ ] **Rendered narrow-screen layout/overflow:** repeat at phone width and 200% zoom; check full-width detail/Back, contained table scrolling, long messages/IDs and visible fallback heading.
+- [ ] **Keyboard navigation/focus:** Tab/Enter through window selection, filters, later-arrival toggle, metadata, pattern/sample links and both Back routes. Delay/fail Overview on return, then Retry. Verify selected incident/window persists. Repeat successful/delayed evidence returns, primary Logs browser Back and reload with saved control/scroll; ordinary refresh/recovery must preserve focus.
+- [ ] **Browser-dependent loading/empty/error states:** failed Overview return and retry, failed evidence with successful Overview, zero-match refinements, missing-retention/reset fixtures and restrained announcements with assistive technology. No source/DOM result substitutes for these rendered checks.
+
+Browser unavailable; rendered desktop, narrow-screen, and keyboard verification require a later manual check. Earlier whole-issue evidence and manual paths remain recorded in `docs/verification-issue-3.md`.

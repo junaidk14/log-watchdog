@@ -223,7 +223,12 @@ export function Overview() {
   }, [dataset, revision, acceptResults]);
   usePageRestoration(
     data !== null || error !== null,
-    selected ? "incident-heading" : "queue-heading",
+    // A failed initial load has no workbench headings or evidence controls.
+    !data
+      ? "overview-heading"
+      : selected
+        ? "incident-heading"
+        : "queue-heading",
     true,
   );
   useEffect(() => {

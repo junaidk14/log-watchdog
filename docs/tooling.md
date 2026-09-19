@@ -179,3 +179,10 @@ No external runtime services, images, fonts, LLM calls, or webhook delivery are 
 - `diagnosing-bugs`, React/TypeScript History API, Vitest/jsdom and Testing Library — Used for an actual Router regression of Investigate → primary Logs → browser Back with delayed evidence, including an older entry without a focus identity. Existing focus snapshots survive id-less links; saved positions enable fallback. No new dependencies.
 - Impeccable context/craft-floor/detector and Browser runtime — Used for scoped focus verification. Detector found no source issues; supported browser setup failed and recovery returned `[]`, so rendered checks remain pending.
 - Existing build/test/lint/type/format/contrast/runtime commands, Git/GitHub CLI and `pr` skill — Used for verification and the same-PR update. Codex sub-agent used for the user-requested fresh whole-PR read-only review.
+
+
+## PR #10 failed-Overview return focus R1
+
+- `diagnosing-bugs`, React/TypeScript, Vitest/jsdom and Testing Library — Used for four failing-then-passing actual Router regressions covering explicit/browser Back with immediate/delayed Overview failures, visible page-heading fallback, keyboard retry, selection/window persistence and subsequent refresh focus. No dependency added.
+- Impeccable context/harden/craft-floor/detector and Browser skill/runtime — Used for this scoped error/focus correction. Source detector found no issues; supported browser selection failed and recovery discovery returned `[]`, leaving rendered checks pending.
+- Existing frontend/backend build, test, lint, type, format, contrast and real-HTTP validation tools — Reused for full verification. `pr`, GitHub CLI, Git and clock — Used for existing PR evidence, metadata checks and elapsed-time reporting.

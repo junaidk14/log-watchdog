@@ -972,3 +972,18 @@ Keep prompts.md updated and do not wait for interactive approval.
 ```
 
 Session assignment: FIX only remaining R1 on `issue-3-investigation-workbench`, base `755ebbf9568f08ec2f85ead34c1c77bd6204a6d2`, reviewed head `66ff84a741e09c402c2e070e29091d15383a6b72`. Issue: https://github.com/junaidk14/log-watchdog/issues/3. Preserve outgoing focus for id-less PageLink navigation and restore missing-focus history entries after delayed evidence without stealing focus on ordinary refresh. Add actual Router browser-Back regression; retain explicit Back and background-refresh coverage. User authorizes one fresh fix and a whole-PR independent read-only review; stop on failed verification, ambiguous metadata or a failing next review. Verify open/non-draft same-repository PR, main at supplied base, assigned branch and matching local/pushed/PR head, sole closing reference #3, no auto-merge or competing PR. Record both root audit turns here. Never merge in this implementation session; the root coordinator owns later policy activation and issue continuation. Protected runner files remain untouched.
+
+
+## 2026-09-19T22:32:52.765697+00:00 — FIX issue #3 / PR #10: failed Overview return focus
+
+Assignment: FIX on `issue-3-investigation-workbench`, base `755ebbf9568f08ec2f85ead34c1c77bd6204a6d2`, reviewed head `27666348d6d11df286c5dd6ad333fd3b41de9907`. Address only remaining R1: return from evaluated Logs after a failed Overview load must restore visible focus; add actual Router regressions for explicit and browser Back with delayed failure, preserve incident/evaluation and ordinary refresh focus, verify retry and all required checks, commit/push the same branch and update PR evidence. This implementation session never merges or launches an independent review; the coordinator owns the one fresh whole-PR read-only review. Protected runner files remain unchanged.
+
+Exact latest user prompt:
+
+```text
+Address only the remaining PR #10 review finding: if returning from Logs after the Overview load fails, keyboard focus should still be restored to a sensible location instead of ending up on the page body.
+
+Add or update the regression test for that case, run the required verification, push the fix to the same PR, then run one fresh independent review of the whole PR.
+
+If that review passes, merge PR #10 and stop. Don’t start #4 yet.
+```
