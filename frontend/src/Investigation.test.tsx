@@ -439,7 +439,15 @@ it.each([true, false])(
   },
 );
 
-it.each(["evidence", "heading"])(
+it.each([
+  "evidence",
+  "heading",
+  "Back to incidents",
+  "Refresh overview",
+  "missing",
+  "empty",
+  "unidentified",
+])(
   "restores current %s focus and scroll after reload with delayed evidence",
   async (target) => {
     const user = userEvent.setup();
@@ -457,14 +465,29 @@ it.each(["evidence", "heading"])(
     const logs = await screen.findByRole("link", {
       name: "View evaluated logs",
     });
-    const restoredControl = () =>
-      target === "evidence"
-        ? screen.getByRole("link", { name: "View evaluated logs" })
-        : screen.getByRole("heading", { name: "checkout · open" });
+    const restoredControl = () => {
+      if (target === "evidence")
+        return screen.getByRole("link", { name: "View evaluated logs" });
+      if (target === "Back to incidents" || target === "Refresh overview")
+        return screen.getByRole("button", { name: target });
+      return screen.getByRole("heading", { name: "checkout · open" });
+    };
     expect(logs).toBeInTheDocument();
-    restoredControl().focus();
+    if (target === "unidentified") {
+      screen.getByRole("button", { name: "Advance one minute" }).focus();
+      expect(window.history.state.focus).toBe("incident-heading");
+    } else restoredControl().focus();
     vi.stubGlobal("scrollY", 900);
     window.dispatchEvent(new Event("scroll"));
+    if (target === "missing" || target === "empty") {
+      window.history.replaceState(
+        {
+          ...window.history.state,
+          focus: target === "missing" ? "removed-control" : "",
+        },
+        "",
+      );
+    }
     const url = window.location.href;
     page.unmount();
 
@@ -483,10 +506,13 @@ it.each(["evidence", "heading"])(
     await screen.findByText("Loading evaluated evidence…");
     // Loading can move the viewport and focus; neither may replace the snapshot.
     window.dispatchEvent(new Event("scroll"));
-    screen.getByRole("button", { name: "Refresh overview" }).focus();
+    document.getElementById("overview-heading")!.focus();
     expect(window.scrollTo).not.toHaveBeenCalled();
     await act(async () => finish({ ok: true, json: async () => evidence }));
-    await waitFor(() => expect(restoredControl()).toHaveFocus());
+    await waitFor(() => {
+      expect(restoredControl()).toBeVisible();
+      expect(restoredControl()).toHaveFocus();
+    });
     expect(window.scrollTo).toHaveBeenLastCalledWith(0, 900);
     expect(window.location.href).toBe(url);
     expect(screen.getByLabelText("Evaluated window")).toHaveValue("91");

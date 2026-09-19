@@ -445,6 +445,7 @@ export function Overview() {
               </button>
             )}
             <button
+              id="refresh-overview"
               disabled={busy}
               onClick={() => {
                 setRevision((v) => v + 1);
@@ -580,7 +581,7 @@ export function Overview() {
                       : "Select an incident"}
                 </h2>
                 {selected && (
-                  <button onClick={() => select(null)}>
+                  <button id="back-to-incidents" onClick={() => select(null)}>
                     Back to incidents
                   </button>
                 )}

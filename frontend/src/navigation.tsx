@@ -110,7 +110,7 @@ export function usePageRestoration(
       if (document.querySelector('main [aria-busy="true"]')) return false;
       const state = window.history.state;
       const target = state?.focus ? document.getElementById(state.focus) : null;
-      if (state?.focus && !focusVisible(target)) {
+      if (state?.focus != null && !focusVisible(target)) {
         // Evidence controls arrive asynchronously. Once loading settles, a
         // missing or hidden origin must not leave restoration pending forever.
         focusVisible(fallback ? document.getElementById(fallback) : null);
@@ -149,7 +149,11 @@ export function usePageRestoration(
         window.location.href,
       );
     };
-    const saveFocus = () => save({ focus: document.activeElement?.id });
+    const saveFocus = () => {
+      // Unidentified controls restore to the visible heading, never an empty
+      // identity that would disable both restoration and its fallback.
+      save({ focus: document.activeElement?.id || fallback });
+    };
     const saveScroll = () => save({ scrollY: window.scrollY });
     window.addEventListener("focusin", saveFocus);
     window.addEventListener("scroll", saveScroll, { passive: true });
@@ -157,5 +161,5 @@ export function usePageRestoration(
       window.removeEventListener("focusin", saveFocus);
       window.removeEventListener("scroll", saveScroll);
     };
-  }, [ready, location, preservePosition]);
+  }, [ready, location, preservePosition, fallback]);
 }

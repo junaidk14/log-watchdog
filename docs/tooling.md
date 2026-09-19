@@ -164,3 +164,11 @@ No external runtime services, images, fonts, LLM calls, or webhook delivery are 
 - `diagnosing-bugs`, Vitest/jsdom and Testing Library — Used for failing-then-passing reload regressions with preserved URL/history and delayed evidence, covering evidence-link and existing-heading focus plus scroll.
 - Impeccable context/craft-floor/detector, Browser runtime and `pr` skill — Used for scoped focus hardening, supported availability/recovery discovery, source checks and PR evidence. Browser unavailable; rendered checks remain deferred.
 - Existing frontend/backend checks and actual loopback runtime validator — Used unchanged for verification.
+
+
+## PR #10 empty-focus review fix R1
+
+- `diagnosing-bugs`, Vitest/jsdom and Testing Library — Used for failing-then-passing actual Router reload regressions for Back to incidents, Refresh overview and an empty saved identity; missing/unidentified target coverage also verifies heading fallback and delayed scroll restoration.
+- React/TypeScript and History API — Used for stable control IDs and nonempty saved focus fallback; no new dependencies or architectural decisions.
+- Browser skill/runtime — Used for supported setup and recovery discovery: no browser available; discovery returned `[]`.
+- Existing frontend/backend build, lint, type, format, contrast, test and loopback runtime tools; `pr` skill and GitHub CLI — Used for verification and updating the existing PR.

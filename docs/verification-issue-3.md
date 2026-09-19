@@ -135,3 +135,50 @@ Supported Browser `getForUrl("http://127.0.0.1:8000/")` returned **No browser is
 Browser unavailable; rendered desktop, narrow-screen, and keyboard verification require a later manual check.
 
 Refresh-fix runtime validation: `.venv/bin/python scripts/validate_runtime.py` passed with the actual launcher and loopback HTTP against temporary synthetic SQLite data on macOS 15.6 arm64 / Python 3.14.5. Verified dashboard/assets, evaluated versus broader evidence (40/41), filters/sample links, unchanged measurements, restart persistence/isolation, all five demo transitions, and a real-clock worker minute. Measured 100k ingestion in 1.561s; first/deep/filtered browse medians 5.93/6.76/10.76ms; 100 events paced at 20/s in 4.960s, ingestion median/max 3.14/7.42ms. Local measurements only; no external provider or webhook claims.
+
+
+## R1 follow-up: restore controls with stable focus identities
+
+Back to incidents and Refresh overview saved empty focus IDs, so browser reload skipped both restoration and fallback. Both now have stable IDs. Unidentified focus saves the visible heading fallback, and legacy empty or missing targets fall back after evidence loading settles. No architectural or dependency change.
+
+```diff
+ on(focus)
+-  save(activeElement.id)
++  save(activeElement.id || visibleHeading)
+ on(restore)
+-  skip an empty saved ID
++  restore the control or visible heading after loading
+```
+
+### Evidence
+
+- **Before:** `npm --prefix frontend test -- src/Investigation.test.tsx -t 'after reload'` failed three cases: Back to incidents, Refresh overview and empty saved identity. The missing-target case passed. This was the expected regression run.
+- **After:** `npm --prefix frontend test` passed all **39 tests** in 3 files, including seven reload cases through the actual Router with preserved history/URL, delayed evidence, loading-time focus/scroll events, selected window/incident, final visible focus, and scroll restored to 900. This is mocked HTTP/DOM evidence, not rendered browser verification.
+- `npm --prefix frontend run build` — passed.
+- `npm --prefix frontend run typecheck` — passed.
+- `npm --prefix frontend run lint` — passed.
+- `npm --prefix frontend run format:check` — passed.
+- `.venv/bin/ruff check log_watchdog tests scripts` — passed.
+- `.venv/bin/ruff format --check log_watchdog tests scripts` — passed, 12 files.
+- `.venv/bin/mypy` — passed, 7 source files.
+- `.venv/bin/python scripts/check_contrast.py` — passed all 9 static palette checks.
+- `.venv/bin/pytest -q` — passed, **50 tests**, 2 existing Starlette/httpx/AnyIO deprecation warnings.
+- `.venv/bin/python scripts/validate_runtime.py` — passed using the actual launcher, temporary synthetic SQLite data and loopback HTTP on macOS 15.6 arm64 / Python 3.14.5. Dashboard/assets, all five demo transitions, evaluated/broader evidence (40/41), filters/sample, unchanged late evidence, restart/isolation and a real-clock worker minute passed. 100k ingestion: 2.079s; first/deep/filtered browse medians: 9.97/9.38/12.92ms; 100 events paced at 20/s: 4.955s, ingest median/max 2.29/7.21ms. Local measurements only.
+- `git diff --check` — passed.
+- An initial formatting invocation using `npm --prefix frontend exec -- prettier --write src/...` could not resolve root-relative paths; rerunning `./node_modules/.bin/prettier --write src/navigation.tsx src/Overview.tsx src/Investigation.test.tsx` from `frontend` succeeded. No check was weakened.
+- Prerequisite recheck: issue #3 remains open/ready; native and textual prerequisite #2 is closed. The existing assigned PR #10 remains the only target of this FIX.
+
+### Manual UI verification pending
+
+Supported Browser `getForUrl("http://127.0.0.1:8000/")` returned **No browser is available**. Read supported recovery documentation and called `agent.browsers.list()`, which returned `[]`. The authorized fallback applies; prior manual checks remain pending.
+
+- [ ] Rendered desktop Overview/Incidents: Demo → Advance → Investigate → choose an evaluated window → focus Back to incidents, then separately Refresh overview → scroll → browser reload with delayed evidence. Confirm the same control, incident/window and scroll position return.
+- [ ] Rendered narrow-screen layout/overflow: repeat the same path at phone width and 200% zoom, including the full-width pane and Back action.
+- [ ] Keyboard navigation/focus: repeat using Tab/Enter, reload each control, then continue into evaluated Logs and back. Verify visible heading fallback for an unavailable origin.
+- [ ] Browser-dependent loading/empty/error states and changed interactions: throttle evidence while reloading, move focus during loading, fail/retry requests and open unavailable evidence; confirm restoration waits and selects a visible fallback.
+
+Browser unavailable; rendered desktop, narrow-screen, and keyboard verification require a later manual check.
+
+### Merge Danger
+
+**Door:** two-way. **Blast Radius:** focus. The shared restoration hook also serves Logs; the complete frontend suite passes. No storage or API changes.
