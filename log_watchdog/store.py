@@ -13,8 +13,9 @@ from .models import Dataset, EventInput, utc_text
 
 
 class EventConflict(Exception):
-    def __init__(self, event_id: str) -> None:
+    def __init__(self, event_id: str, event_index: int) -> None:
         self.event_id = event_id
+        self.event_index = event_index
         super().__init__(f"Event ID {event_id!r} already exists with different content")
 
 
@@ -60,7 +61,7 @@ class Store:
         ids = []
         inserted = 0
         now = utc_text(datetime.now(UTC))
-        for event in events:
+        for event_index, event in enumerate(events):
             event_id = event.event_id or str(uuid4())
             content = (
                 utc_text(event.timestamp),
@@ -76,7 +77,7 @@ class Store:
             ).fetchone()
             if existing is not None:
                 if tuple(existing) != content:
-                    raise EventConflict(event_id)
+                    raise EventConflict(event_id, event_index)
             else:
                 db.execute(
                     "INSERT INTO events(dataset,event_id,timestamp,service,severity,"

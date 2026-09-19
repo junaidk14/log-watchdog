@@ -63,6 +63,60 @@ def main() -> None:
                 assert client.get(asset.group(1)).status_code == 200
                 assert client.get("/api/datasets/demo/events").json()["total"] == 3600
 
+                historical_file = json.dumps(
+                    [
+                        {
+                            "event_id": "historical-http-1",
+                            "timestamp": "2025-12-01T10:00:00Z",
+                            "service": "import-probe",
+                            "severity": "ERROR",
+                            "message": "Synthetic file timeout",
+                        },
+                        {
+                            "event_id": "historical-http-2",
+                            "timestamp": "2025-12-01T10:02:00Z",
+                            "service": "import-probe",
+                            "severity": "INFO",
+                            "message": "Synthetic file normal",
+                        },
+                    ]
+                ).encode()
+                upload_headers = {"Content-Type": "application/json"}
+                imported = client.post(
+                    "/api/historical/upload", content=historical_file, headers=upload_headers
+                )
+                assert imported.status_code == 200
+                assert imported.json()["inserted"] == 2
+                assert (
+                    client.post(
+                        "/api/historical/upload", content=historical_file, headers=upload_headers
+                    ).json()["duplicates"]
+                    == 2
+                )
+                invalid = client.post(
+                    "/api/historical/upload",
+                    content=b'[{"message":"invalid"}]',
+                    headers=upload_headers,
+                )
+                assert invalid.status_code == 422
+                assert (
+                    client.get(
+                        "/api/datasets/historical/events",
+                        params={
+                            "service": "import-probe",
+                            "message": "timeout",
+                            "severity": "ERROR",
+                            "start": imported.json()["start"],
+                            "end": imported.json()["end"],
+                        },
+                    ).json()["total"]
+                    == 1
+                )
+                historical_trends = client.get(
+                    "/api/historical/trends", params={"service": "import-probe"}
+                ).json()
+                assert [row["rate"] for row in historical_trends["buckets"]] == [1, None, 0]
+
                 started = time.perf_counter()
                 for batch in range(100):
                     events = [
@@ -134,7 +188,7 @@ def main() -> None:
                 process = start()
                 assert client.get("/api/datasets/live/events").json()["total"] == 100100
                 assert client.get("/api/datasets/demo/events").json()["total"] == 3600
-                assert client.get("/api/datasets/historical/events").json()["total"] == 0
+                assert client.get("/api/datasets/historical/events").json()["total"] == 2
                 assert (
                     client.put(
                         "/api/demo/receiver", json={"behavior": "fail-first-then-succeed"}
@@ -308,7 +362,11 @@ def main() -> None:
                             "paced_ingest_max_ms": round(max(ingestion), 2),
                             "restart_live_events": 100100,
                             "demo_events": 3600,
-                            "historical_events": 0,
+                            "historical_events": 2,
+                            "historical_upload_http": (
+                                "upload, duplicate, invalid row, interval/filter, "
+                                "trends and process restart passed"
+                            ),
                             "dashboard_and_asset_http": "passed",
                         },
                         indent=2,

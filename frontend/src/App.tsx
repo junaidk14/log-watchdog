@@ -1,3 +1,4 @@
+import { HistoricalUpload, HistoricalTrends } from "./Historical";
 import { PageLink, viewUrl, usePageRestoration } from "./navigation";
 import { Fragment, useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
@@ -372,6 +373,26 @@ export function App() {
                 : "Event time (UTC). Historical data is separate from live activity."}
           </span>
         </div>
+        {filters.dataset === "historical" && (
+          <HistoricalUpload
+            onImported={() => setRevision((current) => current + 1)}
+            onBrowse={(start, end) =>
+              navigate({
+                ...filters,
+                service: "",
+                severity: "",
+                message: "",
+                incident: "",
+                evaluation: "",
+                run: "",
+                event_id: "",
+                start,
+                end,
+                page: 1,
+              })
+            }
+          />
+        )}
         {filters.incident && (
           <section
             className="dataset-context"
@@ -698,6 +719,14 @@ export function App() {
             </div>
           </footer>
         </section>
+        {filters.dataset === "historical" && (
+          <HistoricalTrends
+            service={filters.service}
+            start={filters.start}
+            end={filters.end}
+            revision={revision}
+          />
+        )}
         <p className="workspace-footnote">
           Stored locally in SQLite. Dataset boundaries keep demo, live, and
           historical events separate.
