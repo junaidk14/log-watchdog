@@ -168,6 +168,30 @@ def main() -> None:
                     client.get("/api/datasets/demo/overview").json()["incidents"][0]["measurement"]
                     == recorded
                 )
+                evidence_url = f"/api/datasets/demo/incidents/{incidents[0]['id']}/evidence"
+                evidence_params = {"evaluation": recorded["id"]}
+                evaluated = client.get(evidence_url, params=evidence_params).json()
+                assert evaluated["total"] == evaluated["evaluated_total"] == 40
+                assert evaluated["measurement"] == recorded
+                assert evaluated["patterns"] == [{"message": "Downstream timeout", "count": 16}]
+                broader = client.get(evidence_url, params=evidence_params | {"scope": "all"}).json()
+                assert broader["total"] == 41
+                assert [e["event_id"] for e in broader["events"] if not e["included"]] == [
+                    "late-http-evidence"
+                ]
+                assert (
+                    client.get(evidence_url, params=evidence_params | {"severity": "ERROR"}).json()[
+                        "total"
+                    ]
+                    == 16
+                )
+                assert (
+                    client.get(
+                        evidence_url,
+                        params=evidence_params | {"event_id": evaluated["sample"][0]["event_id"]},
+                    ).json()["total"]
+                    == 1
+                )
                 process.terminate()
                 process.wait(timeout=10)
                 process = start()
@@ -175,6 +199,7 @@ def main() -> None:
                     client.get("/api/datasets/demo/overview").json()["incidents"][0]["state"]
                     == "recovered"
                 )
+                assert client.get(evidence_url, params=evidence_params).json() == evaluated
                 # Exercise the real background loop across one actual minute boundary.
                 window = datetime.now(UTC).replace(second=0, microsecond=0)
                 response = client.post(
@@ -219,6 +244,9 @@ def main() -> None:
                         {
                             "demo_transitions": states,
                             "late_evidence_unchanged": True,
+                            "evidence_navigation_http": (
+                                "40 evaluated / 41 broader; filters, sample, restart passed"
+                            ),
                             "incident_restart": "recovered",
                             "real_clock_worker": worker_measurement["status"],
                             "python": platform.python_version(),

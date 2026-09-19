@@ -58,9 +58,26 @@ function respond(value = data) {
 }
 beforeEach(() => {
   window.history.replaceState({}, "", "/?view=overview&dataset=demo");
+  vi.stubGlobal("scrollTo", vi.fn());
   fetchMock.mockReset();
   fetchMock.mockImplementation(() => respond());
-  vi.stubGlobal("fetch", fetchMock);
+  vi.stubGlobal("fetch", (url: string, ...args: unknown[]) => {
+    if (String(url).includes("/evidence"))
+      return Promise.resolve({
+        ok: true,
+        json: async () => ({
+          run: "demo-run",
+          measurement,
+          windows: [measurement],
+          evaluated_total: 40,
+          retained_total: 40,
+          evidence_missing: false,
+          patterns: [{ message: "Downstream timeout", count: 16 }],
+          sample: [],
+        }),
+      });
+    return fetchMock(url, ...args);
+  });
 });
 
 it("selects with keyboard, preserves selection through recovery and returns focus", async () => {
@@ -99,7 +116,7 @@ it("selects with keyboard, preserves selection through recovery and returns focu
   await waitFor(() =>
     expect(
       screen.getByRole("heading", { name: "checkout · recovered" }),
-    ).toBeInTheDocument(),
+    ).toHaveFocus(),
   );
 });
 
@@ -218,7 +235,9 @@ it("shows sparse recovery, delayed live windows and exact chart values accessibl
   await userEvent
     .setup()
     .click(screen.getByText("Evaluated windows for checkout"));
-  expect(screen.getByRole("table")).toHaveTextContent("40.00%");
+  expect(
+    screen.getByRole("table", { name: /Exact chart values/ }),
+  ).toHaveTextContent("40.00%");
   const report = await axe.run(container, {
     rules: { "color-contrast": { enabled: false } },
   });

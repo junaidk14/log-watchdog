@@ -1,3 +1,4 @@
+import { PageLink, viewUrl, usePageRestoration } from "./navigation";
 import { Fragment, useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
 
@@ -10,8 +11,14 @@ type Filters = {
   end: string;
   message: string;
   page: number;
+  incident: string;
+  evaluation: string;
+  run: string;
+  scope: string;
+  event_id: string;
 };
 type LogEvent = {
+  included?: boolean;
   sequence: number;
   event_id: string;
   timestamp: string;
@@ -23,6 +30,10 @@ type LogEvent = {
 };
 type Results = {
   dataset: Dataset;
+  evaluated_total?: number;
+  retained_total?: number;
+  evidence_missing?: boolean;
+  measurement?: { service: string; start: string; end: string };
   total: number;
   page: number;
   page_size: number;
@@ -41,11 +52,17 @@ function readFilters(): Filters {
     end: params.get("end") ?? "",
     message: params.get("message") ?? "",
     page: Number(params.get("page") ?? 1),
+    incident: params.get("incident") ?? "",
+    evaluation: params.get("evaluation") ?? "",
+    run: params.get("run") ?? "",
+    scope: params.get("scope") ?? "evaluated",
+    event_id: params.get("event_id") ?? "",
   };
 }
 function encodeFilters(filters: Filters): string {
   const params = new URLSearchParams({ view: "logs" });
   Object.entries(filters).forEach(([key, value]) => {
+    if (key === "scope" && !filters.incident) return;
     if (value !== "") params.set(key, String(value));
   });
   return params.toString();
@@ -128,11 +145,22 @@ export function App() {
     params.delete("dataset");
     params.delete("view");
     params.set("page_size", "50");
-    fetch(`/api/datasets/${filters.dataset}/events?${params}`, {
+    const endpoint = filters.incident
+      ? `incidents/${encodeURIComponent(filters.incident)}/evidence`
+      : "events";
+    params.delete("incident");
+    if (filters.incident) {
+      for (const key of ["service", "start", "end"]) params.delete(key);
+    }
+    fetch(`/api/datasets/${filters.dataset}/${endpoint}?${params}`, {
       signal: controller.signal,
     })
       .then(async (response) => {
         if (!response.ok) {
+          if (filters.incident && [404, 410].includes(response.status)) {
+            const body = await response.json();
+            throw new Error(body.detail);
+          }
           if (response.status === 422)
             throw new Error(
               "The server rejected these filters. Check the values and apply again.",
@@ -211,7 +239,11 @@ export function App() {
       );
     }
     restoreScroll.current = null;
-    window.history.pushState({}, "", `?${encodeFilters(next)}`);
+    window.history.pushState(
+      { returnState: window.history.state?.returnState },
+      "",
+      `?${encodeFilters(next)}`,
+    );
     setFilters(next);
     setDraft(next);
     setResults(null);
@@ -221,13 +253,16 @@ export function App() {
     event.preventDefault();
     navigate({ ...draft, page: 1 });
   }
+  usePageRestoration(!loading, "logs-heading");
   function clear() {
     navigate({
+      ...filters,
       dataset: datasets.includes(filters.dataset) ? filters.dataset : "demo",
-      service: "",
+      service: filters.incident ? filters.service : "",
       severity: "",
-      start: "",
-      end: "",
+      start: filters.incident ? filters.start : "",
+      end: filters.incident ? filters.end : "",
+      event_id: "",
       message: "",
       page: 1,
     });
@@ -259,11 +294,20 @@ export function App() {
         </a>
         <p className="local-label">Local workspace</p>
         <nav aria-label="Primary">
-          <a
-            href={`?view=overview&dataset=${filters.dataset === "historical" ? "live" : filters.dataset}`}
+          <PageLink
+            href={viewUrl("overview", {
+              dataset:
+                filters.dataset === "historical" ? "live" : filters.dataset,
+            })}
+            focus="overview-heading"
           >
             Overview
-          </a>
+          </PageLink>
+          {filters.dataset !== "historical" && (
+            <PageLink href={viewUrl("incidents")} focus="incident-heading" back>
+              Incidents
+            </PageLink>
+          )}
           <a href={`?${query}`} aria-current="page">
             Logs
           </a>
@@ -277,7 +321,7 @@ export function App() {
       <main id="logs">
         <header className="page-header">
           <div>
-            <h1 ref={heading} tabIndex={-1}>
+            <h1 id="logs-heading" ref={heading} tabIndex={-1}>
               Logs
             </h1>
             <p>Explore events across a service, interval, or message.</p>
@@ -287,7 +331,15 @@ export function App() {
             <select
               value={draft.dataset}
               onChange={(e) =>
-                navigate({ ...filters, dataset: e.target.value, page: 1 })
+                navigate({
+                  ...filters,
+                  dataset: e.target.value,
+                  page: 1,
+                  incident: "",
+                  evaluation: "",
+                  run: "",
+                  event_id: "",
+                })
               }
             >
               {!datasets.includes(draft.dataset) && (
@@ -317,11 +369,68 @@ export function App() {
                 : "Event time (UTC). Historical data is separate from live activity."}
           </span>
         </div>
+        {filters.incident && (
+          <section
+            className="dataset-context"
+            aria-label="Incident evidence scope"
+          >
+            <strong>
+              Incident #{filters.incident} ·{" "}
+              {filters.scope === "all"
+                ? "All matching logs"
+                : "Evaluated evidence"}
+            </strong>
+            <p>
+              {results?.measurement?.service ?? filters.service} ·{" "}
+              {results?.measurement?.start ?? filters.start} →{" "}
+              {results?.measurement?.end ?? filters.end} (end exclusive)
+            </p>
+            <p>
+              Incident measurements are unchanged.{" "}
+              {results?.evaluated_total ?? "…"} evaluated events ·{" "}
+              {results?.total ?? "…"} matching current filters
+            </p>
+            {filters.event_id && <p>Event ID refinement: {filters.event_id}</p>}
+            <label>
+              <input
+                type="checkbox"
+                checked={filters.scope === "all"}
+                onChange={(e) =>
+                  navigate({
+                    ...filters,
+                    scope: e.target.checked ? "all" : "evaluated",
+                    page: 1,
+                  })
+                }
+              />{" "}
+              Include later arrivals
+            </label>
+            <PageLink href={viewUrl("incidents")} focus="incident-heading" back>
+              Back to incident
+            </PageLink>
+            <button
+              onClick={() =>
+                navigate({
+                  ...filters,
+                  incident: "",
+                  evaluation: "",
+                  run: "",
+                  event_id: "",
+                  scope: "evaluated",
+                  page: 1,
+                })
+              }
+            >
+              Leave incident scope
+            </button>
+          </section>
+        )}
         <section className="explorer" aria-label="Log explorer">
           <form onSubmit={submit} className="filters" aria-label="Filter logs">
             <label>
               Service
               <input
+                readOnly={!!filters.incident}
                 value={draft.service}
                 maxLength={120}
                 placeholder="All services"
@@ -350,6 +459,7 @@ export function App() {
             <label>
               From (UTC)
               <input
+                readOnly={!!filters.incident}
                 value={draft.start}
                 placeholder="2026-01-01T11:30:00Z"
                 aria-describedby="time-help"
@@ -359,6 +469,7 @@ export function App() {
             <label>
               To (UTC)
               <input
+                readOnly={!!filters.incident}
                 value={draft.end}
                 placeholder="2026-01-01T12:00:00Z"
                 aria-describedby="time-help"
@@ -385,8 +496,9 @@ export function App() {
               </button>
             </div>
             <p id="time-help" className="hint">
-              Use ISO UTC timestamps ending in Z. Both time boundaries are
-              inclusive.
+              {filters.incident
+                ? "Service and interval are pinned to the evaluated window. Leave incident scope to change them."
+                : "Use ISO UTC timestamps ending in Z. Both time boundaries are inclusive."}
             </p>
           </form>
           <div className="result-toolbar">
@@ -413,6 +525,14 @@ export function App() {
               <button type="button" onClick={() => setRevision(revision + 1)}>
                 Retry
               </button>
+              {filters.incident && (
+                <PageLink
+                  href={`?view=overview&dataset=${filters.dataset}`}
+                  focus="queue-heading"
+                >
+                  Return to current {filters.dataset}
+                </PageLink>
+              )}
             </div>
           )}
           {loading && !results && (
@@ -422,16 +542,27 @@ export function App() {
               <div />
             </div>
           )}
-          {!loading && results?.total === 0 && (
+          {results?.evidence_missing && (
+            <p role="alert" className="error">
+              Evidence no longer available under the retention policy.{" "}
+              {results.retained_total} of {results.evaluated_total} evaluated
+              events remain; recorded measurements are unchanged.
+            </p>
+          )}
+          {!loading && results?.total === 0 && !results.evidence_missing && (
             <div className="empty">
               <h2>No matching logs</h2>
               <p>
-                {filters.dataset === "live"
-                  ? "Send events to the live ingestion API, or clear filters to see all stored live events."
-                  : "Try a broader interval or clear filters to see all events in this dataset."}
+                {filters.incident
+                  ? "No events match these refinements. Clear filters to see events in this incident scope."
+                  : filters.dataset === "live"
+                    ? "Send events to the live ingestion API, or clear filters to see all stored live events."
+                    : "Try a broader interval or clear filters to see all events in this dataset."}
               </p>
               <button type="button" onClick={clear}>
-                Clear filters and view all
+                {filters.incident
+                  ? "Clear query refinements"
+                  : "Clear filters and view all"}
               </button>
             </div>
           )}
@@ -482,6 +613,12 @@ export function App() {
                         <td className="service">{log.service}</td>
                         <td className="message-cell">
                           <span>{log.message}</span>
+                          {log.included === false && (
+                            <strong className="late-label">
+                              Arrived after evaluation — excluded from incident
+                              counts
+                            </strong>
+                          )}
                         </td>
                         <td>
                           <button

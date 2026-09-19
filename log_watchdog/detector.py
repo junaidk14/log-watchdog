@@ -257,6 +257,7 @@ class Detector:
     def overview(self, dataset: DetectionDataset) -> dict[str, Any]:
         with self.store.connection() as db:
             db.execute("BEGIN")
+            run_id = db.execute("SELECT value FROM settings WHERE key='demo_run'").fetchone()[0]
             progress = dict(
                 db.execute(
                     "SELECT * FROM evaluation_progress WHERE dataset=?", (dataset,)
@@ -304,6 +305,7 @@ class Detector:
         ) + 2 * MINUTE + timedelta(seconds=self.config.grace_seconds)
         return {
             "dataset": dataset,
+            "run": run_id if dataset == "demo" else None,
             "progress": progress,
             "services": services,
             "incidents": incidents,

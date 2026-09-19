@@ -132,3 +132,57 @@ No external runtime services, images, fonts, LLM calls, or webhook delivery are 
 - Browser skill — Used for supported browser availability/recovery discovery; rendered checks remain separately recorded.
 - `pr` skill — Used to update the existing PR evidence.
 - `domain-modeling` skill — Used to record the open-incident eligibility policy as ADR-026 in the existing decision log.
+
+## Issue #3 evaluated investigation
+
+- React/TypeScript, browser History API and MutationObserver — Used for shared in-app navigation, pinned incident/window URLs, saved return context, and focus restoration after asynchronous evidence loads; no router dependency added.
+- SQLite, FastAPI and Python standard library — Used for snapshot evidence reads, explicit late-arrival membership, literal refinements, sampled logs, exact-message patterns and a persisted demo-run UUID. No new runtime dependency.
+- Existing pytest/httpx and loopback runtime validator — Used for evidence membership, isolation, missing-evidence/reset-boundary fixtures, actual HTTP, restart and measured performance.
+- Vitest/jsdom, Testing Library and axe — Used for scoped investigation, filters/late-arrival toggle, expansion, Back/return focus, multi-window interval/focus regressions and DOM accessibility checks.
+- Impeccable context/detector and separate finish reviewer/documenter — Used for the established console extension; source detector reported no findings. Browser discovery/recovery found no usable browser, so rendered checks remain explicitly deferred.
+- `domain-modeling` and `pr` skills, GitHub CLI, Git and clock tool — Used for the persisted evidence identity decision, PR evidence, full paginated eligibility checks and elapsed-time reporting. Existing build/lint/type/format/contrast tools reused without dependency changes.
+
+
+## Authorized AFK resumption
+
+- Temporary external PR #10 resume script — Reuses the generic runner session functions and complete independent review/fix/re-review/merge gates, starting at review for the existing PR. Preserves logs outside the repo; generic runner files remain unchanged.
+- Codex Fast mode — Existing user configuration has `service_tier = "fast"`; CLI reports `fast_mode` stable/enabled. Inherited by fresh sessions, without reducing reasoning or verification. Configuration checked against [official speed documentation](https://developers.openai.com/es-419/docs/agent-configuration/speed); actual server-side tier availability is not guaranteed by the setting.
+- `pr` and `writing-for-agents` skills — Used for the closing-reference correction and updated execution scope respectively.
+
+
+## PR #10 review fixes R1 and R2
+
+- `diagnosing-bugs` skill, Vitest/jsdom and Testing Library — Used to reproduce four failing return-focus cases, then verify primary-navigation return, unavailable/hidden origins, browser Back after clearing selection, delayed evidence and failed evidence responses. The existing recovered-incident traversal now also asserts focus.
+- React/TypeScript, History API, MutationObserver and computed styles — Used to preserve explicit focus destinations, reject hidden targets and wait for evidence loading before falling back to the incident heading. No dependencies added.
+- Impeccable context/craft-floor/detector and Browser skill/runtime — Used for the scoped accessibility refinement; detector returned no findings. Supported browser setup failed and recovery discovery returned an empty list, so rendered checks remain pending.
+- Existing frontend/backend build, test, lint, type, format, contrast and loopback runtime commands — Reused for verification. `pr` skill, GitHub CLI, Git and clock tool used for the existing PR update and elapsed-time evidence.
+
+
+## PR #10 refresh-restoration fix R1
+
+- React/TypeScript, History API and browser focus/scroll events — Used to keep the workbench snapshot current, protect it while loading/restoring, and defer restoration until evidence settles. Existing MutationObserver reused; no dependency or architectural change.
+- `diagnosing-bugs`, Vitest/jsdom and Testing Library — Used for failing-then-passing reload regressions with preserved URL/history and delayed evidence, covering evidence-link and existing-heading focus plus scroll.
+- Impeccable context/craft-floor/detector, Browser runtime and `pr` skill — Used for scoped focus hardening, supported availability/recovery discovery, source checks and PR evidence. Browser unavailable; rendered checks remain deferred.
+- Existing frontend/backend checks and actual loopback runtime validator — Used unchanged for verification.
+
+
+## PR #10 empty-focus review fix R1
+
+- `diagnosing-bugs`, Vitest/jsdom and Testing Library — Used for failing-then-passing actual Router reload regressions for Back to incidents, Refresh overview and an empty saved identity; missing/unidentified target coverage also verifies heading fallback and delayed scroll restoration.
+- React/TypeScript and History API — Used for stable control IDs and nonempty saved focus fallback; no new dependencies or architectural decisions.
+- Browser skill/runtime — Used for supported setup and recovery discovery: no browser available; discovery returned `[]`.
+- Existing frontend/backend build, lint, type, format, contrast, test and loopback runtime tools; `pr` skill and GitHub CLI — Used for verification and updating the existing PR.
+
+
+## PR #10 primary-Logs browser-Back fix R1
+
+- `diagnosing-bugs`, React/TypeScript History API, Vitest/jsdom and Testing Library — Used for an actual Router regression of Investigate → primary Logs → browser Back with delayed evidence, including an older entry without a focus identity. Existing focus snapshots survive id-less links; saved positions enable fallback. No new dependencies.
+- Impeccable context/craft-floor/detector and Browser runtime — Used for scoped focus verification. Detector found no source issues; supported browser setup failed and recovery returned `[]`, so rendered checks remain pending.
+- Existing build/test/lint/type/format/contrast/runtime commands, Git/GitHub CLI and `pr` skill — Used for verification and the same-PR update. Codex sub-agent used for the user-requested fresh whole-PR read-only review.
+
+
+## PR #10 failed-Overview return focus R1
+
+- `diagnosing-bugs`, React/TypeScript, Vitest/jsdom and Testing Library — Used for four failing-then-passing actual Router regressions covering explicit/browser Back with immediate/delayed Overview failures, visible page-heading fallback, keyboard retry, selection/window persistence and subsequent refresh focus. No dependency added.
+- Impeccable context/harden/craft-floor/detector and Browser skill/runtime — Used for this scoped error/focus correction. Source detector found no issues; supported browser selection failed and recovery discovery returned `[]`, leaving rendered checks pending.
+- Existing frontend/backend build, test, lint, type, format, contrast and real-HTTP validation tools — Reused for full verification. `pr`, GitHub CLI, Git and clock — Used for existing PR evidence, metadata checks and elapsed-time reporting.

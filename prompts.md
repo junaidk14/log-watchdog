@@ -889,3 +889,101 @@ Triggering assignment: "You are an unattended implementation agent working in on
 ## 2026-09-19T21:29:49Z — FIX issue #2 / PR #9
 
 Runner assignment: FIX on `issue-2-detection-and-recovery`, base `53ce1c94c330e6d42818bcc5d0eb2403d63beeba`, reviewed head `db7d9fe44f7d377440580e9b776c29cb1329cb68`. Address only R1: raising minimum baseline history on restart strands open incidents because frozen history cannot grow. Preserve established eligibility until recovery, frozen baseline membership, and recorded evaluations; add a restart regression. Verify, commit, push the same branch and update PR #9; do not merge.
+
+## Unattended IMPLEMENT — issue #3 — 2026-09-19T21:41:26Z
+
+Mode: IMPLEMENT. Repository: junaidk14/log-watchdog. Starting main commit: 755ebbf9568f08ec2f85ead34c1c77bd6204a6d2. Selected issue: https://github.com/junaidk14/log-watchdog/issues/3.
+
+Triggering assignment: "You are an unattended implementation agent working in one GitHub repository. The runner supplies either IMPLEMENT or FIX mode. Complete that assignment in this session." Select exactly the lowest-numbered executable ready issue after complete paginated enumeration, dependency and open-PR checks; implement and verify, commit/push a new issue branch and create a non-draft PR, leaving independent review and merge to the runner. This turn implements only evaluated-evidence investigation: persistent workbench/window context, exact evaluated logs and explicit later arrivals, local summary, pattern/sample links, missing-evidence states and accessible DOM navigation.
+
+Browser discovery and recovery found no browser; the project-authorized fallback applies with explicit manual checks in docs/verification-issue-3.md. Separate skill-required source review found two window context/focus defects; its focused verdict scored both resolved after regression coverage. Root audit updated under the project policy's sole prompt-document exception. Protected afk-Codex files, runner configuration, task prompts and logs were not modified. No merge, approval or auto-merge performed.
+
+
+## Resume PR #10 and complete approved backlog — 2026-09-19T21:58:40.517840+00:00
+
+```text
+Fix PR #10 so it only closes issue #3 and no longer closes #1 or #2.
+
+Then continue the AFK workflow from where it stopped:
+- independently review PR #10
+- fix/re-review if needed
+- merge only after review passes
+
+After that, continue through issues #4, #5, #6, and #7 using Fast mode where available.
+
+Keep the same implementation -> independent review -> fix/re-review -> merge gates.
+
+For #7, keep the Gemini integration lightweight and exactly within the existing ticket scope. Don’t expand it into chat, agent orchestration, multiple providers, or external actions.
+
+If anything becomes blocked or the repo enters an unexpected state, stop safely and preserve the logs rather than weakening verification.
+
+Once all remaining issues are complete, stop and give me a concise status summary before final UI polish, validation, and submission work.
+```
+
+Root coordinator corrected accidental closing-keyword phrases in PR #10 prerequisite notes; the intended sole closing directive is issue #3. Resume uses a temporary external script with the unchanged generic review/fix/merge loop and safety checks; no implementation session is reused. After merge, update project policy on clean main for the newly authorized #4–#7 run.
+
+
+## 2026-09-19T22:04:31.464044+00:00 — FIX issue #3 / PR #10
+
+Runner assignment: FIX only R1 and R2 on `issue-3-investigation-workbench`, base `755ebbf9568f08ec2f85ead34c1c77bd6204a6d2`, reviewed head `9c86ef3d22adb3eba4008516b8a13ff885db54d6`. Issue: https://github.com/junaidk14/log-watchdog/issues/3. R1: primary-navigation Logs saves an undefined origin focus, overriding Back to incident's destination; restore a valid fallback and use the incident heading for unavailable origins. R2: Back to incidents saves `incident-null` in the outgoing detail entry; save an existing detail target and verify browser Back restores the same incident/evaluation and visible detail focus. Add DOM regressions, verify, commit and push the same branch, and update the existing PR. No merge, approval, auto-merge, other issue work, or protected runner-file changes. Browser setup/recovery found no browser; use the authorized fallback and retain the manual checklist.
+
+
+## 2026-09-19T22:10:23.671228+00:00 — FIX issue #3 / PR #10 refresh finding R1
+
+Runner assignment: FIX only R1 on `issue-3-investigation-workbench`, base `755ebbf9568f08ec2f85ead34c1c77bd6204a6d2`, reviewed head `b5f22922738888994ea0cecb26263d914508192e`. Issue: https://github.com/junaidk14/log-watchdog/issues/3. Browser refresh restores stale focus and scroll from incident selection. Persist current workbench focus/scroll without overwriting pending restoration during loading; restore after evidence arrives. Add a regression selecting an incident, moving into evidence and scrolling, then remounting with preserved URL/history and delayed evidence; assert incident/window, focused control, and scroll. Include browser reload in the deferred manual walkthrough. Verify, commit and push the same branch, and update existing PR #10; no other issue, merge, approval, auto-merge, or protected runner-file changes.
+
+
+## 2026-09-19T22:15:11.323305+00:00 — FIX issue #3 / PR #10 empty-focus finding R1
+
+Runner assignment: FIX only R1 on `issue-3-investigation-workbench`, base `755ebbf9568f08ec2f85ead34c1c77bd6204a6d2`, reviewed head `5d3a3260c3921ca813cb81f39525fde7aba74267`. Issue: https://github.com/junaidk14/log-watchdog/issues/3. Back to incidents and Refresh overview have no stable focus IDs; persisting an empty identity skips reload restoration and fallback. Give these controls stable identities, prevent empty saved identities, and restore a visible heading for unavailable targets. Add delayed-evidence reload regressions preserving selection/window/scroll, verify, commit/push the existing branch and update PR #10. No merge, approval, auto-merge, other issue work, or protected runner-file changes.
+
+
+# Root audit — 2026-09-19T22:18:51Z
+
+```text
+Fix PR #10 so it only closes issue #3 and no longer closes #1 or #2. Ignore if PR#10 is merged already.
+
+Then continue the AFK workflow from where it stopped: run the independent review, fix anything the reviewer finds, re-review, and merge only after it passes.
+
+Also tighten the project-specific AFK policy so future implementation/fix sessions verify their PR metadata before returning PR READY. In particular, the PR should target main, close only the assigned issue, have the expected branch/head, and not have conflicting PR metadata. If the agent created incorrect PR metadata, it should fix that itself before handing control back to the runner.
+
+Keep the current incident-workbench UI direction intact unless the reviewer finds a concrete issue with it. Don’t expand scope or redesign anything as part of this fix.
+
+After #3 is merged, continue through #4, #5, #6, and #7 with the same implementation -> independent review -> fix/re-review -> merge flow.
+
+If anything gets blocked or the repo enters an unexpected state, stop safely and preserve the logs instead of weakening verification.
+```
+
+Runner stopped at its unchanged three-fix limit with one remaining return-focus defect. PR #10 is open, closes only #3, and has clean pushed head 66ff84a741e09c402c2e070e29091d15383a6b72. No merge or subsequent issue execution. Policy activation deferred to preserve the fixed review base; a proposed updated policy is saved alongside this audit without changing the checkout.
+
+
+## 2026-09-19T22:23:59.791002+00:00 — Fresh FIX issue #3 / PR #10 browser-Back R1
+
+```text
+I’m going offline now. Please continue in AFK mode from the current state.
+
+First, address only the remaining PR #10 review finding about keyboard focus on Investigate -> Logs -> browser Back. Use a fresh fix session, add/update the regression test, run the required verification, then run a fresh independent review of the whole PR. Merge only if that review passes.
+
+After #3 is merged, continue through issues #4, #5, #6, and #7 with the same implementation -> independent review -> fix/re-review -> merge gates.
+
+Do not weaken verification, bypass blockers, or improvise around unexpected repository state. If anything becomes BLOCKED, hits a retry limit, fails verification, or enters an ambiguous Git/PR state, stop safely and preserve the logs/state for me to inspect later.
+
+Keep prompts.md updated and do not wait for interactive approval.
+```
+
+Session assignment: FIX only remaining R1 on `issue-3-investigation-workbench`, base `755ebbf9568f08ec2f85ead34c1c77bd6204a6d2`, reviewed head `66ff84a741e09c402c2e070e29091d15383a6b72`. Issue: https://github.com/junaidk14/log-watchdog/issues/3. Preserve outgoing focus for id-less PageLink navigation and restore missing-focus history entries after delayed evidence without stealing focus on ordinary refresh. Add actual Router browser-Back regression; retain explicit Back and background-refresh coverage. User authorizes one fresh fix and a whole-PR independent read-only review; stop on failed verification, ambiguous metadata or a failing next review. Verify open/non-draft same-repository PR, main at supplied base, assigned branch and matching local/pushed/PR head, sole closing reference #3, no auto-merge or competing PR. Record both root audit turns here. Never merge in this implementation session; the root coordinator owns later policy activation and issue continuation. Protected runner files remain untouched.
+
+
+## 2026-09-19T22:32:52.765697+00:00 — FIX issue #3 / PR #10: failed Overview return focus
+
+Assignment: FIX on `issue-3-investigation-workbench`, base `755ebbf9568f08ec2f85ead34c1c77bd6204a6d2`, reviewed head `27666348d6d11df286c5dd6ad333fd3b41de9907`. Address only remaining R1: return from evaluated Logs after a failed Overview load must restore visible focus; add actual Router regressions for explicit and browser Back with delayed failure, preserve incident/evaluation and ordinary refresh focus, verify retry and all required checks, commit/push the same branch and update PR evidence. This implementation session never merges or launches an independent review; the coordinator owns the one fresh whole-PR read-only review. Protected runner files remain unchanged.
+
+Exact latest user prompt:
+
+```text
+Address only the remaining PR #10 review finding: if returning from Logs after the Overview load fails, keyboard focus should still be restored to a sensible location instead of ending up on the page body.
+
+Add or update the regression test for that case, run the required verification, push the fix to the same PR, then run one fresh independent review of the whole PR.
+
+If that review passes, merge PR #10 and stop. Don’t start #4 yet.
+```

@@ -2,7 +2,7 @@
 
 A local, single-user structured log explorer built with FastAPI, SQLite, and React. Ingest events, filter them by dataset, service, severity, UTC interval or message, and inspect their metadata. No login or external credentials are needed.
 
-This implementation delivers structured ingestion and browsing plus error-log rate detection, incident grouping/recovery, and simulation advancement (issues #1–#2). Overview opens first; Logs remains available. Rich evidence navigation, webhooks, file upload, retention/reset, and optional LLM analysis are later approved slices. See [detector behavior and configuration](docs/detection.md) for the complete five-advance demonstration, formula, and persistence boundaries.
+This implementation delivers structured ingestion and browsing plus error-log rate detection, incident grouping/recovery, simulation advancement and evaluated-evidence investigation (issues #1–#3). Overview opens first; Incidents and Logs preserve investigation context. Webhooks, file upload, retention/reset, and optional LLM analysis are later approved slices. See [detector behavior and configuration](docs/detection.md) for the complete five-advance demonstration, formula, and persistence boundaries.
 
 ## Start locally
 
@@ -66,4 +66,14 @@ npm --prefix frontend test
 
 Backend tests cover schema failures, complete-batch rollback, ID generation/deduplication/conflicts, normalization, literal filters, paging, dataset isolation, seed idempotence, and SQLite restart. Frontend tests cover query/Back restoration (including response timing), same-query actions, dataset races, expansion/focus, loading/empty/error/retry, literal rendering of untrusted messages, and available axe DOM accessibility rules. jsdom cannot establish rendered layout, contrast, or real-browser keyboard behavior. ESLint explicitly permits focusable named `region` elements to make the overflowing table keyboard-scrollable; other accessibility rules remain active.
 
-See [issue #1 evidence](docs/verification-issue-1.md) and [issue #2 evidence](docs/verification-issue-2.md) for measured results and pending manual UI checks.
+See [issue #1 evidence](docs/verification-issue-1.md), [issue #2 evidence](docs/verification-issue-2.md), and [issue #3 evidence](docs/verification-issue-3.md) for measured results and pending manual UI checks.
+
+## Investigate evaluated evidence
+
+Advance Demo once and activate **Investigate checkout incident**. The queue stays beside the evidence pane on desktop; at narrow widths the pane has **Back to incidents**. Selection and the evaluated window are in the URL and remain pinned during refresh and recovery. Choose **Evaluated window** to inspect another recorded minute, including recovery windows.
+
+The pane shows counts, rate, baseline/threshold, exact-message error patterns, a labeled five-event sample, and a non-LLM local summary with evidence links. **View evaluated logs** opens the full paginated window, initially restricted to the detector's watermark. **Include later arrivals** explicitly expands that same half-open interval and labels excluded additions. Recorded totals and query matching counts stay separate. **Clear filters** removes severity/message/event-ID refinements while keeping incident scope; **Leave incident scope** explicitly enables general service/time exploration. Sample links pin an exact event ID.
+
+`GET /api/datasets/{demo|live}/incidents/{id}/evidence` accepts optional `evaluation` (default latest abnormal window), `run` (Demo UUID), `scope=evaluated|all`, `severity`, literal `message`, exact `event_id`, `page`, and `page_size` (1–100). Service and UTC bounds come from evaluation provenance, never caller-supplied overrides. Patterns show up to ten exact ERROR/FATAL message groups; samples prefer errors and contain at most five events. Basic pattern matching is not root-cause analysis. All evidence reads share one snapshot.
+
+Demo links carry a durable run identity. A mismatched run returns a specific reset explanation; an unavailable incident/window returns 404. If recorded metadata outlives logs, the response flags missing evidence independently of filters. Reset/retention execution and Deliveries remain their own later slices; these boundaries are tested with controlled SQLite fixtures, not a claim that reset or cleanup is already implemented. Older links without a run ID retain compatibility but cannot identify a prior reset.

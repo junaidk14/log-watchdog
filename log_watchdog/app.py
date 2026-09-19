@@ -7,7 +7,7 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Annotated, Any
+from typing import Annotated, Any, Literal
 
 from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.exceptions import RequestValidationError
@@ -17,6 +17,7 @@ from pydantic import AfterValidator, AwareDatetime
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from .detector import DetectionDataset, Detector, DetectorConfig
+from .evidence import Evidence, EvidenceUnavailable
 from .models import Dataset, IngestRequest, Severity, normalize_utc
 from .store import EventConflict, Store
 
@@ -54,6 +55,35 @@ def create_app(db_path: Path | None = None, frontend: Path | None = None) -> Fas
     @app.get("/api/datasets/{dataset}/overview")
     def overview(dataset: DetectionDataset) -> dict[str, Any]:
         return detector.overview(dataset)
+
+    @app.get("/api/datasets/{dataset}/incidents/{incident_id}/evidence")
+    def evidence(
+        dataset: DetectionDataset,
+        incident_id: int,
+        evaluation: Annotated[int | None, Query(ge=1)] = None,
+        run: Annotated[str | None, Query(max_length=100)] = None,
+        scope: Literal["evaluated", "all"] = "evaluated",
+        severity: Severity | None = None,
+        message: Annotated[str, Query(max_length=16384)] = "",
+        event_id: Annotated[str | None, Query(max_length=200)] = None,
+        page: Annotated[int, Query(ge=1, le=10000000)] = 1,
+        page_size: Annotated[int, Query(ge=1, le=100)] = 50,
+    ) -> dict[str, Any]:
+        try:
+            return Evidence(store).read(
+                dataset,
+                incident_id,
+                evaluation=evaluation,
+                run=run,
+                scope=scope,
+                severity=severity,
+                message=message,
+                event_id=event_id,
+                page=page,
+                page_size=page_size,
+            )
+        except EvidenceUnavailable as exc:
+            raise HTTPException(exc.status, exc.message) from exc
 
     @app.post("/api/demo/advance")
     def advance() -> dict[str, Any]:
