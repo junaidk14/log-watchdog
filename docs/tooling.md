@@ -11,7 +11,7 @@ Status: **Used** means exercised in this project; **Configured** means selected 
 | OpenAI Codex | Used | AI coding agent for repository inspection, architecture collaboration, code and documentation changes, and verification. |
 | Codex CLI 0.155.1 | Used | Checked local version and non-interactive flags for runner compatibility; initial version check preceded execution; issue #1 implementation has now run under the project policy. |
 | Bash 3.2.57 | Used | Validate the copied AFK runner with `bash -n`; also its execution shell when launched. |
-| AFK Codex runner (`junaidk14/tools`) | Used | First one-issue run stopped before implementation because no browser was available. Project policy now permits an explicitly documented automated-check fallback with rendered UI checks pending manual verification. Generic runner and prompts remain unchanged from commit `0e7016fd713b3306df0f44fb636b2d4c19ddc3f0`. |
+| AFK Codex runner (`junaidk14/tools`) | Used | The initial run stopped for browser absence; the subsequent issue #1 run completed implementation, independent review, fixes, re-review and merge (PR #8). The authorized continuation is capped at five core issues (#2–#6), with Gemini #7 deferred and safe-stop requirements in project policy. Project policy now permits an explicitly documented automated-check fallback with rendered UI checks pending manual verification. Generic runner and prompts remain unchanged from commit `0e7016fd713b3306df0f44fb636b2d4c19ddc3f0`. |
 | `jq` | Configured | Installed dependency used by the upstream runner to validate session results and GitHub state. |
 | Git | Used | Repository inspection and version control; inspected the remote and working-tree status. |
 | GitHub | Used | Remote repository at `junaidk14/log-watchdog`; queried issue and label inventory. |
@@ -36,7 +36,7 @@ Only skills actually applied or explicitly configured for this project are liste
 | Skill | Status | Purpose |
 | --- | --- | --- |
 | `setup-matt-pocock-skills` | Used | Set up the issue tracker, triage label vocabulary, and domain documentation conventions. |
-| `writing-for-agents` | Used | Guide agent instructions and documentation pointers in `AGENTS.md`. |
+| `writing-for-agents` | Used | Guide agent instructions, documentation pointers, and the core-only AFK execution policy. |
 | `domain-modeling` | Used | Guide recording confirmed architectural decisions in `docs/adr/decisions.md`. |
 | `grill-with-docs` | Used | Combine the design interview with ongoing architectural decision and glossary documentation. |
 | `grilling` | Used | Shape the MVP through rounds of questions with explicit recommendations and confirmed choices. |

@@ -865,3 +865,16 @@ Browser setup and supported recovery found no browser (`No browser is available`
 Triggering assignment: unattended FIX on `issue-1-ingest-and-browse`, base `b63023517099daacb05f1e606a3d3ccdb287ffbc`, reviewed head `bb1a4b4f24756e76e17616381d1dd1e1208499d9`. Address only R1 (UTC overflow must return field-specific 422 for ingestion and browse bounds, preserving batch atomicity) and R2 (save latest history-entry scroll during user scrolling and restore after delayed results, including repeated Back/Forward). Commit new changes without rewriting history, push the same branch, update PR #8, and leave independent review/merge to the runner.
 
 Both failures reproduced before fixes. Shared UTC normalization now converts overflow to validation errors. Scroll events save the current entry only when loading/restoration has finished and URL context matches; navigation during loading preserves the prior saved position. Regressions use SQLite-backed API requests and actual jsdom history traversal with delayed mocked fetch results. No design tokens or material architectural decisions changed. All documented checks passed; browser discovery again reported no browser and an empty recovery list, so rendered checks remain deferred under project policy. Protected runner files remain untouched.
+
+
+## Core AFK continuation — 2026-09-19T21:16:12Z
+
+```text
+Looks good. Continue the AFK runner through the remaining core MVP issues.
+
+Keep the same implementation -> independent review -> fix/re-review -> merge gates.
+
+Leave the optional Gemini issue until the core MVP is complete. If anything becomes blocked or the repo enters an unexpected state, stop safely and preserve the logs instead of weakening verification.
+```
+
+Authorized continuation: issues #2–#6, maximum five attempts; optional #7 deferred. Verified clean synchronized main, no open PRs, ready labels, and expected native blockers before launch. Project policy and launch documentation updated; generic runner and prompts unchanged. Logs remain outside the checkout.

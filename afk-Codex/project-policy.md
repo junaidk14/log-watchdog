@@ -10,6 +10,8 @@ The seven published issues are the approved implementation scope. Earlier planni
 
 ## Eligibility and scope
 
+- Current authorized run: finish the remaining core issues #2–#6, with at most five issue attempts. Issue #1 is complete. Issue #7 (optional Gemini) is deferred and ineligible for this run, even if its ready label and prerequisites would otherwise allow it. Stop after the core run; a separate user instruction is required to launch optional work.
+- Expected open prerequisites in the graph below are normal sequencing constraints. If an otherwise eligible core issue becomes blocked, required verification fails, dependencies cannot be verified, or repository state is unexpected, report BLOCKED and stop with logs and work preserved. Do not skip a newly blocked issue to continue unrelated work or weaken any gate. If core issues remain open but none is executable, report BLOCKED rather than declaring the core complete.
 - Target only `junaidk14/log-watchdog`, default branch `main`, approved issues #1–#7. A later issue needs explicit scope authorization before this policy is widened.
 - Require an open issue with `ready-for-agent`. The label is necessary, not sufficient: a `blocked` label, open PR, open native blocker, unresolved textual prerequisite, or unreadable dependency excludes it.
 - Follow the generic policy's complete paginated enumeration of ready issues and open PRs. Fetch native dependencies with `gh api --paginate repos/junaidk14/log-watchdog/issues/<number>/dependencies/blocked_by`; resolve every returned blocker and every textual reference to its current state. API/auth failures mean BLOCKED, not an empty backlog.
