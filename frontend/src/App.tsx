@@ -311,6 +311,9 @@ export function App() {
           <a href={`?${query}`} aria-current="page">
             Logs
           </a>
+          <PageLink href={viewUrl("deliveries")} focus="deliveries-heading">
+            Deliveries
+          </PageLink>
         </nav>
         <p className="rail-note">
           Structured events.

@@ -191,3 +191,20 @@ No external runtime services, images, fonts, LLM calls, or webhook delivery are 
 ## Remaining backlog continuation
 
 Project-specific AFK policy now authorizes #4–#7 and requires implementation/fix agents to self-check base, sole closing issue, branch/head, draft/repository/auto-merge state and competing PRs before handoff, correcting their own metadata mistakes and refetching. Uses the existing `writing-for-agents` guidance. Generic runner and prompts remain pinned and unchanged; current CLI Fast-mode configuration is inherited. Final Impeccable refinement, repo review, README and presentation are separately authorized after all issues merge; no external submission.
+
+## Issue #4 delivery slice
+
+- Python standard-library `http.client` — Used for bounded actual HTTP to the fixed local receiver without proxy or redirect behavior. No new runtime dependency.
+- Existing SQLite/FastAPI/asyncio — Used for atomic notifications, persisted attempts/receiver receipts, settings APIs, and the single background delivery worker.
+- Existing React/TypeScript/CSS, Vitest/Testing Library/axe, pytest/httpx/Uvicorn, Ruff/mypy and runtime validation — Used for the Deliveries view and real local HTTP/restart verification.
+- Impeccable context, surface brief, craft floor, mechanical detector and separate finish reviewer — Used to extend the existing console. Detector returned no findings; rendered checks remain deferred.
+- Browser skill and supported runtime recovery discovery — Used; `getForUrl` reported no available browser and `browsers.list()` returned `[]`.
+- `pr` skill, Git/GitHub CLI, and clock tool — Used for issue eligibility, PR evidence/metadata handoff and elapsed time.
+
+
+## PR #11 review fix R1
+
+- `diagnosing-bugs` skill and existing Vitest/React Testing Library — Used for failing then passing Router interactions from Historical Deliveries via both Overview links, and the unavailable Incidents link.
+- Existing frontend build, type, lint, formatting, DOM/axe tests, Python checks and runtime validator — Used to verify the scoped navigation fix; no new dependencies or architectural decisions.
+- Browser skill/runtime — Used for supported setup and recovery; `getForUrl` reported no available browser, recovery discovery returned `[]`. Rendered checks remain pending under the authorized fallback.
+- `pr` skill, GitHub CLI, Git and clock tool — Used to update the existing PR evidence and verify metadata/elapsed time.

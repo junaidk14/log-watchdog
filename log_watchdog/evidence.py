@@ -91,6 +91,14 @@ class Evidence:
                 included,
             ).fetchall()
             return {
+                "deliveries": [
+                    dict(row)
+                    for row in db.execute(
+                        "SELECT kind,state FROM deliveries WHERE dataset=? AND incident_id=? "
+                        "ORDER BY created_at",
+                        (dataset, incident_id),
+                    )
+                ],
                 "dataset": dataset,
                 "run": run_id if dataset == "demo" else None,
                 "incident": dict(incident),

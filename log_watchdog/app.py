@@ -16,6 +16,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import AfterValidator, AwareDatetime
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
+from .delivery import Delivery, ReceiverSettings
 from .detector import DetectionDataset, Detector, DetectorConfig
 from .evidence import Evidence, EvidenceUnavailable
 from .models import Dataset, IngestRequest, Severity, normalize_utc
@@ -29,6 +30,17 @@ def create_app(db_path: Path | None = None, frontend: Path | None = None) -> Fas
     store.seed_demo()
     detector = Detector(store, DetectorConfig.from_environment())
 
+    delivery = Delivery(store)
+
+    async def deliver_pending() -> None:
+        await asyncio.to_thread(delivery.recover_interrupted)
+        while True:
+            try:
+                await asyncio.to_thread(delivery.tick)
+            except Exception:
+                logging.getLogger(__name__).exception("Delivery worker failed")
+            await asyncio.sleep(0.25)
+
     async def evaluate_live() -> None:
         while True:
             try:
@@ -40,9 +52,15 @@ def create_app(db_path: Path | None = None, frontend: Path | None = None) -> Fas
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         task = asyncio.create_task(evaluate_live())
+        delivery_task = asyncio.create_task(deliver_pending())
         try:
             yield
         finally:
+            delivery_task.cancel()
+            try:
+                await delivery_task
+            except asyncio.CancelledError:
+                pass
             task.cancel()
             try:
                 await task
@@ -51,6 +69,42 @@ def create_app(db_path: Path | None = None, frontend: Path | None = None) -> Fas
 
     app = FastAPI(title="Log Watchdog", version="0.1.0", lifespan=lifespan)
     app.state.detector = detector
+
+    @app.get("/api/datasets/{dataset}/deliveries")
+    def deliveries(
+        dataset: Dataset,
+        incident: Annotated[int | None, Query(ge=1)] = None,
+        run: Annotated[str | None, Query(max_length=100)] = None,
+    ) -> dict[str, Any]:
+        try:
+            return delivery.read(dataset, incident, run)
+        except EvidenceUnavailable as exc:
+            raise HTTPException(exc.status, exc.message) from exc
+
+    @app.get("/api/demo/receiver")
+    def receiver_settings() -> dict[str, str]:
+        return {"behavior": delivery.settings()}
+
+    @app.put("/api/demo/receiver")
+    def configure_receiver(settings: ReceiverSettings) -> dict[str, str]:
+        delivery.configure(settings.behavior)
+        return {"behavior": settings.behavior}
+
+    @app.post("/api/receiver")
+    async def receiver(request: Request) -> JSONResponse:
+        payload = bytearray()
+        async for chunk in request.stream():
+            payload.extend(chunk)
+            if len(payload) > 65536:
+                raise HTTPException(413, "Receiver payload exceeds 64 KiB")
+        status, duplicate = await asyncio.to_thread(
+            delivery.receive, request.headers.get("X-Delivery-ID", ""), bytes(payload)
+        )
+        return JSONResponse(
+            {"accepted": status == 200, "duplicate": duplicate},
+            status_code=status,
+            headers={"X-Delivery-Duplicate": str(duplicate).lower()},
+        )
 
     @app.get("/api/datasets/{dataset}/overview")
     def overview(dataset: DetectionDataset) -> dict[str, Any]:

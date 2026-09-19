@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Overview } from "./Overview";
+import { Deliveries } from "./Deliveries";
 import { App } from "./App";
 
 export function Router() {
@@ -20,6 +21,13 @@ export function Router() {
     params.get("view") === "logs" ||
     params.get("dataset") === "historical" ||
     legacyLogQuery;
+
+  if (params.get("view") === "deliveries")
+    return (
+      <Deliveries
+        key={`${params.get("dataset")}:${params.get("incident")}:${params.get("run")}`}
+      />
+    );
 
   return showLogs ? (
     <App />
