@@ -156,3 +156,11 @@ No external runtime services, images, fonts, LLM calls, or webhook delivery are 
 - React/TypeScript, History API, MutationObserver and computed styles — Used to preserve explicit focus destinations, reject hidden targets and wait for evidence loading before falling back to the incident heading. No dependencies added.
 - Impeccable context/craft-floor/detector and Browser skill/runtime — Used for the scoped accessibility refinement; detector returned no findings. Supported browser setup failed and recovery discovery returned an empty list, so rendered checks remain pending.
 - Existing frontend/backend build, test, lint, type, format, contrast and loopback runtime commands — Reused for verification. `pr` skill, GitHub CLI, Git and clock tool used for the existing PR update and elapsed-time evidence.
+
+
+## PR #10 refresh-restoration fix R1
+
+- React/TypeScript, History API and browser focus/scroll events — Used to keep the workbench snapshot current, protect it while loading/restoring, and defer restoration until evidence settles. Existing MutationObserver reused; no dependency or architectural change.
+- `diagnosing-bugs`, Vitest/jsdom and Testing Library — Used for failing-then-passing reload regressions with preserved URL/history and delayed evidence, covering evidence-link and existing-heading focus plus scroll.
+- Impeccable context/craft-floor/detector, Browser runtime and `pr` skill — Used for scoped focus hardening, supported availability/recovery discovery, source checks and PR evidence. Browser unavailable; rendered checks remain deferred.
+- Existing frontend/backend checks and actual loopback runtime validator — Used unchanged for verification.

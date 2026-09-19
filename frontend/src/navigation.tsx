@@ -80,8 +80,21 @@ function focusVisible(target: HTMLElement | null) {
   return document.activeElement === target;
 }
 
-export function usePageRestoration(ready: boolean, fallback?: string) {
+export function usePageRestoration(
+  ready: boolean,
+  fallback?: string,
+  preservePosition = false,
+) {
   const pending = useRef(true);
+  const location = window.location.href;
+  useEffect(() => {
+    if (!preservePosition) return;
+    const previous = window.history.scrollRestoration;
+    window.history.scrollRestoration = "manual";
+    return () => {
+      window.history.scrollRestoration = previous;
+    };
+  }, [preservePosition]);
   useEffect(() => {
     const mark = () => {
       pending.current = true;
@@ -92,12 +105,14 @@ export function usePageRestoration(ready: boolean, fallback?: string) {
   useEffect(() => {
     if (!ready || !pending.current) return;
     const restore = () => {
+      // Wait even when the target already exists: loading evidence can still
+      // change the document height and clamp a restored scroll position.
+      if (document.querySelector('main [aria-busy="true"]')) return false;
       const state = window.history.state;
       const target = state?.focus ? document.getElementById(state.focus) : null;
       if (state?.focus && !focusVisible(target)) {
         // Evidence controls arrive asynchronously. Once loading settles, a
         // missing or hidden origin must not leave restoration pending forever.
-        if (document.querySelector('main [aria-busy="true"]')) return false;
         focusVisible(fallback ? document.getElementById(fallback) : null);
       }
       if (typeof state?.scrollY === "number") window.scrollTo(0, state.scrollY);
@@ -116,4 +131,31 @@ export function usePageRestoration(ready: boolean, fallback?: string) {
     });
     return () => observer.disconnect();
   });
+  useEffect(() => {
+    if (!preservePosition) return;
+    const save = (position: { focus?: string; scrollY?: number }) => {
+      // Loading/layout events must not erase the pending snapshot. Likewise,
+      // an outgoing view must not write into the next history entry.
+      if (
+        !ready ||
+        pending.current ||
+        window.location.href !== location ||
+        document.querySelector('main [aria-busy="true"]')
+      )
+        return;
+      window.history.replaceState(
+        { ...window.history.state, ...position },
+        "",
+        window.location.href,
+      );
+    };
+    const saveFocus = () => save({ focus: document.activeElement?.id });
+    const saveScroll = () => save({ scrollY: window.scrollY });
+    window.addEventListener("focusin", saveFocus);
+    window.addEventListener("scroll", saveScroll, { passive: true });
+    return () => {
+      window.removeEventListener("focusin", saveFocus);
+      window.removeEventListener("scroll", saveScroll);
+    };
+  }, [ready, location, preservePosition]);
 }

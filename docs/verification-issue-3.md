@@ -96,3 +96,42 @@ Browser setup again returned **No browser is available** for localhost; after su
 Browser unavailable; rendered desktop, narrow-screen, and keyboard verification require a later manual check.
 
 FIX runtime validation: `.venv/bin/python scripts/validate_runtime.py` completed successfully on a synthetic temporary SQLite database using the actual launcher and loopback HTTP. Verified dashboard/assets, 40 evaluated versus 41 broader events, filters/sample links, unchanged measurements, persistence/restart, isolation, all five demo transitions and a real-clock worker minute. Measured 100k ingestion in 1.701s; first/deep/filtered browse median 3.95/6.62/11.06ms; 100 events paced at 20/s in 4.957s, ingestion median/max 2.80/8.77ms. These are local measurements, not performance guarantees. `git diff --check` passed.
+
+
+## PR #10 refresh-restoration fix — R1 at reviewed head b5f2292
+
+Verified clean branch `issue-3-investigation-workbench` at the supplied reviewed head, synchronized with its remote, open PR #10 against supplied base `755ebbf9568f08ec2f85ead34c1c77bd6204a6d2`, and open ready issue #3. Its native and textual prerequisite #2 is closed; paginated open-PR enumeration found only #10.
+
+The workbench stored only its selection-time snapshot. It now saves focus and scroll changes in the current history entry, ignoring loading/restoration events and events from an outgoing URL. Browser automatic scroll restoration is disabled while the workbench owns restoration. Restoration waits for evidence to settle even if the saved heading already exists, avoiding scroll clamping on a shorter loading page. Existing fallback behavior handles unavailable controls. This is a focused correction using the existing history mechanism, with no new architecture or dependency.
+
+`npm --prefix frontend test -- src/Investigation.test.tsx` first failed the new reload regression: remount restored scroll `(0, 0)` while evidence was still loading (10 existing tests passed). After the fix and a second heading-target case, all 12 tests passed. Both cases select incident #1/window 91, move focus and scroll to 900, preserve URL/history across remount, inject scroll/focus events during delayed loading, and assert the original target and scroll return after evidence. These are DOM simulations, not browser reload evidence.
+
+| Command | Completed result |
+| --- | --- |
+| `npm --prefix frontend run build` | Passed; 33 modules, JS 260.28 kB / 79.75 kB gzip |
+| `npm --prefix frontend run typecheck` | Passed |
+| `npm --prefix frontend run lint` | Passed |
+| `npm --prefix frontend run format:check` | Passed |
+| `npm --prefix frontend test` | 34 passed across 3 files, including axe DOM rules |
+| `.venv/bin/ruff check log_watchdog tests scripts` | Passed |
+| `.venv/bin/ruff format --check log_watchdog tests scripts` | Passed; 12 files |
+| `.venv/bin/mypy` | Passed; 7 source files |
+| `.venv/bin/python scripts/check_contrast.py` | Passed; existing ratios 5.19:1–14.24:1 |
+| `.venv/bin/pytest -q` | 50 passed; two existing upstream deprecation warnings |
+| `/Users/junaidahamad/.agents/skills/impeccable/scripts/impeccable detect --json frontend/src/navigation.tsx frontend/src/Overview.tsx` | `[]`, no source findings |
+| `git diff --check` | Passed |
+
+An initial helper edit referenced a root-relative path while running inside `frontend` and failed before writing; the corrected patch and formatting completed successfully. No verification check was weakened.
+
+### Manual UI verification pending — browser reload
+
+Supported Browser `getForUrl("http://127.0.0.1:8000/")` returned **No browser is available**. Recovery documentation was read; discovery returned **[]** (serialized after the output helper rejected the raw array). The authorized browser-unavailable fallback applies. Existing manual checks remain pending, with this additional path:
+
+- [ ] Desktop Overview/Incidents: Demo → Advance → Investigate → choose an evaluated window → focus View evaluated logs (also test window selector and sample link) → scroll into evidence → **browser reload**. Verify identical dataset/incident/window, focused control and scroll after delayed evidence finishes.
+- [ ] Narrow-screen layout/overflow at phone width and 200% zoom: repeat reload in full-width detail, then Back to incidents and browser Back; verify preserved position and visible focus.
+- [ ] Keyboard navigation/focus: use Tab and Enter throughout the same path; reload, continue tabbing, and open/return from Logs. Background refresh/recovery must retain focus and the pinned window.
+- [ ] Browser-dependent loading/empty/error states: throttle evidence requests during reload, repeat a reload while loading, then test server failure/retry and unavailable evidence. Pending snapshots must survive loading and unavailable controls must receive the documented fallback.
+
+Browser unavailable; rendered desktop, narrow-screen, and keyboard verification require a later manual check.
+
+Refresh-fix runtime validation: `.venv/bin/python scripts/validate_runtime.py` passed with the actual launcher and loopback HTTP against temporary synthetic SQLite data on macOS 15.6 arm64 / Python 3.14.5. Verified dashboard/assets, evaluated versus broader evidence (40/41), filters/sample links, unchanged measurements, restart persistence/isolation, all five demo transitions, and a real-clock worker minute. Measured 100k ingestion in 1.561s; first/deep/filtered browse medians 5.93/6.76/10.76ms; 100 events paced at 20/s in 4.960s, ingestion median/max 3.14/7.42ms. Local measurements only; no external provider or webhook claims.

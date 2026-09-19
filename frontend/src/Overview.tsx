@@ -224,6 +224,7 @@ export function Overview() {
   usePageRestoration(
     data !== null || error !== null,
     selected ? "incident-heading" : "queue-heading",
+    true,
   );
   useEffect(() => {
     const back = () => {

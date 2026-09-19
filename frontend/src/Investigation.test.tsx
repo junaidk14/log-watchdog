@@ -438,3 +438,58 @@ it.each([true, false])(
     );
   },
 );
+
+it.each(["evidence", "heading"])(
+  "restores current %s focus and scroll after reload with delayed evidence",
+  async (target) => {
+    const user = userEvent.setup();
+    const page = render(<Router />);
+    await user.click(
+      await screen.findByRole("link", {
+        name: "Investigate checkout incident #1",
+      }),
+    );
+    await waitFor(() =>
+      expect(
+        screen.getByRole("heading", { name: "checkout · open" }),
+      ).toHaveFocus(),
+    );
+    const logs = await screen.findByRole("link", {
+      name: "View evaluated logs",
+    });
+    const restoredControl = () =>
+      target === "evidence"
+        ? screen.getByRole("link", { name: "View evaluated logs" })
+        : screen.getByRole("heading", { name: "checkout · open" });
+    expect(logs).toBeInTheDocument();
+    restoredControl().focus();
+    vi.stubGlobal("scrollY", 900);
+    window.dispatchEvent(new Event("scroll"));
+    const url = window.location.href;
+    page.unmount();
+
+    let finish!: (response: unknown) => void;
+    const delayed = new Promise((resolve) => {
+      finish = resolve;
+    });
+    fetchMock.mockImplementation(async (url: string) =>
+      url.includes("overview")
+        ? { ok: true, json: async () => structuredClone(overview) }
+        : delayed,
+    );
+    vi.stubGlobal("scrollY", 0);
+    vi.mocked(window.scrollTo).mockClear();
+    render(<Router />);
+    await screen.findByText("Loading evaluated evidence…");
+    // Loading can move the viewport and focus; neither may replace the snapshot.
+    window.dispatchEvent(new Event("scroll"));
+    screen.getByRole("button", { name: "Refresh overview" }).focus();
+    expect(window.scrollTo).not.toHaveBeenCalled();
+    await act(async () => finish({ ok: true, json: async () => evidence }));
+    await waitFor(() => expect(restoredControl()).toHaveFocus());
+    expect(window.scrollTo).toHaveBeenLastCalledWith(0, 900);
+    expect(window.location.href).toBe(url);
+    expect(screen.getByLabelText("Evaluated window")).toHaveValue("91");
+    expect(window.location.search).toContain("incident=1");
+  },
+);
