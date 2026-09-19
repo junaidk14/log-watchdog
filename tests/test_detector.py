@@ -211,3 +211,42 @@ def test_nonzero_stable_history_and_restart_catchup(tmp_path):
     assert state["incidents"][0]["recovery_streak"] == 0
     assert state["services"][0]["status"] == "insufficient traffic"
     assert restarted.evaluate("live", START + timedelta(minutes=7, seconds=10)) == 0
+
+
+def test_restart_higher_minimum_history_preserves_open_incident_recovery(tmp_path):
+    store, detector = make(tmp_path, minimum_baseline_windows=1)
+    ingest_window(store, 0)
+    tick(detector, 0)
+    ingest_window(store, 1, errors=20)
+    opened = tick(detector, 1)["incidents"][0]
+    assert opened["state"] == "open"
+    assert opened["measurement"]["baseline_count"] == 1
+    with store.connection() as db:
+        original = [tuple(row) for row in db.execute("SELECT * FROM evaluations ORDER BY id")]
+
+    store = Store(store.path)
+    restarted = Detector(store, DetectorConfig(minimum_baseline_windows=2), now=START)
+    for offset in (2, 3, 4):
+        ingest_window(store, offset)
+        state = tick(restarted, offset)
+        current = state["services"][0]
+        assert current["status"] == "no spike detected"
+        assert current["baseline_count"] == 1
+        assert current["baseline_member"] == 0
+        assert current["config"]["minimum_baseline_windows"] == 2
+        assert state["incidents"][0]["recovery_streak"] == offset - 1
+    assert state["incidents"][0]["state"] == "recovered"
+    assert state["incidents"][0]["measurement"] == opened["measurement"]
+    with store.connection() as db:
+        assert [
+            tuple(row)
+            for row in db.execute(
+                "SELECT * FROM evaluations WHERE id<=? ORDER BY id", (original[-1][0],)
+            )
+        ] == original
+
+    # The increased history requirement applies again after recovery.
+    ingest_window(store, 5)
+    assert tick(restarted, 5)["services"][0]["status"] == "learning baseline"
+    ingest_window(store, 6)
+    assert tick(restarted, 6)["services"][0]["status"] == "no spike detected"

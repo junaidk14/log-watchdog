@@ -41,7 +41,7 @@ With fewer than the minimum current events, state is **insufficient traffic**, e
 
 ## Configuration
 
-Set `LOG_WATCHDOG_DETECTOR` to a JSON object before starting. Invalid/unknown configuration fails startup. Restart applies new configuration to future evaluations; recorded evaluations preserve their original parameter snapshot and measurements. Existing normal history is retained, and increasing the minimum history can return a service to learning. A changed recovery target applies to subsequent windows.
+Set `LOG_WATCHDOG_DETECTOR` to a JSON object before starting. Invalid/unknown configuration fails startup. Restart applies new configuration to future evaluations; recorded evaluations preserve their original parameter snapshot and measurements. Existing normal history is retained, and increasing the minimum history can return a service without an open incident to learning. Open incidents retain established baseline eligibility until recovery, even if the new minimum exceeds their frozen history count; current traffic requirements still apply and incident windows never train the baseline. The new minimum history requirement applies again after recovery. Other configuration values, including the maximum history size and comparison parameters, apply to future evaluations as usual. A changed recovery target applies to subsequent windows.
 
 | Key | Default | Meaning |
 | --- | --- | --- |

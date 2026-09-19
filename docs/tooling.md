@@ -124,3 +124,11 @@ No external runtime services, images, fonts, LLM calls, or webhook delivery are 
 - Impeccable skill/context/detector and finish reviewer/documenter — Used for the established console extension. Source detector reported no findings; finish review requested transition announcements, addressed with DOM regression coverage. Rendered verification remains deferred under the policy fallback.
 - Browser skill/runtime — Used for supported connection and recovery discovery; `getForUrl` returned no available browser and recovery `list()` returned `[]`.
 - `pr` skill and GitHub CLI — Used for PR structure, complete paginated issue/PR/dependency eligibility checks, and publication. No dependency versions changed.
+
+## PR #9 review fix R1
+
+- `diagnosing-bugs` skill and pytest — Used for a failing persisted-SQLite restart regression covering increased minimum history, recovery, frozen membership, unchanged evaluations, and resumed learning after recovery.
+- Existing Ruff, mypy, frontend and HTTP runtime checks — Used for verification without dependency changes.
+- Browser skill — Used for supported browser availability/recovery discovery; rendered checks remain separately recorded.
+- `pr` skill — Used to update the existing PR evidence.
+- `domain-modeling` skill — Used to record the open-incident eligibility policy as ADR-026 in the existing decision log.

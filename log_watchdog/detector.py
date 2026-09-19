@@ -168,7 +168,9 @@ class Detector:
         status = "insufficient traffic"
         if total >= c.minimum_events:
             status = "learning baseline"
-            if len(history) >= c.minimum_baseline_windows:
+            # An open incident already established baseline eligibility. Requiring
+            # more frozen history after a restart would prevent recovery forever.
+            if incident is not None or len(history) >= c.minimum_baseline_windows:
                 expected, threshold = comparison(baseline_errors, baseline_total, total, c)
                 status = "spike detected" if errors / total > threshold else "no spike detected"
         member = incident is None and status in ("learning baseline", "no spike detected")

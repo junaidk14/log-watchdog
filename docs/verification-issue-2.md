@@ -56,3 +56,17 @@ Read the installed Browser skill; initialized its supported runtime and called `
 - [ ] **Browser-dependent loading/empty/error states and changed interactions:** use a fresh database for no-active state, Live for learning, stop/restart the server to inspect retained results/retry, and verify delayed evaluation differs from paused simulation. Verify once-only opening/recovery announcements with assistive technology.
 
 Browser unavailable; rendered desktop, narrow-screen, and keyboard verification require a later manual check.
+
+## FIX verification — R1 (2026-09-19 UTC)
+
+Increasing minimum history on restart previously stranded open incidents in learning baseline: baseline membership freezes while open, so the larger minimum could never be met. Open incidents now retain established baseline eligibility until recovery. Current traffic checks and frozen membership still apply; the new minimum applies again after recovery. ADR-026 and `docs/detection.md` record this policy. No schema or frontend changes in this fix.
+
+- Before: `.venv/bin/pytest -q tests/test_detector.py -k higher_minimum` failed with `learning baseline` instead of `no spike detected`.
+- After: the same command passed (1 test). The persisted SQLite restart regression confirms three-window recovery, no incident baseline members, unchanged original evaluation rows/measurement, and resumed learning under the increased minimum after recovery.
+- Re-ran `npm --prefix frontend run build`, `npm --prefix frontend run typecheck`, `npm --prefix frontend run lint`, and `npm --prefix frontend run format:check`: all passed.
+- Re-ran `npm --prefix frontend test`: 22 passed, including available axe DOM checks.
+- Re-ran `.venv/bin/ruff check log_watchdog tests scripts`, `.venv/bin/ruff format --check log_watchdog tests scripts` (10 files), `.venv/bin/mypy` (6 files), and `.venv/bin/python scripts/check_contrast.py`: all passed.
+- Re-ran `.venv/bin/pytest -q`: 47 passed, two upstream deprecation warnings.
+- Re-ran `.venv/bin/python scripts/validate_runtime.py`: passed actual HTTP dashboard/assets, demo opening/grouping/recovery, late evidence, process restart, isolation, and actual real-clock worker evaluation. Synthetic temporary SQLite data on macOS 15.6 arm64 / Python 3.14.5: 100k bulk events in 1.364s; median browse first/deep/filtered 3.00/5.14/9.54ms; 100 events paced at 20/s in 4.953s, median ingest 1.44ms. Local measurements only; no external provider/webhook calls.
+- `git diff --check`: passed. Rechecked issue #2 open/ready, prerequisite #1 closed, native dependencies, and PR #9's assigned base/branch/head; paginated open-PR scan found only #9.
+- Browser availability rechecked with the Browser skill: `getForUrl` reported “No browser is available”; supported recovery `agent.browsers.list()` returned `[]`. The existing **Manual UI verification pending** checklist still applies to Overview, incident recovery/detail, trends and Logs. No rendered desktop, narrow-screen, keyboard or browser-dependent state validation is claimed.
