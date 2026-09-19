@@ -2,7 +2,7 @@
 
 A local, single-user structured log explorer built with FastAPI, SQLite, and React. Ingest events, filter them by dataset, service, severity, UTC interval or message, and inspect their metadata. No login or external credentials are needed.
 
-This implementation delivers structured ingestion and browsing plus error-log rate detection, incident grouping/recovery, simulation advancement and evaluated-evidence investigation (issues #1–#3). Overview opens first; Incidents and Logs preserve investigation context. Webhooks, file upload, retention/reset, and optional LLM analysis are later approved slices. See [detector behavior and configuration](docs/detection.md) for the complete five-advance demonstration, formula, and persistence boundaries.
+This implementation delivers structured ingestion and browsing, error-log rate detection, incident investigation, and actual local webhook delivery with persisted retries (issues #1–#4). Overview opens first; Incidents, Logs and Deliveries preserve investigation context. File upload, retention/reset, and optional LLM analysis are later approved slices. See [delivery behavior and the retry walkthrough](docs/deliveries.md). See [detector behavior and configuration](docs/detection.md) for the complete five-advance demonstration, formula, and persistence boundaries.
 
 ## Start locally
 
@@ -62,11 +62,11 @@ npm --prefix frontend test
 .venv/bin/python scripts/validate_runtime.py
 ```
 
-`validate_runtime.py` requires port 8000 free and starts the documented launcher with a temporary database. It uses real HTTP to check dashboard/assets, ingest 100,000 synthetic live events, time browsing, post 100 individual events at 20/second, and restart to verify persistence and isolation. It also exercises the five-step demo, late evidence, incident restart, and one actual live worker minute (up to 75 seconds waiting for the real clock). It stops its server and removes only its temporary files. It never uses your default database.
+`validate_runtime.py` requires port 8000 free and starts the documented launcher with a temporary database. It uses real HTTP to check dashboard/assets, ingest 100,000 synthetic live events, time browsing, post 100 individual events at 20/second, and restart to verify persistence and isolation. It also exercises the five-step demo, late evidence, incident restart, pending webhook process restart (HTTP 503 → 200), opening/recovery notification delivery, and one actual live worker minute (up to 75 seconds waiting for the real clock). It stops its server and removes only its temporary files. It never uses your default database.
 
 Backend tests cover schema failures, complete-batch rollback, ID generation/deduplication/conflicts, normalization, literal filters, paging, dataset isolation, seed idempotence, and SQLite restart. Frontend tests cover query/Back restoration (including response timing), same-query actions, dataset races, expansion/focus, loading/empty/error/retry, literal rendering of untrusted messages, and available axe DOM accessibility rules. jsdom cannot establish rendered layout, contrast, or real-browser keyboard behavior. ESLint explicitly permits focusable named `region` elements to make the overflowing table keyboard-scrollable; other accessibility rules remain active.
 
-See [issue #1 evidence](docs/verification-issue-1.md), [issue #2 evidence](docs/verification-issue-2.md), and [issue #3 evidence](docs/verification-issue-3.md) for measured results and pending manual UI checks.
+See [issue #1 evidence](docs/verification-issue-1.md), [issue #2 evidence](docs/verification-issue-2.md), [issue #3 evidence](docs/verification-issue-3.md), and [issue #4 evidence](docs/verification-issue-4.md) for measured results and pending manual UI checks.
 
 ## Investigate evaluated evidence
 
@@ -76,4 +76,4 @@ The pane shows counts, rate, baseline/threshold, exact-message error patterns, a
 
 `GET /api/datasets/{demo|live}/incidents/{id}/evidence` accepts optional `evaluation` (default latest abnormal window), `run` (Demo UUID), `scope=evaluated|all`, `severity`, literal `message`, exact `event_id`, `page`, and `page_size` (1–100). Service and UTC bounds come from evaluation provenance, never caller-supplied overrides. Patterns show up to ten exact ERROR/FATAL message groups; samples prefer errors and contain at most five events. Basic pattern matching is not root-cause analysis. All evidence reads share one snapshot.
 
-Demo links carry a durable run identity. A mismatched run returns a specific reset explanation; an unavailable incident/window returns 404. If recorded metadata outlives logs, the response flags missing evidence independently of filters. Reset/retention execution and Deliveries remain their own later slices; these boundaries are tested with controlled SQLite fixtures, not a claim that reset or cleanup is already implemented. Older links without a run ID retain compatibility but cannot identify a prior reset.
+Demo links carry a durable run identity. A mismatched run returns a specific reset explanation; an unavailable incident/window returns 404. If recorded metadata outlives logs, the response flags missing evidence independently of filters. Reset/retention execution remains a later slice; these boundaries are tested with controlled SQLite fixtures, not a claim that reset or cleanup is already implemented. Older links without a run ID retain compatibility but cannot identify a prior reset.

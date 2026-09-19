@@ -9,6 +9,7 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+from .delivery import enqueue, initialize
 from .models import EventInput, utc_text
 from .store import Store
 
@@ -56,6 +57,7 @@ class Detector:
         self.config = config
         now = now or datetime.now(UTC)
         with store.connection() as db:
+            initialize(db)
             db.executescript("""
                 CREATE TABLE IF NOT EXISTS evaluation_progress (
                     dataset TEXT PRIMARY KEY, next_start TEXT NOT NULL,
@@ -175,7 +177,9 @@ class Detector:
                 status = "spike detected" if errors / total > threshold else "no spike detected"
         member = incident is None and status in ("learning baseline", "no spike detected")
         incident_id = incident["id"] if incident else None
+        notification = None
         if status == "spike detected" and incident is None:
+            notification = "opened"
             incident_id = db.execute(
                 "INSERT INTO incidents(dataset,service,state,start,end) VALUES (?,?,'open',?,?)",
                 (dataset, service, utc_text(start), utc_text(end)),
@@ -183,6 +187,8 @@ class Detector:
         elif incident:
             streak = incident["recovery_streak"] + 1 if status == "no spike detected" else 0
             recovered = streak >= c.recovery_windows
+            if recovered:
+                notification = "recovered"
             db.execute(
                 "UPDATE incidents SET end=?,recovery_streak=?,state=?,recovered_at=? WHERE id=?",
                 (
@@ -193,7 +199,7 @@ class Detector:
                     incident_id,
                 ),
             )
-        db.execute(
+        evaluation_id = db.execute(
             "INSERT INTO evaluations(dataset,service,start,end,total,errors,rate,"
             "expected,threshold,"
             "baseline_total,baseline_errors,baseline_count,baseline_member,status,incident_id,"
@@ -218,7 +224,10 @@ class Detector:
                 c.model_dump_json(),
                 utc_text(now),
             ),
-        )
+        ).lastrowid
+        if notification is not None:
+            assert incident_id is not None and evaluation_id is not None
+            enqueue(db, incident_id, notification, evaluation_id)
 
     def advance(self) -> dict[str, Any]:
         with self.store.connection() as db:

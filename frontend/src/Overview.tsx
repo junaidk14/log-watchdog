@@ -387,6 +387,9 @@ export function Overview() {
           >
             Logs
           </PageLink>
+          <PageLink href={viewUrl("deliveries")} focus="deliveries-heading">
+            Deliveries
+          </PageLink>
         </nav>
         <p className="rail-note">
           Structured events.

@@ -3,6 +3,7 @@ import { PageLink, viewUrl } from "./navigation";
 import { Trend, type Measurement } from "./Overview";
 
 export type EvidenceData = {
+  deliveries?: { kind: string; state: string }[];
   run: string | null;
   measurement: Measurement;
   windows: Measurement[];
@@ -174,6 +175,24 @@ export function EvidencePane({
             >
               View evaluated logs
             </PageLink>
+            <h3>Notifications</h3>
+            {data.deliveries?.length ? (
+              data.deliveries.map((d) => (
+                <p key={d.kind}>
+                  {d.kind}: {d.state}
+                </p>
+              ))
+            ) : (
+              <p>No notifications recorded.</p>
+            )}
+            <PageLink
+              id="incident-deliveries"
+              href={url().replace("view=logs", "view=deliveries")}
+              focus="deliveries-heading"
+            >
+              View delivery history
+            </PageLink>
+            <p>Delivery attempts and retries use real time (UTC).</p>
             <h3>Repeated error patterns</h3>
             <p className="hint">
               Exact message matches in this evaluated window; up to 10 patterns.

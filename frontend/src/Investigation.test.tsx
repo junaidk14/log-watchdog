@@ -658,3 +658,50 @@ it.each([
     expect(window.location.search).toContain("incident=1");
   },
 );
+
+it.each(["explicit", "browser"])(
+  "restores the delivery origin after %s Back",
+  async (mode) => {
+    const original = fetchMock.getMockImplementation()!;
+    fetchMock.mockImplementation(async (url: string) => {
+      if (url.includes("/deliveries"))
+        return {
+          ok: true,
+          json: async () => ({ deliveries: [], max_attempts: 3, run: "run-1" }),
+        };
+      if (url.includes("/receiver"))
+        return { ok: true, json: async () => ({ behavior: "success" }) };
+      return original(url);
+    });
+    const user = userEvent.setup();
+    render(<Router />);
+    await user.click(
+      await screen.findByRole("link", {
+        name: "Investigate checkout incident #1",
+      }),
+    );
+    const origin = await screen.findByRole("link", {
+      name: "View delivery history",
+    });
+    origin.focus();
+    await user.keyboard("{Enter}");
+    await waitFor(() =>
+      expect(screen.getByRole("heading", { name: "Deliveries" })).toHaveFocus(),
+    );
+    expect(window.location.search).toContain("evaluation=91");
+    expect(window.location.search).toContain("run=run-1");
+    if (mode === "explicit")
+      await user.click(screen.getByRole("link", { name: "Back to incident" }));
+    else
+      await act(async () => {
+        window.history.back();
+        await new Promise((resolve) => setTimeout(resolve, 30));
+      });
+    await waitFor(() =>
+      expect(
+        screen.getByRole("link", { name: "View delivery history" }),
+      ).toHaveFocus(),
+    );
+    expect(window.location.search).toContain("incident=1");
+  },
+);

@@ -21,6 +21,7 @@ import httpx
 
 def main() -> None:
     with socket.socket() as probe:
+        probe.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         probe.bind(("127.0.0.1", 8000))  # Refuse to run against an existing application.
     with tempfile.TemporaryDirectory(prefix="watchdog-validation-") as temporary:
         env = os.environ | {"LOG_WATCHDOG_DB": str(Path(temporary) / "validation.sqlite3")}
@@ -134,13 +135,44 @@ def main() -> None:
                 assert client.get("/api/datasets/live/events").json()["total"] == 100100
                 assert client.get("/api/datasets/demo/events").json()["total"] == 3600
                 assert client.get("/api/datasets/historical/events").json()["total"] == 0
+                assert (
+                    client.put(
+                        "/api/demo/receiver", json={"behavior": "fail-first-then-succeed"}
+                    ).status_code
+                    == 200
+                )
                 states = []
-                for _ in range(5):
+                for step in range(5):
                     response = client.post("/api/demo/advance")
                     assert response.status_code == 200, response.text
                     incidents = response.json()["incidents"]
                     assert len(incidents) == 1
                     states.append((incidents[0]["state"], incidents[0]["recovery_streak"]))
+                    if step == 0:
+                        deadline = time.monotonic() + 5
+                        while time.monotonic() < deadline:
+                            pending = client.get("/api/datasets/demo/deliveries").json()[
+                                "deliveries"
+                            ][0]
+                            if pending["state"] == "retry scheduled":
+                                break
+                            time.sleep(0.05)
+                        assert pending["state"] == "retry scheduled"
+                        assert pending["attempts"][0]["status"] == 503
+                        process.terminate()
+                        process.wait(timeout=10)
+                        process = start()
+                        deadline = time.monotonic() + 5
+                        while time.monotonic() < deadline:
+                            resumed = client.get("/api/datasets/demo/deliveries").json()[
+                                "deliveries"
+                            ][0]
+                            if resumed["state"] == "delivered":
+                                break
+                            time.sleep(0.05)
+                        assert resumed["id"] == pending["id"]
+                        assert resumed["state"] == "delivered"
+                        assert [a["status"] for a in resumed["attempts"]] == [503, 200]
                 assert states == [
                     ("open", 0),
                     ("open", 0),
@@ -148,6 +180,17 @@ def main() -> None:
                     ("open", 2),
                     ("recovered", 3),
                 ]
+                deadline = time.monotonic() + 5
+                while time.monotonic() < deadline:
+                    notifications = client.get("/api/datasets/demo/deliveries").json()["deliveries"]
+                    if all(d["state"] == "delivered" for d in notifications):
+                        break
+                    time.sleep(0.05)
+                assert len(notifications) == 2
+                assert {d["kind"] for d in notifications} == {"opened", "recovered"}
+                assert all(d["state"] == "delivered" for d in notifications)
+                assert client.get("/api/datasets/live/deliveries").json()["deliveries"] == []
+                assert client.get("/api/datasets/historical/deliveries").json()["deliveries"] == []
                 recorded = incidents[0]["measurement"]
                 late = client.post(
                     "/api/datasets/demo/events",
@@ -242,6 +285,10 @@ def main() -> None:
                 print(
                     json.dumps(
                         {
+                            "delivery_http_restart": (
+                                "503 then process restart then 200, same ID; "
+                                "opening and recovery delivered"
+                            ),
                             "demo_transitions": states,
                             "late_evidence_unchanged": True,
                             "evidence_navigation_http": (

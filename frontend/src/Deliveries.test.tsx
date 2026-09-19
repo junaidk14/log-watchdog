@@ -1,0 +1,205 @@
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import axe from "axe-core";
+import { beforeEach, expect, it, vi } from "vitest";
+import { Router } from "./Router";
+
+const row = {
+  id: "delivery-1",
+  incident_id: 1,
+  service: "checkout",
+  incident_state: "recovered",
+  kind: "opened",
+  created_at: "2026-09-20T01:00:00Z",
+  state: "retry scheduled",
+  attempts_used: 1,
+  next_retry: "2026-09-20T01:00:02Z",
+  behavior: "fail-first-then-succeed",
+  destination: "http://127.0.0.1:8000/api/receiver",
+  payload: { message: "<script>untrusted</script>" },
+  attempts: [
+    {
+      number: 1,
+      started_at: "2026-09-20T01:00:00Z",
+      finished_at: "2026-09-20T01:00:00.050Z",
+      status: 503,
+      error: "HTTP 503",
+      duration_ms: 50,
+      duplicate: false,
+    },
+  ],
+};
+let rows = [row];
+let fail = false;
+let poll: (() => void) | undefined;
+beforeEach(() => {
+  rows = [structuredClone(row)];
+  fail = false;
+  poll = undefined;
+  window.history.replaceState(
+    { focus: "deliveries-heading" },
+    "",
+    "?view=deliveries&dataset=demo&incident=1&run=run-1&service=checkout&start=2026-01-01T12:00:00Z&end=2026-01-01T12:01:00Z&evaluation=91",
+  );
+  vi.spyOn(window, "setInterval").mockImplementation((handler, timeout) => {
+    if (timeout === 1000) poll = handler as () => void;
+    return 1;
+  });
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async (url: string, options?: RequestInit) => {
+      if (url === "/api/demo/receiver")
+        return {
+          ok: true,
+          json: async () => ({
+            behavior:
+              options?.method === "PUT"
+                ? JSON.parse(String(options.body)).behavior
+                : "success",
+          }),
+        };
+      return {
+        ok: !fail,
+        json: async () =>
+          fail
+            ? { detail: "Service temporarily unavailable" }
+            : { deliveries: rows, max_attempts: 3, run: "run-1" },
+      };
+    }),
+  );
+});
+
+it("expands payload and attempts with keyboard, retains focus through status updates, and preserves return context", async () => {
+  const user = userEvent.setup();
+  render(<Router />);
+  const button = await screen.findByRole("button", {
+    name: /View payload and attempts/,
+  });
+  button.focus();
+  await user.keyboard("{Enter}");
+  expect(button).toHaveAttribute("aria-expanded", "true");
+  expect(screen.getByText(/<script>untrusted/)).toBeVisible();
+  expect(document.querySelector("script")).toBeNull();
+  expect(screen.getByText(/HTTP status: 503/)).toBeVisible();
+  rows = [{ ...row, state: "delivered", attempts_used: 2 }];
+  await act(async () => poll?.());
+  expect(button).toHaveFocus();
+  expect(button).toHaveAttribute("aria-expanded", "true");
+  expect(
+    screen.getByText("checkout opened notification: delivered"),
+  ).toBeInTheDocument();
+  const back = screen.getByRole("link", { name: "Back to incident" });
+  const href = back.getAttribute("href")!;
+  expect(href).toContain("incident=1");
+  expect(href).toContain("evaluation=91");
+  expect(href).toContain("run=run-1");
+  expect(href).toContain("view=incidents");
+});
+
+it("shows exhausted attempts independently from recovered incident and provides no resend", async () => {
+  rows = [{ ...row, state: "exhausted", attempts_used: 3 }];
+  const { container } = render(<Router />);
+  expect(
+    await screen.findByText(/3 of 3 attempts used; no further retries/),
+  ).toBeVisible();
+  expect(
+    screen.getByText(/Incident recovered · Notification exhausted/),
+  ).toBeVisible();
+  expect(screen.queryByRole("button", { name: /resend/i })).toBeNull();
+  expect(
+    (
+      await axe.run(container, {
+        rules: { "color-contrast": { enabled: false } },
+      })
+    ).violations,
+  ).toEqual([]);
+});
+
+it("keeps prior results and offers retry after refresh failure", async () => {
+  render(<Router />);
+  await screen.findByRole("button", { name: /View payload/ });
+  fail = true;
+  await act(async () => poll?.());
+  expect(await screen.findByRole("alert")).toHaveTextContent(
+    "Updates unavailable",
+  );
+  expect(screen.getByText(/checkout · opened notification/)).toBeVisible();
+  fail = false;
+  fireEvent.click(screen.getByRole("button", { name: "Retry refresh" }));
+  await waitFor(() => expect(screen.queryByRole("alert")).toBeNull());
+});
+
+it("saves explicitly selected receiver behavior for future notifications", async () => {
+  const user = userEvent.setup();
+  render(<Router />);
+  const select = screen.getByRole("combobox", { name: "Receiver behavior" });
+  await waitFor(() => expect(select).toBeEnabled());
+  await user.selectOptions(select, "always-fail");
+  await user.click(screen.getByRole("button", { name: "Save behavior" }));
+  expect(
+    await screen.findByText(
+      "Receiver behavior saved for new Demo notifications.",
+    ),
+  ).toBeVisible();
+  expect(fetch).toHaveBeenCalledWith(
+    "/api/demo/receiver",
+    expect.objectContaining({
+      method: "PUT",
+      body: '{"behavior":"always-fail"}',
+    }),
+  );
+});
+
+it("shows initial loading and historical empty state without demo controls", async () => {
+  rows = [];
+  window.history.replaceState({}, "", "?view=deliveries&dataset=historical");
+  render(<Router />);
+  expect(screen.getByText("Loading deliveries…")).toBeVisible();
+  expect(
+    await screen.findByText("Historical events do not trigger notifications."),
+  ).toBeVisible();
+  expect(
+    screen.queryByRole("combobox", { name: "Receiver behavior" }),
+  ).toBeNull();
+});
+
+it("announces the first notification after empty history and only changed notifications afterward", async () => {
+  rows = [];
+  render(<Router />);
+  await screen.findByText("No notifications");
+  rows = [structuredClone(row)];
+  await act(async () => poll?.());
+  expect(
+    screen.getByText("checkout opened notification: retry scheduled"),
+  ).toBeInTheDocument();
+  rows = [
+    ...rows,
+    { ...row, id: "delivery-2", kind: "recovered", state: "pending" },
+  ];
+  await act(async () => poll?.());
+  expect(
+    screen.getByText("checkout recovered notification: pending"),
+  ).toBeInTheDocument();
+  expect(
+    screen.queryByText("checkout opened notification: retry scheduled"),
+  ).toBeNull();
+  const announcement = screen.getByText(
+    "checkout recovered notification: pending",
+  );
+  const observer = vi.fn();
+  const mutation = new MutationObserver(observer);
+  mutation.observe(announcement, {
+    childList: true,
+    subtree: true,
+    characterData: true,
+  });
+  await act(async () => poll?.());
+  expect(observer).not.toHaveBeenCalled();
+  mutation.disconnect();
+});
