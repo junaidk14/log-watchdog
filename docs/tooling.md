@@ -213,3 +213,12 @@ Project-specific AFK policy now authorizes #4–#7 and requires implementation/f
 - Git worktree — Used for a disjoint policy/audit update on clean main while preserving known partial issue #5 changes in the implementation checkout.
 - Codex CLI queue — Attempted user steering; unsupported for this ephemeral thread because no saved rollout exists. No queued message was delivered.
 - AFK failure handling — Ordinary failed checks are diagnosed, fixed and rerun; only unresolved failures after configured retries, genuine blockers or unsafe/ambiguous Git/PR state stop the run. Independent review and merge gates are unchanged.
+
+
+## Issue #5 historical upload recovery
+
+- Existing Python/FastAPI/Pydantic/SQLite — Used for streamed byte bounds, shared atomic event validation/deduplication, historical persistence and bounded descriptive trend queries; no dependency or schema change.
+- Existing React/TypeScript, native FileReader, Fetch and SVG — Used for file reading, indeterminate progress, row/field feedback, interval navigation, rate/volume charts and exact-value tables.
+- `diagnosing-bugs`, pytest/httpx and Vitest/Testing Library/axe — Used to reproduce/fix ordinary lint/test failures, cover oversized JSON integers and verify upload limits, isolation, errors and interactions. Existing Ruff/mypy/Prettier/ESLint/Vite/static contrast and actual HTTP runtime tools reused.
+- Impeccable context/craft-floor/detector and separate finish reviewer/documenter — Used for the established console extension; no mechanical findings. Browser skill/runtime setup and supported recovery returned no browser (`[]`), leaving rendered checks pending.
+- `pr` skill, Git/GitHub CLI and clock — Used for complete paginated eligibility, recovery audit, commit/push/PR and metadata handoff. Protected runner files remain unchanged.

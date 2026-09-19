@@ -19,6 +19,7 @@ from starlette.middleware.trustedhost import TrustedHostMiddleware
 from .delivery import Delivery, ReceiverSettings
 from .detector import DetectionDataset, Detector, DetectorConfig
 from .evidence import Evidence, EvidenceUnavailable
+from .historical import MAX_UPLOAD_BYTES, import_events, trends
 from .models import Dataset, IngestRequest, Severity, normalize_utc
 from .store import EventConflict, Store
 
@@ -195,6 +196,25 @@ def create_app(db_path: Path | None = None, frontend: Path | None = None) -> Fas
             page=page,
             page_size=page_size,
         )
+
+    @app.post("/api/historical/upload")
+    async def upload_historical(request: Request) -> dict[str, Any]:
+        payload = bytearray()
+        async for chunk in request.stream():
+            if len(payload) + len(chunk) > MAX_UPLOAD_BYTES:
+                raise HTTPException(413, "File exceeds 5 MB (5,000,000 bytes). Split it and retry.")
+            payload.extend(chunk)
+        return await asyncio.to_thread(import_events, store, bytes(payload))
+
+    @app.get("/api/historical/trends")
+    def historical_trends(
+        service: Annotated[str | None, Query(max_length=120)] = None,
+        start: Annotated[AwareDatetime, AfterValidator(normalize_utc)] | None = None,
+        end: Annotated[AwareDatetime, AfterValidator(normalize_utc)] | None = None,
+    ) -> dict[str, Any]:
+        if start is not None and end is not None and start > end:
+            raise HTTPException(422, "Start time must be at or before end time")
+        return trends(store, service, start, end)
 
     @app.get("/api/health")
     def health() -> dict[str, str]:

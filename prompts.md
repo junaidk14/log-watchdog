@@ -1029,3 +1029,10 @@ Everything else from the previous instruction stays the same.
 ```
 
 The active ephemeral session could not receive CLI queue messages (no saved rollout). Issue #4 completed and merged. Issue #5 stopped prematurely on ordinary Ruff E501 and a DOM assertion failure under older policy wording. The root coordinator applies this clarification on a separate clean main worktree, preserving issue #5's known uncommitted files. The partial branch is then advanced to the policy commit without rewriting implementation, and a fresh completion session must resolve failures and pass all existing review/merge gates.
+
+
+## 2026-09-19T23:28:52.508954+00:00 — IMPLEMENT recovery, issue #5
+
+Authorized completion assignment for `junaidk14/log-watchdog`, issue https://github.com/junaidk14/log-watchdog/issues/5, existing branch `issue-5-historical-upload`, supplied main `fa4d982c5f1efe66ed7c7c61b23f4fe590ef76dc`. Preserve and finish the nine agent-owned partial files advanced by the coordinator; do not select another issue or create a new branch. Verify readiness, all native/textual blockers and absence of an existing PR. Read current project/issue requirements and inspect all partial work; diagnose and fix ordinary Ruff/test failures within configured retries. Finish acceptance criteria and documentation, run full frontend/backend/static/build and actual HTTP/runtime checks, append this recovery audit, update tooling/ADRs if applicable, commit/push this branch and create a scoped non-draft PR. Verify complete PR metadata before the exact PR READY JSON. Never modify protected runner/policy files, approve or merge; root runner owns fresh whole-PR review and gated merge. Issue #6/#7 and final polish remain later work. Earlier logs remain at `/private/tmp/log-watchdog-afk-logs/run-C5ODRmmO`.
+
+Applied the clarification that ordinary check failures are diagnosed, fixed and rechecked rather than immediately BLOCKED. Supported browser setup/recovery found no browser; use the authorized fallback with explicit manual rendered checks pending.

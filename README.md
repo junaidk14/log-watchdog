@@ -2,7 +2,7 @@
 
 A local, single-user structured log explorer built with FastAPI, SQLite, and React. Ingest events, filter them by dataset, service, severity, UTC interval or message, and inspect their metadata. No login or external credentials are needed.
 
-This implementation delivers structured ingestion and browsing, error-log rate detection, incident investigation, and actual local webhook delivery with persisted retries (issues #1–#4). Overview opens first; Incidents, Logs and Deliveries preserve investigation context. File upload, retention/reset, and optional LLM analysis are later approved slices. See [delivery behavior and the retry walkthrough](docs/deliveries.md). See [detector behavior and configuration](docs/detection.md) for the complete five-advance demonstration, formula, and persistence boundaries.
+This implementation delivers structured ingestion and browsing, error-log rate detection, incident investigation, and actual local webhook delivery with persisted retries (issues #1–#5). Overview opens first; Incidents, Logs and Deliveries preserve investigation context. Historical JSON upload and trends are available in Logs → Historical. Retention/reset and optional LLM analysis are later approved slices. See [delivery behavior and the retry walkthrough](docs/deliveries.md). See [detector behavior and configuration](docs/detection.md) for the complete five-advance demonstration, formula, and persistence boundaries.
 
 ## Start locally
 
@@ -32,7 +32,7 @@ curl -sS http://127.0.0.1:8000/api/datasets/live/events \
 
 Choose **Live** in the dashboard, enter `checkout` in Service and `timeout` in Message contains, then Apply filters. Expand the event to read its ID, full message, ingestion time, and metadata. Filters and page are in the URL; browser Back restores prior context and scroll after loading. Clear filters keeps the selected dataset. Refresh reloads the current query; a failed refresh keeps previous same-query results with a timestamp.
 
-- `POST /api/datasets/{dataset}/events`: accepts `{"events": [...]}` with 1–5,000 events. Dataset is `demo`, `live`, or `historical`. This is structured API ingestion, not the later file-upload feature.
+- `POST /api/datasets/{dataset}/events`: accepts `{"events": [...]}` with 1–5,000 events. Dataset is `demo`, `live`, or `historical`. For JSON-array files, use the Historical upload below.
 - Required fields: timezone-aware ISO timestamp, nonblank service (up to 120 characters), uppercase severity (`DEBUG`, `INFO`, `WARNING`, `ERROR`, `FATAL`), nonblank message (up to 16,384 characters). Extra fields are rejected.
 - Optional fields: `event_id` (nonblank, up to 200 characters) and `metadata` (finite JSON object, serialized size up to 32 KiB). Timestamps normalize to UTC with microsecond precision. Validation errors identify the event index and field without echoing log content.
 - A batch is atomic: any validation error (422) or conflicting ID (409) rejects the entire batch. The response gives `event_ids`, `inserted`, and `duplicates`.
@@ -66,7 +66,7 @@ npm --prefix frontend test
 
 Backend tests cover schema failures, complete-batch rollback, ID generation/deduplication/conflicts, normalization, literal filters, paging, dataset isolation, seed idempotence, and SQLite restart. Frontend tests cover query/Back restoration (including response timing), same-query actions, dataset races, expansion/focus, loading/empty/error/retry, literal rendering of untrusted messages, and available axe DOM accessibility rules. jsdom cannot establish rendered layout, contrast, or real-browser keyboard behavior. ESLint explicitly permits focusable named `region` elements to make the overflowing table keyboard-scrollable; other accessibility rules remain active.
 
-See [issue #1 evidence](docs/verification-issue-1.md), [issue #2 evidence](docs/verification-issue-2.md), [issue #3 evidence](docs/verification-issue-3.md), and [issue #4 evidence](docs/verification-issue-4.md) for measured results and pending manual UI checks.
+See [issue #1 evidence](docs/verification-issue-1.md), [issue #2 evidence](docs/verification-issue-2.md), [issue #3 evidence](docs/verification-issue-3.md), [issue #4 evidence](docs/verification-issue-4.md), and [issue #5 evidence](docs/verification-issue-5.md) for measured results and pending manual UI checks.
 
 ## Investigate evaluated evidence
 
@@ -77,3 +77,17 @@ The pane shows counts, rate, baseline/threshold, exact-message error patterns, a
 `GET /api/datasets/{demo|live}/incidents/{id}/evidence` accepts optional `evaluation` (default latest abnormal window), `run` (Demo UUID), `scope=evaluated|all`, `severity`, literal `message`, exact `event_id`, `page`, and `page_size` (1–100). Service and UTC bounds come from evaluation provenance, never caller-supplied overrides. Patterns show up to ten exact ERROR/FATAL message groups; samples prefer errors and contain at most five events. Basic pattern matching is not root-cause analysis. All evidence reads share one snapshot.
 
 Demo links carry a durable run identity. A mismatched run returns a specific reset explanation; an unavailable incident/window returns 404. If recorded metadata outlives logs, the response flags missing evidence independently of filters. Reset/retention execution remains a later slice; these boundaries are tested with controlled SQLite fixtures, not a claim that reset or cleanup is already implemented. Older links without a run ID retain compatibility but cannot identify a prior reset.
+
+
+## Import historical JSON
+
+Open **Logs → Historical**, choose a UTF-8 JSON-array file, and activate **Import into Historical**. Limits are inclusive: **5 MB (5,000,000 bytes)** and **1–5,000 events**. Use the same event fields and ID semantics documented above. The file is committed atomically; invalid rows or conflicting IDs reject the whole import. Feedback names row/field and lists up to 100 errors. Reading/uploading status is indeterminate; completion reports inserted and duplicate counts.
+
+Choose **Browse file interval** to set the file's inclusive UTC range and clear unrelated filters, then refine Service, Severity or Message contains. This interval can include previously imported events; it is not a file identity. Trends below the table use applied service/time filters, with at most 30 equal-width buckets rounded up to whole minutes. They include all severities in the ERROR/FATAL denominator; severity/message refinements affect only the log table. Empty buckets show no traffic, not health. Expand **Exact historical trend values · UTC** for the accessible numeric table.
+
+Imports persist across restart and never train Demo/Live baselines or create incidents/deliveries. Supplied IDs deduplicate only within Historical. Missing/null IDs generate fresh events on every import: after a connection failure, inspect Historical before retrying because the server may already have committed the file. The selected file remains available after failure.
+
+- `POST /api/historical/upload`: raw UTF-8 JSON array (not multipart), bounded during request streaming; returns inserted/duplicate counts, event IDs, Historical dataset and the file's UTC start/end. Optional UTF-8 BOM accepted.
+- `GET /api/historical/trends`: optional exact `service`, inclusive timezone-aware `start`/`end`; returns aggregate volume and error-log rate buckets. No detector baseline or live-incident semantics.
+
+See [the synthetic upload walkthrough and verification](docs/verification-issue-5.md). Run backend tests and runtime validation sequentially: both require loopback port 8000.

@@ -700,3 +700,39 @@ summary {
 #receiver-controls select {
   max-width: 100%;
 }
+
+.historical-upload {
+  padding: 20px;
+  margin-bottom: 24px;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  overflow-wrap: anywhere;
+}
+.historical-upload p,
+.historical-upload pre {
+  margin: 8px 0;
+  font-size: 13px;
+}
+.historical-upload form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 12px;
+  margin: 16px 0;
+}
+.historical-upload label {
+  flex: 1 1 280px;
+  min-width: 0;
+}
+.historical-upload button {
+  white-space: normal;
+  max-width: 100%;
+}
+.upload-error {
+  color: var(--error);
+  background: var(--error-bg);
+  border: 1px solid #e5b5b8;
+  padding: 12px;
+  margin-top: 12px;
+  white-space: pre-wrap;
+}

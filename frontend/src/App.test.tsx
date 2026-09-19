@@ -37,7 +37,14 @@ beforeEach(() => {
   vi.stubGlobal("scrollTo", vi.fn());
   vi.stubGlobal("scrollY", 0);
   fetchMock.mockReset();
-  fetchMock.mockImplementation(() => respond());
+  fetchMock.mockImplementation((url: string) =>
+    url.startsWith("/api/historical/trends")
+      ? Promise.resolve({
+          ok: true,
+          json: async () => ({ total: 0, buckets: [] }),
+        })
+      : respond(),
+  );
 });
 
 describe("log explorer", () => {
@@ -153,7 +160,7 @@ describe("log explorer", () => {
     await screen.findByText(row.message);
     await user.selectOptions(screen.getByLabelText("Dataset"), "historical");
     await waitFor(() =>
-      expect(fetchMock).toHaveBeenLastCalledWith(
+      expect(fetchMock).toHaveBeenCalledWith(
         expect.stringContaining("/historical/events?service=checkout"),
         expect.anything(),
       ),
