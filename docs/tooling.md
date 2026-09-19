@@ -132,3 +132,12 @@ No external runtime services, images, fonts, LLM calls, or webhook delivery are 
 - Browser skill — Used for supported browser availability/recovery discovery; rendered checks remain separately recorded.
 - `pr` skill — Used to update the existing PR evidence.
 - `domain-modeling` skill — Used to record the open-incident eligibility policy as ADR-026 in the existing decision log.
+
+## Issue #3 evaluated investigation
+
+- React/TypeScript, browser History API and MutationObserver — Used for shared in-app navigation, pinned incident/window URLs, saved return context, and focus restoration after asynchronous evidence loads; no router dependency added.
+- SQLite, FastAPI and Python standard library — Used for snapshot evidence reads, explicit late-arrival membership, literal refinements, sampled logs, exact-message patterns and a persisted demo-run UUID. No new runtime dependency.
+- Existing pytest/httpx and loopback runtime validator — Used for evidence membership, isolation, missing-evidence/reset-boundary fixtures, actual HTTP, restart and measured performance.
+- Vitest/jsdom, Testing Library and axe — Used for scoped investigation, filters/late-arrival toggle, expansion, Back/return focus, multi-window interval/focus regressions and DOM accessibility checks.
+- Impeccable context/detector and separate finish reviewer/documenter — Used for the established console extension; source detector reported no findings. Browser discovery/recovery found no usable browser, so rendered checks remain explicitly deferred.
+- `domain-modeling` and `pr` skills, GitHub CLI, Git and clock tool — Used for the persisted evidence identity decision, PR evidence, full paginated eligibility checks and elapsed-time reporting. Existing build/lint/type/format/contrast tools reused without dependency changes.

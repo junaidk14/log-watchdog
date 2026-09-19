@@ -1,6 +1,8 @@
+import { EvidencePane } from "./EvidencePane";
+import { PageLink, viewUrl, usePageRestoration } from "./navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-type Measurement = {
+export type Measurement = {
   id: number;
   service: string;
   start: string;
@@ -26,6 +28,7 @@ type Incident = {
 };
 export type OverviewData = {
   dataset: string;
+  run?: string | null;
   delayed: boolean;
   server_time: string;
   progress: {
@@ -48,7 +51,13 @@ const pct = (value: number | null) =>
   value === null ? "Not evaluated" : `${(value * 100).toFixed(2)}%`;
 const time = (value: string) => value.replace("T", " ").replace(/\.\d+Z$/, "Z");
 
-function Trend({ rows, volume }: { rows: Measurement[]; volume?: boolean }) {
+export function Trend({
+  rows,
+  volume,
+}: {
+  rows: Measurement[];
+  volume?: boolean;
+}) {
   const ceiling = volume ? Math.max(1, ...rows.map((row) => row.total)) : 1;
   const points = rows.map((row, index) => ({
     x: 42 + (index * 470) / Math.max(1, rows.length - 1),
@@ -63,7 +72,7 @@ function Trend({ rows, volume }: { rows: Measurement[]; volume?: boolean }) {
       <svg
         viewBox="0 0 540 180"
         role="img"
-        aria-label={`${rows[0]?.service}: ${volume ? "volume" : "error-log rate"}. Exact values in evaluated windows table below.`}
+        aria-label={`${rows[0]?.service}: ${volume ? "volume" : "error-log rate"}. ${rows.length === 1 ? `${rows[0].errors} ERROR/FATAL / ${rows[0].total} events, observed ${pct(rows[0].rate)}, expected ${pct(rows[0].expected)}, threshold ${pct(rows[0].threshold)}.` : "Exact values in evaluated windows table below."}`}
       >
         <path d="M42 20V135H520" className="chart-axis" />
         <text x="0" y="25">
@@ -126,7 +135,8 @@ function Trend({ rows, volume }: { rows: Measurement[]; volume?: boolean }) {
 }
 
 export function Overview() {
-  const params = new URLSearchParams(window.location.search);
+  const [location, setLocation] = useState(window.location.search);
+  const params = new URLSearchParams(location);
   const dataset = params.get("dataset") ?? "demo";
   const [selected, setSelected] = useState(params.get("incident"));
   const [data, setData] = useState<OverviewData | null>(null);
@@ -211,9 +221,12 @@ export function Overview() {
       window.clearInterval(timer);
     };
   }, [dataset, revision, acceptResults]);
+  usePageRestoration(data !== null || error !== null);
   useEffect(() => {
-    const back = () =>
+    const back = () => {
+      setLocation(window.location.search);
       setSelected(new URLSearchParams(window.location.search).get("incident"));
+    };
     window.addEventListener("popstate", back);
     return () => window.removeEventListener("popstate", back);
   }, []);
@@ -246,12 +259,40 @@ export function Overview() {
   }
   function select(id: string | null) {
     const next = new URLSearchParams(window.location.search);
-    next.set("view", "overview");
+    next.set("view", "incidents");
+    const chosen = data?.incidents.find((i) => String(i.id) === id);
+    if (chosen) {
+      next.set("evaluation", String(chosen.measurement.id));
+      next.set("service", chosen.service);
+      next.set("start", chosen.measurement.start);
+      next.set("end", chosen.measurement.end);
+    } else next.delete("evaluation");
+    next.delete("event_id");
+    if (data?.run) next.set("run", data.run);
     if (id) next.set("incident", id);
     else next.delete("incident");
-    window.history.pushState({}, "", `?${next}`);
+    window.history.replaceState(
+      {
+        ...window.history.state,
+        scrollY: window.scrollY,
+        focus: `incident-${id}`,
+      },
+      "",
+      window.location.href,
+    );
+    window.history.pushState(
+      {
+        focus: id ? "incident-heading" : `incident-${selected}`,
+        scrollY: window.scrollY,
+      },
+      "",
+      `?${next}`,
+    );
+    setLocation(window.location.search);
     setSelected(id);
+    const selectionUrl = window.location.search;
     window.requestAnimationFrame(() => {
+      if (window.location.search !== selectionUrl) return;
       if (id) heading.current?.focus();
       else
         (
@@ -259,7 +300,26 @@ export function Overview() {
         )?.focus();
     });
   }
-  const incident = data?.incidents.find((i) => String(i.id) === selected);
+  const reset =
+    dataset === "demo" &&
+    params.has("run") &&
+    data?.run &&
+    params.get("run") !== data.run;
+  const incident = reset
+    ? undefined
+    : data?.incidents.find((i) => String(i.id) === selected);
+  useEffect(() => {
+    if (!incident || params.has("evaluation")) return;
+    const url = viewUrl(params.get("view") ?? "incidents", {
+      evaluation: String(incident.measurement.id),
+      service: incident.service,
+      start: incident.measurement.start,
+      end: incident.measurement.end,
+      run: data?.run ?? null,
+    });
+    window.history.replaceState(window.history.state, "", url);
+    setLocation(window.location.search);
+  }, [incident, location, data?.run]);
   const latest = data?.services.find((s) => s.service === incident?.service);
   const recoveryStatus =
     incident?.state === "recovered"
@@ -280,10 +340,44 @@ export function Overview() {
         </a>
         <p className="local-label">Local workspace</p>
         <nav aria-label="Primary">
-          <a href={`?view=overview&dataset=${dataset}`} aria-current="page">
+          <PageLink
+            href={viewUrl("overview")}
+            focus="overview-heading"
+            aria-current={
+              params.get("view") !== "incidents" ? "page" : undefined
+            }
+          >
             Overview
-          </a>
-          <a href={`?view=logs&dataset=${dataset}`}>Logs</a>
+          </PageLink>
+          <PageLink
+            href={viewUrl("incidents")}
+            focus="queue-heading"
+            aria-current={
+              params.get("view") === "incidents" ? "page" : undefined
+            }
+          >
+            Incidents
+          </PageLink>
+          <PageLink
+            href={viewUrl(
+              "logs",
+              incident
+                ? {
+                    evaluation:
+                      params.get("evaluation") ??
+                      String(incident.measurement.id),
+                    run: data?.run ?? null,
+                    scope: "evaluated",
+                    service: incident.service,
+                    start: params.get("start") ?? incident.measurement.start,
+                    end: params.get("end") ?? incident.measurement.end,
+                  }
+                : {},
+            )}
+            focus="logs-heading"
+          >
+            Logs
+          </PageLink>
         </nav>
         <p className="rail-note">
           Structured events.
@@ -294,7 +388,9 @@ export function Overview() {
       <main id="overview">
         <header className="page-header">
           <div>
-            <h1>Overview</h1>
+            <h1 id="overview-heading" tabIndex={-1}>
+              {params.get("view") === "incidents" ? "Incidents" : "Overview"}
+            </h1>
             <p>Investigate unusual error-log rates.</p>
           </div>
           <label className="dataset-select">
@@ -401,52 +497,72 @@ export function Overview() {
                     health.
                   </p>
                 )}
-                {data.incidents.map((i) => (
-                  <article
-                    key={i.id}
-                    className={
-                      selected === String(i.id)
-                        ? "incident-row selected"
-                        : "incident-row"
-                    }
-                  >
-                    <h3>{i.service}</h3>
-                    <p>
-                      <strong>
-                        {i.state === "open" ? "Open" : "Recovered"}
-                      </strong>
-                      {selected === String(i.id) && " · Selected"}
-                    </p>
-                    <p>
-                      {pct(i.measurement.rate)} observed /{" "}
-                      {pct(i.measurement.expected)} expected error-log rate
-                    </p>
-                    <p className="hint">
-                      {time(i.start)} → {time(i.end)}
-                    </p>
-                    <a
-                      id={`incident-${i.id}`}
-                      href={`?view=overview&dataset=${dataset}&incident=${i.id}`}
-                      aria-current={
-                        selected === String(i.id) ? "true" : undefined
-                      }
-                      onClick={(event) => {
-                        if (
-                          !event.ctrlKey &&
-                          !event.metaKey &&
-                          !event.shiftKey &&
-                          !event.altKey &&
-                          event.button === 0
-                        ) {
-                          event.preventDefault();
-                          select(String(i.id));
+                <table className="incident-table">
+                  <caption className="sr-only">Incident queue</caption>
+                  <thead>
+                    <tr>
+                      <th scope="col">Service and measurement</th>
+                      <th scope="col">Investigation</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {data.incidents.map((i) => (
+                      <tr
+                        key={i.id}
+                        className={
+                          selected === String(i.id)
+                            ? "incident-row selected"
+                            : "incident-row"
                         }
-                      }}
-                    >
-                      Investigate {i.service} incident #{i.id}
-                    </a>
-                  </article>
-                ))}
+                      >
+                        <td>
+                          <h3>{i.service}</h3>
+                          <p>
+                            <strong>
+                              {i.state === "open" ? "Open" : "Recovered"}
+                            </strong>
+                            {selected === String(i.id) && " · Selected"}
+                          </p>
+                          <p>
+                            {pct(i.measurement.rate)} observed /{" "}
+                            {pct(i.measurement.expected)} expected error-log
+                            rate
+                          </p>
+                          <p className="hint">
+                            {time(i.start)} → {time(i.end)}
+                          </p>
+                        </td>
+                        <td>
+                          <a
+                            id={`incident-${i.id}`}
+                            href={viewUrl("incidents", {
+                              incident: String(i.id),
+                              run: data.run ?? null,
+                              evaluation: null,
+                            })}
+                            aria-current={
+                              selected === String(i.id) ? "true" : undefined
+                            }
+                            onClick={(event) => {
+                              if (
+                                !event.ctrlKey &&
+                                !event.metaKey &&
+                                !event.shiftKey &&
+                                !event.altKey &&
+                                event.button === 0
+                              ) {
+                                event.preventDefault();
+                                select(String(i.id));
+                              }
+                            }}
+                          >
+                            Investigate {i.service} incident #{i.id}
+                          </a>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </section>
               <section
                 className="incident-pane"
@@ -466,8 +582,15 @@ export function Overview() {
                 )}
                 {selected && !incident && (
                   <p>
-                    This incident is not available in the selected dataset.
-                    Return to the incident queue.
+                    {reset
+                      ? "This demo run was reset. Return to the current demo."
+                      : "Incident unavailable in this dataset or no longer retained."}
+                    <PageLink
+                      href={`?view=overview&dataset=${dataset}`}
+                      focus="queue-heading"
+                    >
+                      Return to current {dataset}
+                    </PageLink>
                   </p>
                 )}
                 {!selected && (
@@ -478,6 +601,12 @@ export function Overview() {
                 )}
                 {incident && (
                   <>
+                    {incident.state === "recovered" && (
+                      <p>
+                        Selected incident recovered. Selection and evidence
+                        remain available.
+                      </p>
+                    )}
                     <p className="recovery-status">{recoveryStatus}</p>
                     <dl>
                       <dt>Incident interval (UTC)</dt>
@@ -511,6 +640,14 @@ export function Overview() {
                       Recorded measurements exclude later arrivals. Detection is
                       a statistical heuristic, not a probability of failure.
                     </p>
+                    <EvidencePane
+                      key={`${dataset}-${selected}`}
+                      dataset={dataset}
+                      incident={selected!}
+                      run={params.get("run") ?? data.run}
+                      evaluation={params.get("evaluation")}
+                      refreshKey={fetched ?? ""}
+                    />
                   </>
                 )}
               </section>

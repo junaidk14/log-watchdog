@@ -96,6 +96,7 @@ class Store:
     def seed_demo(self) -> None:
         with self.connection() as db:
             db.execute("BEGIN IMMEDIATE")
+            db.execute("INSERT OR IGNORE INTO settings VALUES ('demo_run', ?)", (str(uuid4()),))
             if db.execute("SELECT value FROM settings WHERE key='demo_seeded'").fetchone():
                 return
             end = datetime(2026, 1, 1, 12, tzinfo=UTC)

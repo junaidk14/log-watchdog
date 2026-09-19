@@ -616,3 +616,52 @@ summary {
     margin-bottom: 12px;
   }
 }
+
+.evidence-pane {
+  margin-top: var(--section, 24px);
+  border-top: 1px solid var(--rule);
+  padding-top: 20px;
+  overflow-wrap: anywhere;
+}
+.evidence-pane h3 {
+  margin-top: 24px;
+}
+.evidence-pane li {
+  margin-bottom: 12px;
+}
+.evidence-pane select {
+  width: 100%;
+  min-width: 0;
+}
+.evidence-action {
+  display: inline-block;
+  padding: 10px 0;
+  font-weight: 650;
+}
+.late-label {
+  display: block;
+  color: var(--warning);
+  font-size: 12px;
+}
+.dataset-context input[type="checkbox"] {
+  width: 20px;
+  min-height: 20px;
+  vertical-align: middle;
+}
+
+.incident-table {
+  table-layout: fixed;
+  width: 100%;
+  min-width: 0;
+}
+.incident-table th:first-child,
+.incident-table th:nth-child(2) {
+  width: auto;
+}
+.incident-table td {
+  overflow-wrap: anywhere;
+  vertical-align: top;
+}
+.incident-table td:last-child {
+  width: 34%;
+}
