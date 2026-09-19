@@ -1,0 +1,305 @@
+{
+  "title": "Log Watchdog: choose the console",
+  "question": "Both primary directions preserve your incident-first workflow. Choose a layout to develop, or steer the direction.",
+  "options": [
+    {
+      "id": "assigned",
+      "label": "Event recorder",
+      "kicker": "DIRECTION",
+      "lineage": "Flight event recorders and instrument traces",
+      "thesis": "Follow one incident along a shared timeline from signal to evidence to delivery.",
+      "palette": [
+        "#151a1f",
+        "#20272e",
+        "#e7edf2",
+        "#75afcb"
+      ],
+      "materials": [
+        "graphite instrument surfaces",
+        "precise trace lines",
+        "tabular timestamps"
+      ],
+      "viewport": "Active incident strip above a wide error-log chart; aligned evidence and delivery records below.",
+      "risk": "The timeline must remain readable when timestamps become dense.",
+      "comp": ".impeccable/mocks/decision/assigned.webp",
+      "wireframe": {
+        "cols": 12,
+        "rows": 10,
+        "regions": [
+          {
+            "label": "Navigation",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 10
+          },
+          {
+            "label": "Active incident",
+            "x": 2,
+            "y": 0,
+            "w": 10,
+            "h": 2,
+            "accent": true
+          },
+          {
+            "label": "Error-log rate + baseline",
+            "x": 2,
+            "y": 2,
+            "w": 10,
+            "h": 4
+          },
+          {
+            "label": "Supporting evidence",
+            "x": 2,
+            "y": 6,
+            "w": 7,
+            "h": 4
+          },
+          {
+            "label": "Delivery activity",
+            "x": 9,
+            "y": 6,
+            "w": 3,
+            "h": 4
+          }
+        ]
+      },
+      "raised": [
+        {
+          "from": "Drawcord cape",
+          "raise": "A selected interval synchronizes every evidence view."
+        },
+        {
+          "from": "Cloud edge",
+          "raise": "Color marks meaningful signals; uncertainty stays explicit."
+        },
+        {
+          "from": "Cracktro queue",
+          "raise": "The active incident holds still while secondary context recedes."
+        },
+        {
+          "from": "Nixie counter",
+          "raise": "Observed and expected values share precision and units."
+        },
+        {
+          "from": "Cassette J-card",
+          "raise": "Logs and attempts use consistent timestamp alignment."
+        },
+        {
+          "from": "Pop sleeve",
+          "raise": "Four clear destinations keep navigation bounded."
+        }
+      ]
+    },
+    {
+      "id": "model-pick",
+      "label": "Incident workbench",
+      "kicker": "IMPECCABLE\u2019S PICK",
+      "lineage": "Operations dispatch desks and debugger workspaces",
+      "thesis": "Keep the incident queue and its evidence visible together.",
+      "palette": [
+        "#f4f6f7",
+        "#ffffff",
+        "#202c36",
+        "#246b87"
+      ],
+      "materials": [
+        "cool neutral work surfaces",
+        "compact ruled rows",
+        "restrained status fills"
+      ],
+      "viewport": "Active incidents lead a wide workspace, with a persistent evidence pane and service trends underneath.",
+      "risk": "Familiar and efficient, but less distinctive than the event recorder.",
+      "comp": ".impeccable/mocks/decision/pick.webp",
+      "wireframe": {
+        "cols": 12,
+        "rows": 10,
+        "regions": [
+          {
+            "label": "Navigation",
+            "x": 0,
+            "y": 0,
+            "w": 2,
+            "h": 10
+          },
+          {
+            "label": "Incident queue",
+            "x": 2,
+            "y": 0,
+            "w": 6,
+            "h": 5,
+            "accent": true
+          },
+          {
+            "label": "Evidence pane",
+            "x": 8,
+            "y": 0,
+            "w": 4,
+            "h": 10
+          },
+          {
+            "label": "Service trends",
+            "x": 2,
+            "y": 5,
+            "w": 6,
+            "h": 5
+          }
+        ]
+      }
+    },
+    {
+      "id": "challenger-cape",
+      "label": "Drawcord cape",
+      "verdict": "declined",
+      "lineage": "Drawcord cape",
+      "thesis": "Evidence panels gather around a selected incident.",
+      "palette": [
+        "#17191c",
+        "#b89a52",
+        "#616973"
+      ],
+      "materials": [
+        "reference grammar translated into console structure"
+      ],
+      "viewport": "Evidence panels gather around a selected incident.",
+      "risk": "Metaphorical controls slow operational scanning.",
+      "case": "Declined on audience identification and product clarity: Metaphorical controls slow operational scanning.",
+      "kept": "A selected interval synchronizes every evidence view.",
+      "hero": "https://impeccable.style/worlds/cards/textiles-weave-drape-fashion-drawcord-transforming-cape-hero.webp",
+      "board": "https://impeccable.style/worlds/cards/textiles-weave-drape-fashion-drawcord-transforming-cape.webp"
+    },
+    {
+      "id": "challenger-cloud",
+      "label": "Cloud edge",
+      "verdict": "declined",
+      "lineage": "Cloud edge",
+      "thesis": "An observation interval leads to uncertainty and evidence.",
+      "palette": [
+        "#ffffff",
+        "#525e69",
+        "#b4a5c8"
+      ],
+      "materials": [
+        "reference grammar translated into console structure"
+      ],
+      "viewport": "An observation interval leads to uncertainty and evidence.",
+      "risk": "Spectral states compete with severity semantics.",
+      "case": "Declined on audience identification and product clarity: Spectral states compete with severity semantics.",
+      "kept": "Color marks meaningful signals; uncertainty stays explicit.",
+      "hero": "https://impeccable.style/worlds/cards/clouds-storms-auroras-iridescent-cloud-edge-hero.webp",
+      "board": "https://impeccable.style/worlds/cards/clouds-storms-auroras-iridescent-cloud-edge.webp"
+    },
+    {
+      "id": "challenger-queue",
+      "label": "Cracktro queue",
+      "verdict": "declined",
+      "lineage": "Cracktro queue",
+      "thesis": "Incident priority controls depth and brightness.",
+      "palette": [
+        "#080808",
+        "#ededdf",
+        "#bca15e"
+      ],
+      "materials": [
+        "reference grammar translated into console structure"
+      ],
+      "viewport": "Incident priority controls depth and brightness.",
+      "risk": "Bitmap layers reduce dense-log readability.",
+      "case": "Declined on audience identification and product clarity: Bitmap layers reduce dense-log readability.",
+      "kept": "The active incident holds still while secondary context recedes.",
+      "hero": "https://impeccable.style/worlds/cards/operate-c-cracktro-scroller-queue-hero.webp",
+      "board": "https://impeccable.style/worlds/cards/operate-c-cracktro-scroller-queue.webp"
+    },
+    {
+      "id": "challenger-counter",
+      "label": "Nixie counter",
+      "verdict": "declined",
+      "lineage": "Nixie counter",
+      "thesis": "Numeric banks compare observed and expected signals.",
+      "palette": [
+        "#15191c",
+        "#de984e",
+        "#b7bec1"
+      ],
+      "materials": [
+        "reference grammar translated into console structure"
+      ],
+      "viewport": "Numeric banks compare observed and expected signals.",
+      "risk": "Instrument styling gives counts priority over evidence.",
+      "case": "Declined on audience identification and product clarity: Instrument styling gives counts priority over evidence.",
+      "kept": "Observed and expected values share precision and units.",
+      "hero": "https://impeccable.style/worlds/cards/signals-instruments-nixie-laboratory-counter-hero.webp",
+      "board": "https://impeccable.style/worlds/cards/signals-instruments-nixie-laboratory-counter.webp"
+    },
+    {
+      "id": "challenger-cassette",
+      "label": "Cassette J-card",
+      "verdict": "declined",
+      "lineage": "Cassette J-card",
+      "thesis": "Evidence and delivery form paired timestamped listings.",
+      "palette": [
+        "#f6f6f2",
+        "#284e78",
+        "#8b959f"
+      ],
+      "materials": [
+        "reference grammar translated into console structure"
+      ],
+      "viewport": "Evidence and delivery form paired timestamped listings.",
+      "risk": "Side-flipping interrupts the investigation path.",
+      "case": "Declined on audience identification and product clarity: Side-flipping interrupts the investigation path.",
+      "kept": "Logs and attempts use consistent timestamp alignment.",
+      "hero": "https://impeccable.style/worlds/cards/vernacular-ephemera-cassette-j-card-hero.webp",
+      "board": "https://impeccable.style/worlds/cards/vernacular-ephemera-cassette-j-card.webp"
+    },
+    {
+      "id": "challenger-sleeve",
+      "label": "Pop sleeve",
+      "verdict": "declined",
+      "lineage": "Pop sleeve",
+      "thesis": "One service anchors four investigation destinations.",
+      "palette": [
+        "#ea792d",
+        "#ffffff",
+        "#242424"
+      ],
+      "materials": [
+        "reference grammar translated into console structure"
+      ],
+      "viewport": "One service anchors four investigation destinations.",
+      "risk": "Poster hierarchy leaves too little room for logs.",
+      "case": "Declined on audience identification and product clarity: Poster hierarchy leaves too little room for logs.",
+      "kept": "Four clear destinations keep navigation bounded.",
+      "hero": "https://impeccable.style/worlds/cards/posters-covers-sleeves-yeye-pop-sleeve-hero.webp",
+      "board": "https://impeccable.style/worlds/cards/posters-covers-sleeves-yeye-pop-sleeve.webp"
+    }
+  ],
+  "reroll": {
+    "registers": [
+      "safer",
+      "bolder"
+    ]
+  },
+  "buildPath": {
+    "value": "code",
+    "toggle": true
+  },
+  "canon": true,
+  "canonCard": {
+    "label": "Conventional monitoring console",
+    "thesis": "A standard service dashboard with an incident table, executed precisely.",
+    "palette": [
+      "#ffffff",
+      "#192532",
+      "#267b98"
+    ],
+    "materials": [
+      "neutral panels",
+      "standard table controls"
+    ],
+    "viewport": "Sidebar, summary metrics, trend chart, and incident list.",
+    "risk": "Familiar, with less emphasis on the connected evidence trail.",
+    "comp": ".impeccable/mocks/decision/canon.webp"
+  },
+  "steer": true
+}

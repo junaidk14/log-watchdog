@@ -1,0 +1,7 @@
+# Local OS metadata
+.DS_Store
+
+# Impeccable's local choice-page process state and logs.
+# Durable selections are captured in the design docs and prompt audit.
+.impeccable/questions/
+.impeccable/config.local.json
