@@ -1018,3 +1018,14 @@ Runner assignment: IMPLEMENT in `junaidk14/log-watchdog`, starting main `b374e98
 ## 2026-09-19T23:10:02.391771+00:00 — FIX issue #4 / PR #11
 
 Runner assignment: FIX only independent review finding R1 on `issue-4-webhook-deliveries` in `junaidk14/log-watchdog`, base `b374e98902cc540f099bdde5e9257be2d152f0a6`, reviewed head `ac9680d250136e6673991a0531001eac484df027`. Issue: https://github.com/junaidk14/log-watchdog/issues/4. Historical Deliveries incorrectly opened Logs from Overview/Incidents. Apply existing Historical navigation rules (Overview goes to Live, Incidents hidden), cover actual Router interactions, verify, commit and push the same branch, and update existing PR #11 without merging or approving. Both Overview entry points share this correction. Preserve protected runner files and exact JSON handoff; record browser-unavailable limitations after supported discovery.
+
+
+## Failure-handling clarification — 2026-09-19T23:23:58.040061+00:00
+
+```text
+Small clarification to my previous instruction: ordinary test, build, verification, or review failures should not stop the AFK run. Let the implementation/fix workflow diagnose them, fix them, rerun the checks, and continue as normal.
+Only stop if something is still unresolved after the configured retries, is genuinely blocked, or the Git/PR state becomes unsafe or ambiguous.
+Everything else from the previous instruction stays the same.
+```
+
+The active ephemeral session could not receive CLI queue messages (no saved rollout). Issue #4 completed and merged. Issue #5 stopped prematurely on ordinary Ruff E501 and a DOM assertion failure under older policy wording. The root coordinator applies this clarification on a separate clean main worktree, preserving issue #5's known uncommitted files. The partial branch is then advanced to the policy commit without rewriting implementation, and a fresh completion session must resolve failures and pass all existing review/merge gates.

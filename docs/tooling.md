@@ -208,3 +208,8 @@ Project-specific AFK policy now authorizes #4–#7 and requires implementation/f
 - Existing frontend build, type, lint, formatting, DOM/axe tests, Python checks and runtime validator — Used to verify the scoped navigation fix; no new dependencies or architectural decisions.
 - Browser skill/runtime — Used for supported setup and recovery; `getForUrl` reported no available browser, recovery discovery returned `[]`. Rendered checks remain pending under the authorized fallback.
 - `pr` skill, GitHub CLI, Git and clock tool — Used to update the existing PR evidence and verify metadata/elapsed time.
+
+
+- Git worktree — Used for a disjoint policy/audit update on clean main while preserving known partial issue #5 changes in the implementation checkout.
+- Codex CLI queue — Attempted user steering; unsupported for this ephemeral thread because no saved rollout exists. No queued message was delivered.
+- AFK failure handling — Ordinary failed checks are diagnosed, fixed and rerun; only unresolved failures after configured retries, genuine blockers or unsafe/ambiguous Git/PR state stop the run. Independent review and merge gates are unchanged.
