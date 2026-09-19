@@ -134,3 +134,15 @@ Record material architectural decisions here once made. Each entry states the de
 - **Decision:** Incident log links initially show events included in detection, with an explicit option to include later arrivals. Preserve the distinction between evaluated evidence and broader matching logs; later arrivals do not alter recorded incident measurements.
 - **Rationale:** Keep the investigation consistent with the detector's recorded numerator and denominator while allowing users to inspect additional context.
 - **Status:** Accepted by the user after the UI critique; implementation must retain enough evaluation provenance to distinguish these scopes.
+
+## ADR-023 — Atomic dataset-scoped ingestion
+
+- **Decision:** Commit each validated API batch as one transaction. Event identity is `(dataset, event_id)`; identical normalized content deduplicates, conflicting content rejects the whole batch. Missing/null IDs generate new UUIDs and do not make retries idempotent. Demo seeding shares this ingestion path and commits its marker in the same transaction.
+- **Rationale:** Partial acceptance would make producer retries and error recovery ambiguous. Dataset-scoped IDs preserve independent demo/live/historical data even when producers reuse identifiers. Atomic seeding prevents duplicate or incomplete initial history after restart.
+- **Status:** Accepted and implemented in issue #1.
+
+## ADR-024 — Direct SQLite storage and bounded offset browsing
+
+- **Decision:** Use Python's SQLite module with short transactions, WAL mode, parameterized queries and dataset/time plus dataset/service/time indexes. Read a page and its matching count from one snapshot; order by timestamp and insertion sequence. Use bounded offset pagination for this first local slice.
+- **Rationale:** The small schema and single-process scope do not need an ORM or migration framework yet. Explicit SQL keeps dataset boundaries inspectable. Offset paging supports numbered pages simply at the measured 100k-event target; separate requests can shift under new ingestion, which is documented rather than promising a stable live snapshot.
+- **Status:** Accepted and implemented in issue #1; later schema changes must preserve existing data.
