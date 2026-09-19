@@ -440,3 +440,179 @@ pre {
     overflow-wrap: anywhere;
   }
 }
+
+nav a:not([aria-current]) {
+  background: transparent;
+}
+.overview-controls {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.overview-controls p,
+.refresh-time {
+  font-size: 13px;
+  color: var(--muted);
+}
+.overview-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+.refresh-time {
+  margin-bottom: 16px;
+  overflow-wrap: anywhere;
+}
+.incident-workbench {
+  display: grid;
+  grid-template-columns: minmax(260px, 2fr) minmax(0, 3fr);
+  background: var(--surface);
+  border: 1px solid var(--rule);
+}
+.incident-queue,
+.incident-pane {
+  padding: 20px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.incident-pane {
+  border-left: 1px solid var(--rule);
+}
+.incident-pane dl {
+  grid-template-columns: minmax(120px, 1fr) minmax(0, 2fr);
+  font-size: 13px;
+}
+.incident-pane button {
+  margin: 8px 0;
+}
+.incident-row {
+  padding: 16px 12px;
+  border-top: 1px solid var(--rule);
+  font-size: 13px;
+}
+.incident-row.selected {
+  background: var(--selected);
+}
+.incident-row h3,
+.service-trend h3 {
+  margin: 0 0 6px;
+  font-size: 16px;
+}
+.incident-row a {
+  display: inline-block;
+  margin-top: 12px;
+}
+.no-active {
+  padding: 16px 0;
+  color: var(--muted);
+}
+.recovery-status {
+  margin: 12px 0 20px;
+}
+.service-trends {
+  margin-top: 32px;
+}
+.service-trends > p {
+  color: var(--muted);
+  font-size: 13px;
+}
+.service-trend {
+  margin-top: 24px;
+  padding: 20px;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  overflow-wrap: anywhere;
+}
+.trend-pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+}
+.trend {
+  margin: 20px 0;
+  min-width: 0;
+}
+.trend figcaption {
+  font-weight: 600;
+  font-size: 13px;
+}
+.trend svg {
+  width: 100%;
+  display: block;
+}
+.trend text {
+  fill: var(--muted);
+  font-size: 12px;
+}
+.chart-axis {
+  fill: none;
+  stroke: var(--muted);
+}
+.chart-observed {
+  stroke: var(--accent);
+  fill: var(--accent);
+  stroke-width: 2;
+}
+.chart-abnormal {
+  stroke: var(--error);
+  fill: var(--surface);
+  stroke-width: 2;
+}
+.chart-baseline {
+  stroke: var(--ink);
+  stroke-width: 2;
+}
+.chart-threshold {
+  stroke: var(--warning);
+  stroke-width: 2;
+  stroke-dasharray: 3 2;
+}
+.trend-table {
+  min-width: 760px;
+  table-layout: auto;
+}
+.trend-table th {
+  width: auto;
+}
+summary {
+  cursor: pointer;
+  color: var(--accent);
+  padding: 8px 0;
+}
+@media (max-width: 900px) {
+  .incident-workbench {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .incident-pane {
+    border-left: 0;
+    border-top: 1px solid var(--rule);
+  }
+  .incident-workbench.has-selection .incident-queue {
+    display: none;
+  }
+  .incident-workbench:not(.has-selection) .incident-pane {
+    display: none;
+  }
+}
+@media (max-width: 700px) {
+  .rail {
+    flex-wrap: wrap;
+  }
+  .rail nav {
+    display: flex;
+  }
+  .trend-pair {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+  .incident-pane dl {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 6px;
+  }
+  .incident-pane dd {
+    margin-bottom: 12px;
+  }
+}

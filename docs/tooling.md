@@ -113,3 +113,14 @@ No external runtime services, images, fonts, LLM calls, or webhook delivery are 
 - Vitest/jsdom and React Testing Library — Used for real `history.back()` / `history.forward()` traversal with scroll events and delayed mocked responses; does not establish rendered browser scrolling.
 - Browser skill — Used again for supported setup/recovery discovery; no browser available (`getForUrl` failed, recovery list empty). Manual rendered checks remain pending.
 - `pr` skill — Used to update the existing PR evidence. Existing Python/frontend verification tools were reused without dependency changes.
+
+## Issue #2 detection and overview
+
+- Python `math`, Pydantic configuration, SQLite transactions/indexes — Used for the smoothed proportion detector, persistent cursors, incident grouping and event inclusion watermarks. No statistical runtime dependency added.
+- Python `asyncio` / FastAPI lifespan — Used for the single-worker real-clock evaluation loop; SQLite evaluation runs in a thread and resumes its durable cursor after restart.
+- React/TypeScript and data-driven SVG — Used for the incident-first overview, minimal detail and separate rate/volume charts with exact-value tables. Existing CSS tokens are retained.
+- pytest, Vitest/Testing Library, axe, Ruff, mypy, ESLint, Prettier and Vite — Used for deterministic detector/clock, API, DOM, accessibility, lint, formatting, type and build verification.
+- httpx and subprocess runtime validator — Used for actual loopback demo progression, late-evidence immutability, restart, real-time worker execution and repeated bounded performance measurements.
+- Impeccable skill/context/detector and finish reviewer/documenter — Used for the established console extension. Source detector reported no findings; finish review requested transition announcements, addressed with DOM regression coverage. Rendered verification remains deferred under the policy fallback.
+- Browser skill/runtime — Used for supported connection and recovery discovery; `getForUrl` returned no available browser and recovery `list()` returned `[]`.
+- `pr` skill and GitHub CLI — Used for PR structure, complete paginated issue/PR/dependency eligibility checks, and publication. No dependency versions changed.

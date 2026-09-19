@@ -1,0 +1,286 @@
+import { act, render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { beforeEach, expect, it, vi } from "vitest";
+import axe from "axe-core";
+import { Overview, type OverviewData } from "./Overview";
+
+const measurement = {
+  id: 1,
+  service: "checkout",
+  start: "2026-01-01T12:00:00Z",
+  end: "2026-01-01T12:01:00Z",
+  total: 40,
+  errors: 16,
+  rate: 0.4,
+  expected: 0.000416,
+  threshold: 0.050416,
+  baseline_total: 1200,
+  baseline_count: 30,
+  status: "spike detected",
+};
+const data: OverviewData = {
+  dataset: "demo",
+  delayed: false,
+  server_time: "2026-09-19T20:00:00Z",
+  progress: {
+    clock: "2026-01-01T12:01:10Z",
+    steps: 1,
+    next_start: "2026-01-01T12:01:00Z",
+    last_success: "2026-01-01T12:01:10Z",
+  },
+  services: [measurement],
+  trends: [measurement],
+  incidents: [
+    {
+      id: 1,
+      service: "checkout",
+      state: "open",
+      start: measurement.start,
+      end: measurement.end,
+      recovery_streak: 0,
+      recovered_at: null,
+      measurement,
+    },
+  ],
+  config: {
+    recovery_windows: 3,
+    grace_seconds: 10,
+    minimum_events: 20,
+    minimum_baseline_windows: 10,
+  },
+};
+const fetchMock = vi.fn();
+function respond(value = data) {
+  return Promise.resolve({
+    ok: true,
+    json: async () => structuredClone(value),
+  } as Response);
+}
+beforeEach(() => {
+  window.history.replaceState({}, "", "/?view=overview&dataset=demo");
+  fetchMock.mockReset();
+  fetchMock.mockImplementation(() => respond());
+  vi.stubGlobal("fetch", fetchMock);
+});
+
+it("selects with keyboard, preserves selection through recovery and returns focus", async () => {
+  const user = userEvent.setup();
+  render(<Overview />);
+  const link = await screen.findByRole("link", {
+    name: "Investigate checkout incident #1",
+  });
+  link.focus();
+  await user.keyboard("{Enter}");
+  await waitFor(() =>
+    expect(
+      screen.getByRole("heading", { name: "checkout · open" }),
+    ).toHaveFocus(),
+  );
+  expect(window.location.search).toContain("incident=1");
+  expect(link).toHaveAttribute("aria-current", "true");
+  expect(
+    screen.getByText(/16 ERROR\/FATAL \/ 40 events/, { selector: "dd" }),
+  ).toBeInTheDocument();
+  const recovered = structuredClone(data);
+  recovered.incidents[0].state = "recovered";
+  recovered.incidents[0].recovered_at = "2026-01-01T12:05:00Z";
+  fetchMock.mockImplementation(() => respond(recovered));
+  await user.click(screen.getByRole("button", { name: "Refresh overview" }));
+  expect(
+    await screen.findByRole("heading", { name: "checkout · recovered" }),
+  ).toBeInTheDocument();
+  expect(window.location.search).toContain("incident=1");
+  await user.click(screen.getByRole("button", { name: "Back to incidents" }));
+  await waitFor(() => expect(link).toHaveFocus());
+  expect(window.location.search).not.toContain("incident=");
+  await act(async () => {
+    window.history.back();
+  });
+  await waitFor(() =>
+    expect(
+      screen.getByRole("heading", { name: "checkout · recovered" }),
+    ).toBeInTheDocument(),
+  );
+});
+
+it("retains values and selected detail on refresh error and retries", async () => {
+  window.history.replaceState(
+    {},
+    "",
+    "/?view=overview&dataset=demo&incident=1",
+  );
+  const user = userEvent.setup();
+  render(<Overview />);
+  await screen.findByRole("heading", { name: "checkout · open" });
+  fetchMock.mockRejectedValueOnce(new Error("Local server offline"));
+  await user.click(screen.getByRole("button", { name: "Refresh overview" }));
+  expect(await screen.findByRole("alert")).toHaveTextContent(
+    "Showing results fetched at",
+  );
+  expect(
+    screen.getByRole("heading", { name: "checkout · open" }),
+  ).toBeInTheDocument();
+  await user.click(screen.getByRole("button", { name: "Retry refresh" }));
+  await waitFor(() =>
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument(),
+  );
+});
+
+it("advances once while busy and reports unknown outcome without dropping evidence", async () => {
+  const user = userEvent.setup();
+  render(<Overview />);
+  const button = await screen.findByRole("button", {
+    name: "Advance one minute",
+  });
+  await screen.findByText("Service trends");
+  let reject!: (reason: Error) => void;
+  fetchMock.mockReturnValueOnce(
+    new Promise((_, no) => {
+      reject = no;
+    }),
+  );
+  await user.click(button);
+  expect(screen.getByRole("button", { name: "Advancing…" })).toBeDisabled();
+  await act(async () =>
+    reject(new Error("Connection lost; refresh to check simulation time")),
+  );
+  expect(await screen.findByRole("alert")).toHaveTextContent("Connection lost");
+  expect(
+    screen.getByRole("link", { name: "Investigate checkout incident #1" }),
+  ).toBeInTheDocument();
+  expect(fetchMock).toHaveBeenLastCalledWith("/api/demo/advance", {
+    method: "POST",
+  });
+});
+
+it("renders loading, initial failure, retry and honest empty live baseline", async () => {
+  window.history.replaceState({}, "", "/?view=overview&dataset=live");
+  let reject!: (reason: Error) => void;
+  fetchMock.mockReturnValueOnce(
+    new Promise((_, no) => {
+      reject = no;
+    }),
+  );
+  render(<Overview />);
+  expect(screen.getByText("Loading overview…")).toBeInTheDocument();
+  await act(async () => reject(new Error("Offline")));
+  expect(await screen.findByRole("alert")).toHaveTextContent("Offline");
+  fetchMock.mockImplementation(() =>
+    respond({
+      ...data,
+      dataset: "live",
+      incidents: [],
+      services: [],
+      trends: [],
+    }),
+  );
+  await userEvent
+    .setup()
+    .click(screen.getByRole("button", { name: "Retry refresh" }));
+  expect(
+    await screen.findByText(/Learning baseline. Send live events/),
+  ).toBeInTheDocument();
+  expect(
+    screen.queryByRole("button", { name: "Advance one minute" }),
+  ).not.toBeInTheDocument();
+  expect(screen.getByText(/No active incidents/)).toBeInTheDocument();
+});
+
+it("shows sparse recovery, delayed live windows and exact chart values accessibly", async () => {
+  window.history.replaceState(
+    {},
+    "",
+    "/?view=overview&dataset=live&incident=1",
+  );
+  fetchMock.mockImplementation(() =>
+    respond({
+      ...data,
+      dataset: "live",
+      delayed: true,
+      services: [
+        {
+          ...measurement,
+          rate: null,
+          total: 0,
+          errors: 0,
+          status: "insufficient traffic",
+        },
+      ],
+    }),
+  );
+  const { container } = render(<Overview />);
+  expect(
+    await screen.findByText(/Waiting for sufficient traffic/),
+  ).toBeInTheDocument();
+  expect(
+    screen.getByText(/Evaluation delayed for window starting/),
+  ).toBeInTheDocument();
+  await userEvent
+    .setup()
+    .click(screen.getByText("Evaluated windows for checkout"));
+  expect(screen.getByRole("table")).toHaveTextContent("40.00%");
+  const report = await axe.run(container, {
+    rules: { "color-contrast": { enabled: false } },
+  });
+  expect(report.violations).toEqual([]);
+});
+
+it("does not let an older refresh overwrite an advance result", async () => {
+  const user = userEvent.setup();
+  render(<Overview />);
+  await screen.findByText("Service trends");
+  let resolve!: (value: Response) => void;
+  fetchMock.mockReturnValueOnce(
+    new Promise<Response>((yes) => {
+      resolve = yes;
+    }),
+  );
+  await user.click(screen.getByRole("button", { name: "Refresh overview" }));
+  const next = structuredClone(data);
+  next.progress.clock = "2026-01-01T12:02:10Z";
+  fetchMock.mockImplementation(() => respond(next));
+  await user.click(screen.getByRole("button", { name: "Advance one minute" }));
+  await screen.findByText(/Simulation time \(UTC\): 2026-01-01 12:02:10Z/);
+  await act(async () => resolve(await respond(data)));
+  expect(
+    screen.getByText(/Simulation time \(UTC\): 2026-01-01 12:02:10Z/),
+  ).toBeInTheDocument();
+});
+
+it("announces refresh-driven incident transitions once without moving focus", async () => {
+  const user = userEvent.setup();
+  fetchMock.mockImplementation(() => respond({ ...data, incidents: [] }));
+  render(<Overview />);
+  await screen.findByText(/No active incidents/);
+  const refreshButton = screen.getByRole("button", {
+    name: "Refresh overview",
+  });
+  fetchMock.mockImplementation(() => respond());
+  await user.click(refreshButton);
+  expect(await screen.findByRole("status")).toHaveTextContent(
+    "checkout incident #1 open.",
+  );
+  expect(refreshButton).toHaveFocus();
+  const observer = vi.fn();
+  const mutation = new MutationObserver(observer);
+  mutation.observe(screen.getByRole("status"), {
+    childList: true,
+    subtree: true,
+    characterData: true,
+  });
+  await user.click(refreshButton);
+  await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(3));
+  expect(observer).not.toHaveBeenCalled();
+  const recovered = structuredClone(data);
+  recovered.incidents[0].state = "recovered";
+  recovered.incidents[0].recovered_at = "2026-01-01T12:05:00Z";
+  fetchMock.mockImplementation(() => respond(recovered));
+  await user.click(refreshButton);
+  await waitFor(() =>
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "checkout incident #1 recovered.",
+    ),
+  );
+  expect(refreshButton).toHaveFocus();
+  mutation.disconnect();
+});

@@ -159,7 +159,7 @@ describe("log explorer", () => {
       ),
     );
     await user.click(screen.getByRole("button", { name: "Clear filters" }));
-    expect(window.location.search).toBe("?dataset=historical&page=1");
+    expect(window.location.search).toBe("?view=logs&dataset=historical&page=1");
   });
 
   it("explains empty results and recovers from a failed initial request", async () => {

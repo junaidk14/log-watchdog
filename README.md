@@ -2,7 +2,7 @@
 
 A local, single-user structured log explorer built with FastAPI, SQLite, and React. Ingest events, filter them by dataset, service, severity, UTC interval or message, and inspect their metadata. No login or external credentials are needed.
 
-This first implementation delivers issue #1. Detection, incidents, simulation advancement, webhooks, file upload, retention/reset, and optional LLM analysis are later approved slices. The Logs destination is the available interface.
+This implementation delivers structured ingestion and browsing plus error-log rate detection, incident grouping/recovery, and simulation advancement (issues #1–#2). Overview opens first; Logs remains available. Rich evidence navigation, webhooks, file upload, retention/reset, and optional LLM analysis are later approved slices. See [detector behavior and configuration](docs/detection.md) for the complete five-advance demonstration, formula, and persistence boundaries.
 
 ## Start locally
 
@@ -42,7 +42,7 @@ Choose **Live** in the dashboard, enter `checkout` in Service and `timeout` in M
 - Results include total matching count and newest-first events. Timestamp ties use insertion sequence. Count and page share one database snapshot. Pages are offset-based: new ingestion can move rows between pages across separate requests.
 - `GET /api/health` and API schema at `/docs`. Unknown API paths return 404.
 
-Demo, live and historical queries always carry a dataset predicate. Historical events are stored separately; no detector or alert process is introduced by this slice. No automatic retention is implemented yet.
+Demo, live and historical queries always carry a dataset predicate. Historical events are stored separately and excluded from detection. Demo and live have separate persisted evaluation cursors and baselines. No automatic retention is implemented yet.
 
 ## Verify
 
@@ -62,8 +62,8 @@ npm --prefix frontend test
 .venv/bin/python scripts/validate_runtime.py
 ```
 
-`validate_runtime.py` requires port 8000 free and starts the documented launcher with a temporary database. It uses real HTTP to check dashboard/assets, ingest 100,000 synthetic live events, time browsing, post 100 individual events at 20/second, and restart to verify persistence and isolation. It stops its server and removes only its temporary files. It never uses your default database.
+`validate_runtime.py` requires port 8000 free and starts the documented launcher with a temporary database. It uses real HTTP to check dashboard/assets, ingest 100,000 synthetic live events, time browsing, post 100 individual events at 20/second, and restart to verify persistence and isolation. It also exercises the five-step demo, late evidence, incident restart, and one actual live worker minute (up to 75 seconds waiting for the real clock). It stops its server and removes only its temporary files. It never uses your default database.
 
 Backend tests cover schema failures, complete-batch rollback, ID generation/deduplication/conflicts, normalization, literal filters, paging, dataset isolation, seed idempotence, and SQLite restart. Frontend tests cover query/Back restoration (including response timing), same-query actions, dataset races, expansion/focus, loading/empty/error/retry, literal rendering of untrusted messages, and available axe DOM accessibility rules. jsdom cannot establish rendered layout, contrast, or real-browser keyboard behavior. ESLint explicitly permits focusable named `region` elements to make the overflowing table keyboard-scrollable; other accessibility rules remain active.
 
-See [verification evidence](docs/verification-issue-1.md) for measured results and the pending manual UI checklist.
+See [issue #1 evidence](docs/verification-issue-1.md) and [issue #2 evidence](docs/verification-issue-2.md) for measured results and pending manual UI checks.
