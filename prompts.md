@@ -816,3 +816,9 @@ Respect the ready-for-agent label and the existing GitHub blocker relationships.
 ```text
 Please commit and push the current project setup to main so the AFK runner can start from a clean, synchronized repository state. Include the planning docs, design docs, ticket drafts/index, tooling/audit files, and the project-specific runner policy. Don’t start the runner yet.
 ```
+
+## Turn 25 — 2026-09-19T20:41:48.496637+00:00
+
+```text
+The project setup looks ready. Please start the AFK Codex runner for one issue only so we can validate the full workflow before continuing with the rest of the backlog.
+```
