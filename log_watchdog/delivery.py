@@ -196,6 +196,10 @@ class Delivery:
         )
 
     def tick(self) -> bool:
+        with self.store.delivery_lock:
+            return self._tick()
+
+    def _tick(self) -> bool:
         now = datetime.now(UTC)
         with self.store.connection() as db:
             db.execute("BEGIN IMMEDIATE")

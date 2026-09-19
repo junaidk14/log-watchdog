@@ -229,3 +229,12 @@ Project-specific AFK policy now authorizes #4–#7 and requires implementation/f
 - Existing Python/FastAPI/SQLite and frontend verification tools — Used without new dependencies or schema changes. Runtime HTTP upload fixtures now supply the dashboard's application/json header.
 - Browser skill/runtime — Used for supported setup and recovery discovery; no browser available and recovery list empty. Rendered checks remain pending.
 - `pr` skill, Git/GitHub CLI and clock tool — Used for existing PR evidence, metadata handoff and elapsed time.
+
+## Issue #6 lifecycle
+
+- Existing Python/FastAPI/SQLite/asyncio and standard-library `threading.RLock` — Used for startup/hourly retention, atomic Demo reset, worker/reset serialization, and monotonic identities in the existing settings table. No runtime dependency added.
+- Existing React/TypeScript/CSS, Vitest/Testing Library/axe — Used for inline run-bound confirmation, cancellation, busy/error/completion states and DOM focus checks. jsdom contrast is covered separately by the existing static palette checker, not represented as rendered verification.
+- Existing pytest/httpx/Uvicorn, Ruff/mypy and runtime validator — Used for protected evidence, expiration boundaries, restart, rollback, in-flight HTTP/evaluation serialization, real HTTP and measured 100k-event/20-events-per-second validation.
+- Impeccable context/craft-floor/detector — Used for the narrow extension; detector returned `[]`. The required finish-reviewer spawn failed with a harness thread error, so the documented inline finish-reviewer/documenter fallbacks were used. Existing design system preserved; no raster assets.
+- Browser skill/runtime — Used for supported setup/recovery; `getForUrl` reported no browser and discovery returned `[]`. Rendered checks remain deferred under the authorized fallback.
+- `domain-modeling` and `pr` skills; Git/GitHub CLI and clock — Used for lifecycle decisions, paginated eligibility/dependency checks, PR evidence, metadata handoff and elapsed time.

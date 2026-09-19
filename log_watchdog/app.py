@@ -13,17 +13,24 @@ from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import AfterValidator, AwareDatetime
+from pydantic import AfterValidator, AwareDatetime, BaseModel, ConfigDict, Field
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from .delivery import Delivery, ReceiverSettings
 from .detector import DetectionDataset, Detector, DetectorConfig
 from .evidence import Evidence, EvidenceUnavailable
 from .historical import MAX_UPLOAD_BYTES, import_events, trends
+from .lifecycle import Lifecycle
 from .models import Dataset, IngestRequest, Severity, normalize_utc
 from .store import EventConflict, Store
 
 ROOT = Path(__file__).resolve().parent.parent
+
+
+class ResetDemo(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    run: str = Field(min_length=1, max_length=100)
+    confirm_demo_only: Literal[True]
 
 
 def create_app(db_path: Path | None = None, frontend: Path | None = None) -> FastAPI:
@@ -32,6 +39,7 @@ def create_app(db_path: Path | None = None, frontend: Path | None = None) -> Fas
     detector = Detector(store, DetectorConfig.from_environment())
 
     delivery = Delivery(store)
+    lifecycle = Lifecycle(detector)
 
     async def deliver_pending() -> None:
         await asyncio.to_thread(delivery.recover_interrupted)
@@ -50,13 +58,31 @@ def create_app(db_path: Path | None = None, frontend: Path | None = None) -> Fas
                 logging.getLogger(__name__).exception("Live evaluation failed; retrying next tick")
             await asyncio.sleep(detector.config.poll_seconds)
 
+    async def retain_data() -> None:
+        await asyncio.sleep(3600)
+        while True:
+            try:
+                await asyncio.to_thread(lifecycle.cleanup)
+            except Exception:
+                logging.getLogger(__name__).exception("Retention failed; retrying next minute")
+                await asyncio.sleep(60)
+                continue
+            await asyncio.sleep(3600)
+
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+        await asyncio.to_thread(lifecycle.cleanup)
         task = asyncio.create_task(evaluate_live())
         delivery_task = asyncio.create_task(deliver_pending())
+        retention_task = asyncio.create_task(retain_data())
         try:
             yield
         finally:
+            retention_task.cancel()
+            try:
+                await retention_task
+            except asyncio.CancelledError:
+                pass
             delivery_task.cancel()
             try:
                 await delivery_task
@@ -140,10 +166,19 @@ def create_app(db_path: Path | None = None, frontend: Path | None = None) -> Fas
         except EvidenceUnavailable as exc:
             raise HTTPException(exc.status, exc.message) from exc
 
-    @app.post("/api/demo/advance")
-    def advance() -> dict[str, Any]:
+    @app.post("/api/demo/reset")
+    def reset_demo(body: ResetDemo) -> dict[str, Any]:
         try:
-            return detector.advance()
+            return lifecycle.reset_demo(body.run)
+        except EvidenceUnavailable as exc:
+            raise HTTPException(exc.status, exc.message) from exc
+
+    @app.post("/api/demo/advance")
+    def advance(run: Annotated[str | None, Query(max_length=100)] = None) -> dict[str, Any]:
+        try:
+            return detector.advance(run)
+        except EvidenceUnavailable as exc:
+            raise HTTPException(exc.status, exc.message) from exc
         except EventConflict as exc:
             raise HTTPException(
                 409, "Simulation event ID conflicts; no advancement committed"

@@ -6,6 +6,7 @@ from collections.abc import Iterator
 from contextlib import contextmanager
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
+from threading import RLock
 from typing import Any
 from uuid import uuid4
 
@@ -22,6 +23,7 @@ class EventConflict(Exception):
 class Store:
     def __init__(self, path: Path) -> None:
         self.path = path
+        self.delivery_lock = RLock()
         path.parent.mkdir(parents=True, exist_ok=True)
         with self.connection() as db:
             db.execute("PRAGMA journal_mode=WAL")
@@ -55,9 +57,23 @@ class Store:
         finally:
             db.close()
 
+    @staticmethod
+    def reserve_ids(db: sqlite3.Connection, table: str, column: str, count: int = 1) -> int:
+        # Internal table names only. Persist high-water marks even when cleanup empties a table.
+        maximum = db.execute(f"SELECT COALESCE(MAX({column}),0) FROM {table}").fetchone()[0]
+        key = f"identity_{table}"
+        previous = db.execute("SELECT value FROM settings WHERE key=?", (key,)).fetchone()
+        maximum = max(maximum, int(previous[0]) if previous else 0)
+        db.execute(
+            "INSERT INTO settings VALUES (?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value",
+            (key, str(maximum + count)),
+        )
+        return int(maximum + 1)
+
     def _ingest(
         self, db: sqlite3.Connection, dataset: Dataset, events: list[EventInput]
     ) -> dict[str, Any]:
+        sequence = self.reserve_ids(db, "events", "sequence", len(events))
         ids = []
         inserted = 0
         now = utc_text(datetime.now(UTC))
@@ -80,10 +96,10 @@ class Store:
                     raise EventConflict(event_id, event_index)
             else:
                 db.execute(
-                    "INSERT INTO events(dataset,event_id,timestamp,service,severity,"
+                    "INSERT INTO events(sequence,dataset,event_id,timestamp,service,severity,"
                     "message,metadata,"
-                    "ingested_at) VALUES (?,?,?,?,?,?,?,?)",
-                    (dataset, event_id, *content, now),
+                    "ingested_at) VALUES (?,?,?,?,?,?,?,?,?)",
+                    (sequence + event_index, dataset, event_id, *content, now),
                 )
                 inserted += 1
             ids.append(event_id)
@@ -97,28 +113,31 @@ class Store:
     def seed_demo(self) -> None:
         with self.connection() as db:
             db.execute("BEGIN IMMEDIATE")
-            db.execute("INSERT OR IGNORE INTO settings VALUES ('demo_run', ?)", (str(uuid4()),))
-            if db.execute("SELECT value FROM settings WHERE key='demo_seeded'").fetchone():
-                return
-            end = datetime(2026, 1, 1, 12, tzinfo=UTC)
-            events = []
-            for minute in range(30):
-                for service in ("api-gateway", "checkout", "worker"):
-                    for index in range(40):
-                        events.append(
-                            EventInput(
-                                timestamp=end - timedelta(minutes=30 - minute, seconds=-index),
-                                service=service,
-                                severity="WARNING" if index == 0 else "INFO",
-                                message="Connection retried successfully"
-                                if index == 0
-                                else f"{service}: operation completed",
-                                metadata={"synthetic": True, "duration_ms": 12 + index},
-                                event_id=f"seed-{minute}-{service}-{index}",
-                            )
+            self._seed_demo(db)
+
+    def _seed_demo(self, db: sqlite3.Connection) -> None:
+        db.execute("INSERT OR IGNORE INTO settings VALUES ('demo_run', ?)", (str(uuid4()),))
+        if db.execute("SELECT value FROM settings WHERE key='demo_seeded'").fetchone():
+            return
+        end = datetime(2026, 1, 1, 12, tzinfo=UTC)
+        events = []
+        for minute in range(30):
+            for service in ("api-gateway", "checkout", "worker"):
+                for index in range(40):
+                    events.append(
+                        EventInput(
+                            timestamp=end - timedelta(minutes=30 - minute, seconds=-index),
+                            service=service,
+                            severity="WARNING" if index == 0 else "INFO",
+                            message="Connection retried successfully"
+                            if index == 0
+                            else f"{service}: operation completed",
+                            metadata={"synthetic": True, "duration_ms": 12 + index},
+                            event_id=f"seed-{minute}-{service}-{index}",
                         )
-            self._ingest(db, "demo", events)
-            db.execute("INSERT INTO settings VALUES ('demo_seeded', ?)", (utc_text(end),))
+                    )
+        self._ingest(db, "demo", events)
+        db.execute("INSERT INTO settings VALUES ('demo_seeded', ?)", (utc_text(end),))
 
     def browse(
         self,

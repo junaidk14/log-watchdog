@@ -2,7 +2,7 @@
 
 A local, single-user structured log explorer built with FastAPI, SQLite, and React. Ingest events, filter them by dataset, service, severity, UTC interval or message, and inspect their metadata. No login or external credentials are needed.
 
-This implementation delivers structured ingestion and browsing, error-log rate detection, incident investigation, and actual local webhook delivery with persisted retries (issues #1–#5). Overview opens first; Incidents, Logs and Deliveries preserve investigation context. Historical JSON upload and trends are available in Logs → Historical. Retention/reset and optional LLM analysis are later approved slices. See [delivery behavior and the retry walkthrough](docs/deliveries.md). See [detector behavior and configuration](docs/detection.md) for the complete five-advance demonstration, formula, and persistence boundaries.
+This implementation delivers structured ingestion and browsing, error-log rate detection, incident investigation, and actual local webhook delivery with persisted retries (issues #1–#6). Overview opens first; Incidents, Logs and Deliveries preserve investigation context. Historical JSON upload and trends are available in Logs → Historical. Seven-day retention and a Demo-only reset are implemented. Optional LLM analysis remains a later approved slice. See [data lifecycle and reset](docs/lifecycle.md). See [delivery behavior and the retry walkthrough](docs/deliveries.md). See [detector behavior and configuration](docs/detection.md) for the complete five-advance demonstration, formula, and persistence boundaries.
 
 ## Start locally
 
@@ -42,7 +42,7 @@ Choose **Live** in the dashboard, enter `checkout` in Service and `timeout` in M
 - Results include total matching count and newest-first events. Timestamp ties use insertion sequence. Count and page share one database snapshot. Pages are offset-based: new ingestion can move rows between pages across separate requests.
 - `GET /api/health` and API schema at `/docs`. Unknown API paths return 404.
 
-Demo, live and historical queries always carry a dataset predicate. Historical events are stored separately and excluded from detection. Demo and live have separate persisted evaluation cursors and baselines. No automatic retention is implemented yet.
+Demo, live and historical queries always carry a dataset predicate. Historical events are stored separately and excluded from detection. Demo and live have separate persisted evaluation cursors and baselines. Routine data expires after seven days, with protected-investigation and pending-delivery exceptions; Demo uses simulation time. See [retention clocks and exceptions](docs/lifecycle.md).
 
 ## Verify
 
@@ -66,7 +66,7 @@ npm --prefix frontend test
 
 Backend tests cover schema failures, complete-batch rollback, ID generation/deduplication/conflicts, normalization, literal filters, paging, dataset isolation, seed idempotence, and SQLite restart. Frontend tests cover query/Back restoration (including response timing), same-query actions, dataset races, expansion/focus, loading/empty/error/retry, literal rendering of untrusted messages, and available axe DOM accessibility rules. jsdom cannot establish rendered layout, contrast, or real-browser keyboard behavior. ESLint explicitly permits focusable named `region` elements to make the overflowing table keyboard-scrollable; other accessibility rules remain active.
 
-See [issue #1 evidence](docs/verification-issue-1.md), [issue #2 evidence](docs/verification-issue-2.md), [issue #3 evidence](docs/verification-issue-3.md), [issue #4 evidence](docs/verification-issue-4.md), and [issue #5 evidence](docs/verification-issue-5.md) for measured results and pending manual UI checks.
+See [issue #1 evidence](docs/verification-issue-1.md), [issue #2 evidence](docs/verification-issue-2.md), [issue #3 evidence](docs/verification-issue-3.md), [issue #4 evidence](docs/verification-issue-4.md), [issue #5 evidence](docs/verification-issue-5.md), and [issue #6 evidence](docs/verification-issue-6.md) for measured results and pending manual UI checks.
 
 ## Investigate evaluated evidence
 
@@ -76,7 +76,7 @@ The pane shows counts, rate, baseline/threshold, exact-message error patterns, a
 
 `GET /api/datasets/{demo|live}/incidents/{id}/evidence` accepts optional `evaluation` (default latest abnormal window), `run` (Demo UUID), `scope=evaluated|all`, `severity`, literal `message`, exact `event_id`, `page`, and `page_size` (1–100). Service and UTC bounds come from evaluation provenance, never caller-supplied overrides. Patterns show up to ten exact ERROR/FATAL message groups; samples prefer errors and contain at most five events. Basic pattern matching is not root-cause analysis. All evidence reads share one snapshot.
 
-Demo links carry a durable run identity. A mismatched run returns a specific reset explanation; an unavailable incident/window returns 404. If recorded metadata outlives logs, the response flags missing evidence independently of filters. Reset/retention execution remains a later slice; these boundaries are tested with controlled SQLite fixtures, not a claim that reset or cleanup is already implemented. Older links without a run ID retain compatibility but cannot identify a prior reset.
+Demo links carry a durable run identity. A mismatched run returns a specific reset explanation; an unavailable incident/window returns 404. If recorded metadata outlives logs, the response flags missing evidence independently of filters. Reset and retention execute transactionally; lifecycle tests cover protected evidence, queued/in-flight work, rollback, restart, and stale run identity. Older links without a run ID retain compatibility but cannot identify a prior reset.
 
 
 ## Import historical JSON
@@ -91,3 +91,7 @@ Imports persist across restart and never train Demo/Live baselines or create inc
 - `GET /api/historical/trends`: optional exact `service`, inclusive timezone-aware `start`/`end`; returns aggregate volume and error-log rate buckets. No detector baseline or live-incident semantics.
 
 See [the synthetic upload walkthrough and verification](docs/verification-issue-5.md). Run backend tests and runtime validation sequentially: both require loopback port 8000.
+
+## Reset Demo
+
+In Demo Overview, choose **Reset demo**, then **Confirm reset Demo only**. This clears Demo investigation and delivery history, restores normal seeded history and receiver defaults, and leaves Live/Historical untouched. Cancellation, progress, outcome and stale-run errors are explicit. See [the reset walkthrough and retention limits](docs/lifecycle.md).

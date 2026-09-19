@@ -303,3 +303,159 @@ it("announces refresh-driven incident transitions once without moving focus", as
   expect(refreshButton).toHaveFocus();
   mutation.disconnect();
 });
+
+it("confirms a demo-only reset, restores context and focus, and announces completion", async () => {
+  const user = userEvent.setup();
+  fetchMock.mockImplementation((url: string) =>
+    respond(
+      url === "/api/demo/reset"
+        ? {
+            ...data,
+            run: "new-run",
+            incidents: [],
+            progress: { ...data.progress, steps: 0 },
+          }
+        : { ...data, run: "old-run" },
+    ),
+  );
+  const { container } = render(<Overview />);
+  const reset = await screen.findByRole("button", { name: "Reset demo" });
+  await waitFor(() => expect(reset).toBeEnabled());
+  reset.focus();
+  await user.keyboard("{Enter}");
+  expect(
+    screen.getByRole("heading", { name: "Reset only Demo?" }),
+  ).toBeVisible();
+  expect(fetchMock.mock.calls.some(([url]) => url === "/api/demo/reset")).toBe(
+    false,
+  );
+  expect(
+    (
+      await axe.run(container, {
+        rules: { "color-contrast": { enabled: false } },
+      })
+    ).violations,
+  ).toEqual([]);
+  await user.click(screen.getByRole("button", { name: "Cancel reset" }));
+  expect(reset).toHaveFocus();
+  await user.click(reset);
+  await user.click(
+    screen.getByRole("button", { name: "Confirm reset Demo only" }),
+  );
+  await screen.findByText(
+    "Demo reset. Normal history restored; Live and Historical are unchanged.",
+  );
+  expect(fetchMock).toHaveBeenCalledWith("/api/demo/reset", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ run: "old-run", confirm_demo_only: true }),
+  });
+  expect(window.location.search).toBe(
+    "?view=overview&dataset=demo&run=new-run",
+  );
+  await waitFor(() => expect(reset).toHaveFocus());
+  expect(
+    screen.queryByRole("heading", { name: "Reset only Demo?" }),
+  ).not.toBeInTheDocument();
+});
+
+it("keeps reset confirmation and investigation after an unknown result", async () => {
+  const user = userEvent.setup();
+  fetchMock.mockImplementation((url: string) =>
+    url === "/api/demo/reset"
+      ? Promise.resolve({ ok: false, status: 503 } as Response)
+      : respond({ ...data, run: "old-run" }),
+  );
+  render(<Overview />);
+  await user.click(
+    await screen.findByRole("link", {
+      name: "Investigate checkout incident #1",
+    }),
+  );
+  const location = window.location.search;
+  await user.click(screen.getByRole("button", { name: "Reset demo" }));
+  await user.click(
+    screen.getByRole("button", { name: "Confirm reset Demo only" }),
+  );
+  expect(await screen.findByRole("alert")).toHaveTextContent(
+    "Reset result unknown (HTTP 503)",
+  );
+  expect(window.location.search).toBe(location);
+  expect(
+    screen.getByRole("heading", { name: "checkout · open" }),
+  ).toBeVisible();
+  expect(
+    screen.getByRole("button", { name: "Confirm reset Demo only" }),
+  ).toBeEnabled();
+});
+
+it("prevents duplicate reset or advance while reset is pending", async () => {
+  const user = userEvent.setup();
+  let finish!: (response: Response) => void;
+  fetchMock.mockImplementation((url: string) =>
+    url === "/api/demo/reset"
+      ? new Promise<Response>((resolve) => {
+          finish = resolve;
+        })
+      : respond({ ...data, run: "old-run" }),
+  );
+  render(<Overview />);
+  const reset = await screen.findByRole("button", { name: "Reset demo" });
+  await waitFor(() => expect(reset).toBeEnabled());
+  await user.click(reset);
+  await user.click(
+    screen.getByRole("button", { name: "Confirm reset Demo only" }),
+  );
+  expect(
+    screen.getByRole("button", { name: "Resetting Demo…" }),
+  ).toBeDisabled();
+  expect(
+    screen.getByRole("button", { name: "Advance one minute" }),
+  ).toBeDisabled();
+  expect(screen.getByRole("button", { name: "Cancel reset" })).toBeDisabled();
+  await act(async () =>
+    finish(await respond({ ...data, run: "new-run", incidents: [] })),
+  );
+  await screen.findByText(
+    "Demo reset. Normal history restored; Live and Historical are unchanged.",
+  );
+  expect(
+    fetchMock.mock.calls.filter(([url]) => url === "/api/demo/reset"),
+  ).toHaveLength(1);
+});
+
+it("does not offer demo reset in Live", async () => {
+  window.history.replaceState({}, "", "/?view=overview&dataset=live");
+  render(<Overview />);
+  await screen.findByRole("link", { name: "Investigate checkout incident #1" });
+  expect(
+    screen.queryByRole("button", { name: "Reset demo" }),
+  ).not.toBeInTheDocument();
+});
+
+it("binds confirmation to its original run even if a refresh discovers another reset", async () => {
+  const user = userEvent.setup();
+  fetchMock.mockImplementation(() => respond({ ...data, run: "old-run" }));
+  render(<Overview />);
+  const reset = await screen.findByRole("button", { name: "Reset demo" });
+  await waitFor(() => expect(reset).toBeEnabled());
+  await user.click(reset);
+  fetchMock.mockImplementation((url: string) =>
+    url === "/api/demo/reset"
+      ? Promise.resolve({ ok: false, status: 409 } as Response)
+      : respond({ ...data, run: "new-run" }),
+  );
+  await user.click(screen.getByRole("button", { name: "Refresh overview" }));
+  await user.click(
+    screen.getByRole("button", { name: "Confirm reset Demo only" }),
+  );
+  expect(fetchMock).toHaveBeenCalledWith(
+    "/api/demo/reset",
+    expect.objectContaining({
+      body: JSON.stringify({ run: "old-run", confirm_demo_only: true }),
+    }),
+  );
+  expect(await screen.findByRole("alert")).toHaveTextContent(
+    "Cancel, refresh overview",
+  );
+});
