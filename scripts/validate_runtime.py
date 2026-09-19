@@ -81,16 +81,23 @@ def main() -> None:
                         },
                     ]
                 ).encode()
-                imported = client.post("/api/historical/upload", content=historical_file)
+                upload_headers = {"Content-Type": "application/json"}
+                imported = client.post(
+                    "/api/historical/upload", content=historical_file, headers=upload_headers
+                )
                 assert imported.status_code == 200
                 assert imported.json()["inserted"] == 2
                 assert (
-                    client.post("/api/historical/upload", content=historical_file).json()[
-                        "duplicates"
-                    ]
+                    client.post(
+                        "/api/historical/upload", content=historical_file, headers=upload_headers
+                    ).json()["duplicates"]
                     == 2
                 )
-                invalid = client.post("/api/historical/upload", content=b'[{"message":"invalid"}]')
+                invalid = client.post(
+                    "/api/historical/upload",
+                    content=b'[{"message":"invalid"}]',
+                    headers=upload_headers,
+                )
                 assert invalid.status_code == 422
                 assert (
                     client.get(

@@ -37,11 +37,59 @@ def upload(client, events):
     )
 
 
+@pytest.mark.parametrize(
+    "media_type",
+    [None, "text/plain", "application/x-www-form-urlencoded", "multipart/form-data", "text/json"],
+)
+def test_upload_rejects_unsupported_media_types_without_inserting(client, media_type):
+    headers = {"Origin": "https://untrusted.example"}
+    if media_type is not None:
+        headers["Content-Type"] = media_type
+    result = client.post(
+        "/api/historical/upload", content=json.dumps([event()]).encode(), headers=headers
+    )
+    assert result.status_code == 415
+    assert client.get("/api/datasets/historical/events").json()["total"] == 0
+
+
+@pytest.mark.parametrize("media_type", ["application/json", "Application/JSON; charset=utf-8"])
+def test_dashboard_json_upload_succeeds(client, media_type):
+    result = client.post(
+        "/api/historical/upload",
+        content=json.dumps([event()]).encode(),
+        headers={"Content-Type": media_type, "Origin": "http://testserver"},
+    )
+    assert result.status_code == 200
+    assert result.json()["inserted"] == 1
+
+
+@pytest.mark.parametrize("stored", [False, True])
+@pytest.mark.parametrize("new_prefix", [False, True])
+def test_conflicting_duplicate_reports_offending_row_and_rolls_back(client, stored, new_prefix):
+    if stored:
+        assert upload(client, [event()]).json()["inserted"] == 1
+    before = client.get("/api/datasets/historical/events").json()
+    prefix = [event(event_id="before")] if new_prefix else []
+    result = upload(client, prefix + [event(), event(message="changed"), event(event_id="after")])
+    assert result.status_code == 409
+    assert result.json()["detail"] == (
+        f"Row {len(prefix) + 2}: event_id conflicts with different content. No events imported."
+    )
+    assert client.get("/api/datasets/historical/events").json() == before
+
+
 def test_upload_limits_are_inclusive_and_atomic(client):
     body = json.dumps([event()]).encode()
     exact = body + b" " * (MAX_UPLOAD_BYTES - len(body))
-    assert client.post("/api/historical/upload", content=exact).json()["inserted"] == 1
-    assert client.post("/api/historical/upload", content=exact + b" ").status_code == 413
+    headers = {"Content-Type": "application/json"}
+    assert (
+        client.post("/api/historical/upload", content=exact, headers=headers).json()["inserted"]
+        == 1
+    )
+    assert (
+        client.post("/api/historical/upload", content=exact + b" ", headers=headers).status_code
+        == 413
+    )
     assert upload(client, [event()] * 5000).json()["duplicates"] == 5000
     assert upload(client, [event(event_id="new")] * 5001).status_code == 422
     assert client.get("/api/datasets/historical/events").json()["total"] == 1
@@ -53,7 +101,9 @@ def test_upload_limits_are_inclusive_and_atomic(client):
     ids=["empty", "syntax", "encoding", "nesting", "object", "no-events", "large-integer"],
 )
 def test_malformed_empty_or_wrong_shape(client, payload):
-    result = client.post("/api/historical/upload", content=payload)
+    result = client.post(
+        "/api/historical/upload", content=payload, headers={"Content-Type": "application/json"}
+    )
     assert result.status_code == 422
     assert client.get("/api/datasets/historical/events").json()["total"] == 0
 

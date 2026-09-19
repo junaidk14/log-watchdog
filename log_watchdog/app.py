@@ -199,6 +199,9 @@ def create_app(db_path: Path | None = None, frontend: Path | None = None) -> Fas
 
     @app.post("/api/historical/upload")
     async def upload_historical(request: Request) -> dict[str, Any]:
+        media_type = request.headers.get("content-type", "").split(";", 1)[0].strip().lower()
+        if media_type != "application/json":
+            raise HTTPException(415, "Historical uploads require Content-Type: application/json.")
         payload = bytearray()
         async for chunk in request.stream():
             if len(payload) + len(chunk) > MAX_UPLOAD_BYTES:

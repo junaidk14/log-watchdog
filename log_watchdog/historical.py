@@ -29,9 +29,7 @@ def import_events(store: Store, payload: bytes) -> dict[str, Any]:
     try:
         result = store.ingest("historical", request.events)
     except EventConflict as exc:
-        row = next(
-            i + 1 for i, event in enumerate(request.events) if event.event_id == exc.event_id
-        )
+        row = exc.event_index + 1
         raise HTTPException(
             409, f"Row {row}: event_id conflicts with different content. No events imported."
         ) from exc

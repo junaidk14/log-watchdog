@@ -222,3 +222,10 @@ Project-specific AFK policy now authorizes #4–#7 and requires implementation/f
 - `diagnosing-bugs`, pytest/httpx and Vitest/Testing Library/axe — Used to reproduce/fix ordinary lint/test failures, cover oversized JSON integers and verify upload limits, isolation, errors and interactions. Existing Ruff/mypy/Prettier/ESLint/Vite/static contrast and actual HTTP runtime tools reused.
 - Impeccable context/craft-floor/detector and separate finish reviewer/documenter — Used for the established console extension; no mechanical findings. Browser skill/runtime setup and supported recovery returned no browser (`[]`), leaving rendered checks pending.
 - `pr` skill, Git/GitHub CLI and clock — Used for complete paginated eligibility, recovery audit, commit/push/PR and metadata handoff. Protected runner files remain unchanged.
+
+## PR #12 review fixes R1/R2
+
+- `diagnosing-bugs` skill and pytest/TestClient — Used for failing then passing media-type and precise conflict-row regressions, including atomic rollback with existing and within-file IDs.
+- Existing Python/FastAPI/SQLite and frontend verification tools — Used without new dependencies or schema changes. Runtime HTTP upload fixtures now supply the dashboard's application/json header.
+- Browser skill/runtime — Used for supported setup and recovery discovery; no browser available and recovery list empty. Rendered checks remain pending.
+- `pr` skill, Git/GitHub CLI and clock tool — Used for existing PR evidence, metadata handoff and elapsed time.

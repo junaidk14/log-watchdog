@@ -87,7 +87,7 @@ Choose **Browse file interval** to set the file's inclusive UTC range and clear 
 
 Imports persist across restart and never train Demo/Live baselines or create incidents/deliveries. Supplied IDs deduplicate only within Historical. Missing/null IDs generate fresh events on every import: after a connection failure, inspect Historical before retrying because the server may already have committed the file. The selected file remains available after failure.
 
-- `POST /api/historical/upload`: raw UTF-8 JSON array (not multipart), bounded during request streaming; returns inserted/duplicate counts, event IDs, Historical dataset and the file's UTC start/end. Optional UTF-8 BOM accepted.
+- `POST /api/historical/upload`: raw UTF-8 JSON array (not multipart), with required `Content-Type: application/json` (optional charset parameter). Unsupported or missing media types return 415 before ingestion. Bounded during request streaming; returns inserted/duplicate counts, event IDs, Historical dataset and the file's UTC start/end. Optional UTF-8 BOM accepted.
 - `GET /api/historical/trends`: optional exact `service`, inclusive timezone-aware `start`/`end`; returns aggregate volume and error-log rate buckets. No detector baseline or live-incident semantics.
 
 See [the synthetic upload walkthrough and verification](docs/verification-issue-5.md). Run backend tests and runtime validation sequentially: both require loopback port 8000.
