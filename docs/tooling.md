@@ -141,3 +141,10 @@ No external runtime services, images, fonts, LLM calls, or webhook delivery are 
 - Vitest/jsdom, Testing Library and axe — Used for scoped investigation, filters/late-arrival toggle, expansion, Back/return focus, multi-window interval/focus regressions and DOM accessibility checks.
 - Impeccable context/detector and separate finish reviewer/documenter — Used for the established console extension; source detector reported no findings. Browser discovery/recovery found no usable browser, so rendered checks remain explicitly deferred.
 - `domain-modeling` and `pr` skills, GitHub CLI, Git and clock tool — Used for the persisted evidence identity decision, PR evidence, full paginated eligibility checks and elapsed-time reporting. Existing build/lint/type/format/contrast tools reused without dependency changes.
+
+
+## Authorized AFK resumption
+
+- Temporary external PR #10 resume script — Reuses the generic runner session functions and complete independent review/fix/re-review/merge gates, starting at review for the existing PR. Preserves logs outside the repo; generic runner files remain unchanged.
+- Codex Fast mode — Existing user configuration has `service_tier = "fast"`; CLI reports `fast_mode` stable/enabled. Inherited by fresh sessions, without reducing reasoning or verification. Configuration checked against [official speed documentation](https://developers.openai.com/es-419/docs/agent-configuration/speed); actual server-side tier availability is not guaranteed by the setting.
+- `pr` and `writing-for-agents` skills — Used for the closing-reference correction and updated execution scope respectively.

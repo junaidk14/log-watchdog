@@ -897,3 +897,27 @@ Mode: IMPLEMENT. Repository: junaidk14/log-watchdog. Starting main commit: 755eb
 Triggering assignment: "You are an unattended implementation agent working in one GitHub repository. The runner supplies either IMPLEMENT or FIX mode. Complete that assignment in this session." Select exactly the lowest-numbered executable ready issue after complete paginated enumeration, dependency and open-PR checks; implement and verify, commit/push a new issue branch and create a non-draft PR, leaving independent review and merge to the runner. This turn implements only evaluated-evidence investigation: persistent workbench/window context, exact evaluated logs and explicit later arrivals, local summary, pattern/sample links, missing-evidence states and accessible DOM navigation.
 
 Browser discovery and recovery found no browser; the project-authorized fallback applies with explicit manual checks in docs/verification-issue-3.md. Separate skill-required source review found two window context/focus defects; its focused verdict scored both resolved after regression coverage. Root audit updated under the project policy's sole prompt-document exception. Protected afk-Codex files, runner configuration, task prompts and logs were not modified. No merge, approval or auto-merge performed.
+
+
+## Resume PR #10 and complete approved backlog — 2026-09-19T21:58:40.517840+00:00
+
+```text
+Fix PR #10 so it only closes issue #3 and no longer closes #1 or #2.
+
+Then continue the AFK workflow from where it stopped:
+- independently review PR #10
+- fix/re-review if needed
+- merge only after review passes
+
+After that, continue through issues #4, #5, #6, and #7 using Fast mode where available.
+
+Keep the same implementation -> independent review -> fix/re-review -> merge gates.
+
+For #7, keep the Gemini integration lightweight and exactly within the existing ticket scope. Don’t expand it into chat, agent orchestration, multiple providers, or external actions.
+
+If anything becomes blocked or the repo enters an unexpected state, stop safely and preserve the logs rather than weakening verification.
+
+Once all remaining issues are complete, stop and give me a concise status summary before final UI polish, validation, and submission work.
+```
+
+Root coordinator corrected accidental closing-keyword phrases in PR #10 prerequisite notes; the intended sole closing directive is issue #3. Resume uses a temporary external script with the unchanged generic review/fix/merge loop and safety checks; no implementation session is reused. After merge, update project policy on clean main for the newly authorized #4–#7 run.
