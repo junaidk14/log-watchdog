@@ -53,3 +53,35 @@ Browser unavailable; rendered desktop, narrow-screen, and keyboard verification 
 - [ ] Browser-dependent loading/empty/error states and interactions: inspect empty Historical/new Demo, delayed first fetch, failed refresh with retained data and retry, receiver save error, first notification announcement, 503→200, and three-attempt exhaustion. Confirm updates do not repeatedly announce unchanged deliveries.
 
 DOM/axe, source review and token contrast checks do not establish rendered layout, full accessibility or browser keyboard behavior.
+
+
+## PR #11 review fix R1 — 2026-09-19 UTC
+
+Historical Deliveries retained `dataset=historical` in Overview/Incidents URLs, so Router opened Logs. Both the primary Overview link and empty-state Open overview link now switch to Live; unavailable Incidents navigation is hidden, matching Logs. No new architectural decision or dependency.
+
+- **Before:** `npm --prefix frontend test -- src/Deliveries.test.tsx -t 'Historical Deliveries'` reproduced a missing Overview heading (Logs rendered) and the unwanted Incidents link. Extending the test to Open overview reproduced the same routing defect there.
+- **After:** the same command passed all 3 regression cases (6 unrelated cases skipped). Tests mount the real Router, click both Overview links, and assert the Live overview, dataset control and API request. Fetch responses are synthetic mocks; these are DOM interactions, not rendered browser evidence.
+
+Completed FIX verification:
+
+- `npm --prefix frontend run build` — passed.
+- `npm --prefix frontend run typecheck` — passed.
+- `npm --prefix frontend run lint` — passed.
+- `npm --prefix frontend run format:check` — passed after formatting the new regression test with `frontend/node_modules/.bin/prettier --write frontend/src/Deliveries.test.tsx`.
+- `npm --prefix frontend test` — 56 passed across 4 files, including existing DOM/axe checks.
+- `.venv/bin/ruff check log_watchdog tests scripts` — passed.
+- `.venv/bin/ruff format --check log_watchdog tests scripts` — passed, 14 files.
+- `.venv/bin/mypy` — passed, 8 source files.
+- `.venv/bin/python scripts/check_contrast.py` — passed static token pairs.
+- `.venv/bin/pytest -q` — 56 passed, two existing dependency deprecation warnings.
+- `.venv/bin/python scripts/validate_runtime.py` — passed actual local HTTP 503 → process restart → 200 with stable delivery ID, opening/recovery, evidence/isolation, dashboard/assets, real-clock evaluation and persistence. Synthetic temporary SQLite database on macOS 15.6 arm64/Python 3.14.5; 100k bulk events 1.379s, paced 20/sec ingestion median/max 3.95/9.63ms. Measurements are not guarantees.
+- `git diff --check` — passed.
+
+Supported browser setup `agent.browsers.getForUrl("http://127.0.0.1:8000")` reported no available browser; after reading bootstrap troubleshooting, recovery discovery `agent.browsers.list()` returned `[]`. Browser unavailable; rendered desktop, narrow-screen, and keyboard verification require a later manual check.
+
+**Manual UI verification pending — R1**
+
+- [ ] Desktop: open `?view=deliveries&dataset=historical`; confirm Incidents is absent and both Overview / Open overview lead to Live Overview.
+- [ ] Narrow-screen layout/overflow: repeat at 320/375px and 200% zoom.
+- [ ] Browser keyboard/focus: Tab/Enter on both links, destination heading focus, and browser Back to Historical Deliveries.
+- [ ] Browser-dependent loading/empty/error states: repeat navigation after the Historical empty state loads; inspect Live loading and refresh failure/retry.

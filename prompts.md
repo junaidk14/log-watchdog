@@ -1013,3 +1013,8 @@ Activated the previously requested PR metadata self-check in project policy befo
 ## 2026-09-19T22:59:15.408301+00:00 — IMPLEMENT issue #4
 
 Runner assignment: IMPLEMENT in `junaidk14/log-watchdog`, starting main `b374e98902cc540f099bdde5e9257be2d152f0a6`. Select exactly the lowest executable ready issue after full paginated issue/PR and native/textual dependency checks; implement, verify, commit/push and create a non-draft PR without merging. Selected https://github.com/junaidk14/log-watchdog/issues/4 (actual local webhooks, bounded persisted retries and delivery history). Issue #2 prerequisite completed; ready issues #4–#7 enumerated, no open PRs. Preserve protected runner files, independent review/merge ownership, and exact JSON handoff contract. Browser-unavailable exception applied only after supported discovery returned no browser; manual rendered checks remain pending.
+
+
+## 2026-09-19T23:10:02.391771+00:00 — FIX issue #4 / PR #11
+
+Runner assignment: FIX only independent review finding R1 on `issue-4-webhook-deliveries` in `junaidk14/log-watchdog`, base `b374e98902cc540f099bdde5e9257be2d152f0a6`, reviewed head `ac9680d250136e6673991a0531001eac484df027`. Issue: https://github.com/junaidk14/log-watchdog/issues/4. Historical Deliveries incorrectly opened Logs from Overview/Incidents. Apply existing Historical navigation rules (Overview goes to Live, Incidents hidden), cover actual Router interactions, verify, commit and push the same branch, and update existing PR #11 without merging or approving. Both Overview entry points share this correction. Preserve protected runner files and exact JSON handoff; record browser-unavailable limitations after supported discovery.

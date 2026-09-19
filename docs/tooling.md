@@ -200,3 +200,11 @@ Project-specific AFK policy now authorizes #4–#7 and requires implementation/f
 - Impeccable context, surface brief, craft floor, mechanical detector and separate finish reviewer — Used to extend the existing console. Detector returned no findings; rendered checks remain deferred.
 - Browser skill and supported runtime recovery discovery — Used; `getForUrl` reported no available browser and `browsers.list()` returned `[]`.
 - `pr` skill, Git/GitHub CLI, and clock tool — Used for issue eligibility, PR evidence/metadata handoff and elapsed time.
+
+
+## PR #11 review fix R1
+
+- `diagnosing-bugs` skill and existing Vitest/React Testing Library — Used for failing then passing Router interactions from Historical Deliveries via both Overview links, and the unavailable Incidents link.
+- Existing frontend build, type, lint, formatting, DOM/axe tests, Python checks and runtime validator — Used to verify the scoped navigation fix; no new dependencies or architectural decisions.
+- Browser skill/runtime — Used for supported setup and recovery; `getForUrl` reported no available browser, recovery discovery returned `[]`. Rendered checks remain pending under the authorized fallback.
+- `pr` skill, GitHub CLI, Git and clock tool — Used to update the existing PR evidence and verify metadata/elapsed time.

@@ -109,12 +109,19 @@ export function Deliveries() {
         </a>
         <p className="local-label">Local workspace</p>
         <nav aria-label="Primary">
-          <PageLink href={viewUrl("overview")} focus="overview-heading">
+          <PageLink
+            href={viewUrl("overview", {
+              dataset: dataset === "historical" ? "live" : dataset,
+            })}
+            focus="overview-heading"
+          >
             Overview
           </PageLink>
-          <PageLink href={viewUrl("incidents")} focus="incident-heading" back>
-            Incidents
-          </PageLink>
+          {dataset !== "historical" && (
+            <PageLink href={viewUrl("incidents")} focus="incident-heading" back>
+              Incidents
+            </PageLink>
+          )}
           <PageLink href={viewUrl("logs")} focus="logs-heading">
             Logs
           </PageLink>
@@ -217,7 +224,12 @@ export function Deliveries() {
                   ? "Historical events do not trigger notifications."
                   : "Notifications are created when an incident opens or recovers. Earlier incidents created before delivery support have no retroactive notifications."}
               </p>
-              <PageLink href={viewUrl("overview")} focus="overview-heading">
+              <PageLink
+                href={viewUrl("overview", {
+                  dataset: dataset === "historical" ? "live" : dataset,
+                })}
+                focus="overview-heading"
+              >
                 Open overview
               </PageLink>
             </>

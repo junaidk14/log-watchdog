@@ -9,6 +9,7 @@ import userEvent from "@testing-library/user-event";
 import axe from "axe-core";
 import { beforeEach, expect, it, vi } from "vitest";
 import { Router } from "./Router";
+import type { OverviewData } from "./Overview";
 
 const row = {
   id: "delivery-1",
@@ -167,6 +168,65 @@ it("shows initial loading and historical empty state without demo controls", asy
   expect(
     screen.queryByRole("combobox", { name: "Receiver behavior" }),
   ).toBeNull();
+});
+
+it.each(["Overview", "Open overview"])(
+  "opens Live Overview from Historical Deliveries via %s",
+  async (linkName) => {
+    const user = userEvent.setup();
+    const overview: OverviewData = {
+      dataset: "live",
+      delayed: false,
+      server_time: "2026-09-20T01:00:00Z",
+      progress: {
+        clock: "2026-09-20T01:00:00Z",
+        steps: 0,
+        next_start: "2026-09-20T01:00:00Z",
+        last_success: null,
+      },
+      services: [],
+      incidents: [],
+      trends: [],
+      config: {
+        recovery_windows: 3,
+        grace_seconds: 10,
+        minimum_events: 20,
+        minimum_baseline_windows: 10,
+      },
+    };
+    vi.mocked(fetch).mockImplementation(async (input) => {
+      const url = String(input);
+      const body = url.includes("/deliveries")
+        ? { deliveries: [], max_attempts: 3, run: null }
+        : url === "/api/datasets/live/overview"
+          ? overview
+          : { events: [], total: 0, page: 1, page_size: 50 };
+      return { ok: true, json: async () => body } as Response;
+    });
+    window.history.replaceState({}, "", "?view=deliveries&dataset=historical");
+    render(<Router />);
+    await screen.findByText("Historical events do not trigger notifications.");
+    await user.click(screen.getByRole("link", { name: linkName }));
+    expect(
+      await screen.findByRole("heading", { name: "Overview" }),
+    ).toBeVisible();
+    expect(screen.getByText("Live · API events")).toBeVisible();
+    expect(screen.getByRole("combobox", { name: "Dataset" })).toHaveValue(
+      "live",
+    );
+    expect(fetch).toHaveBeenCalledWith(
+      "/api/datasets/live/overview",
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
+    );
+  },
+);
+
+it("hides unavailable Incidents navigation in Historical Deliveries", async () => {
+  rows = [];
+  window.history.replaceState({}, "", "?view=deliveries&dataset=historical");
+  render(<Router />);
+  await screen.findByText("Historical events do not trigger notifications.");
+  expect(screen.queryByRole("link", { name: "Incidents" })).toBeNull();
 });
 
 it("announces the first notification after empty history and only changed notifications afterward", async () => {
