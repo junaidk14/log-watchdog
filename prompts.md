@@ -987,3 +987,24 @@ Add or update the regression test for that case, run the required verification, 
 
 If that review passes, merge PR #10 and stop. Don’t start #4 yet.
 ```
+
+
+## Remaining backlog and final preparation — 2026-09-19T22:49:07.198762+00:00
+
+```text
+Continue in AFK mode through issues #4, #5, #6, and #7.
+
+Keep the same implementation -> independent review -> fix/re-review -> merge gates. Do not weaken verification or bypass blockers.
+
+Before returning PR READY, verify the PR targets main, closes only the assigned issue, and has the expected branch/head.
+
+If anything becomes BLOCKED, hits a retry limit, fails verification, or enters an unexpected Git/PR state, stop safely and preserve the logs/state.
+
+Once all remaining issues are merged, do a final UI pass without redesigning the current direction. Improve the sparse states, plain charts, harsh focus treatment, and unnecessary empty space. Run Impeccable critique, audit, polish, and document, then add only purposeful motion if it genuinely improves feedback.
+
+After that, run a final repo-wide review and prepare the final README, complete prompts.md, and AI-generated presentation in Markdown or PowerPoint.
+
+Do not submit anything externally.
+```
+
+Activated the previously requested PR metadata self-check in project policy before the #4–#7 run. Confirmed clean main at 90e0d49 and no open PRs. Generic runner, fresh-session boundaries, verification and merge gates remain unchanged. Final refinement and presentation follow only after all remaining issues merge.

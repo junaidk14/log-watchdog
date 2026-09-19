@@ -186,3 +186,8 @@ No external runtime services, images, fonts, LLM calls, or webhook delivery are 
 - `diagnosing-bugs`, React/TypeScript, Vitest/jsdom and Testing Library — Used for four failing-then-passing actual Router regressions covering explicit/browser Back with immediate/delayed Overview failures, visible page-heading fallback, keyboard retry, selection/window persistence and subsequent refresh focus. No dependency added.
 - Impeccable context/harden/craft-floor/detector and Browser skill/runtime — Used for this scoped error/focus correction. Source detector found no issues; supported browser selection failed and recovery discovery returned `[]`, leaving rendered checks pending.
 - Existing frontend/backend build, test, lint, type, format, contrast and real-HTTP validation tools — Reused for full verification. `pr`, GitHub CLI, Git and clock — Used for existing PR evidence, metadata checks and elapsed-time reporting.
+
+
+## Remaining backlog continuation
+
+Project-specific AFK policy now authorizes #4–#7 and requires implementation/fix agents to self-check base, sole closing issue, branch/head, draft/repository/auto-merge state and competing PRs before handoff, correcting their own metadata mistakes and refetching. Uses the existing `writing-for-agents` guidance. Generic runner and prompts remain pinned and unchanged; current CLI Fast-mode configuration is inherited. Final Impeccable refinement, repo review, README and presentation are separately authorized after all issues merge; no external submission.

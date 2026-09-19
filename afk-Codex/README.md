@@ -17,10 +17,10 @@ Issue selection is an agent policy: only approved open issues #1–#7 with `read
 The current working directory selects the target repository. From a clean, committed checkout on `main` matching `origin/main`:
 
 ```bash
-bash afk-Codex/loop.sh 5 /tmp/log-watchdog-afk-logs
+bash afk-Codex/loop.sh 4 /tmp/log-watchdog-afk-logs
 ```
 
-The current authorized continuation covers #2–#6 only; optional Gemini #7 is excluded by project policy and requires a separate launch instruction. The issue count is a maximum, not permission to skip blockers. Logs stay outside the working tree. Bash, Git, `gh`, `jq`, and an authenticated Codex CLI are required. The repository account must be able to push branches, create PRs, and merge under existing protections.
+The current authorized continuation covers #4–#7, after completed issues #1–#3. The coordinator handles the separately authorized final UI refinement, repo review and documentation after all four merge; issue sessions remain scoped to their assigned ticket. No external submission is authorized. The issue count is a maximum, not permission to skip blockers. Logs stay outside the working tree. Bash, Git, `gh`, `jq`, and an authenticated Codex CLI are required. The repository account must be able to push branches, create PRs, and merge under existing protections.
 
 Committing this setup does not launch the loop or modify existing issue/PR state. Before launch, the planning and runner files must be committed and available on `origin/main`, with a clean synchronized checkout. Preserve user files; the upstream runner intentionally refuses a dirty checkout rather than stashing or deleting work.
 

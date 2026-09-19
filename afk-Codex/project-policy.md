@@ -10,8 +10,10 @@ The seven published issues are the approved implementation scope. Earlier planni
 
 ## Eligibility and scope
 
-- Current authorized run: finish the remaining core issues #2–#6, with at most five issue attempts. Issue #1 is complete. Issue #7 (optional Gemini) is deferred and ineligible for this run, even if its ready label and prerequisites would otherwise allow it. Stop after the core run; a separate user instruction is required to launch optional work.
-- Expected open prerequisites in the graph below are normal sequencing constraints. If an otherwise eligible core issue becomes blocked, required verification fails, dependencies cannot be verified, or repository state is unexpected, report BLOCKED and stop with logs and work preserved. Do not skip a newly blocked issue to continue unrelated work or weaken any gate. If core issues remain open but none is executable, report BLOCKED rather than declaring the core complete.
+- Current authorization: issues #1–#3 are merged; execute #4, #5, #6 and #7 in order, at most four issue attempts. Gemini #7 is authorized after the core issues and stays within its existing lightweight ticket: one provider, no chat, agent orchestration, or external actions. Use the existing Fast-mode configuration where available without reducing verification or reasoning. Preserve the incident-workbench direction.
+- After all four issues merge, the root coordinator is authorized to run Impeccable critique, audit, polish and document; refine sparse states, charts, focus treatment and excess whitespace without redesign; add only purposeful motion; then conduct a final repo-wide review and prepare the README, complete prompt audit and an AI-generated Markdown or PowerPoint presentation. These are separate follow-up work, not extra scope for issue agents. No external submission, deployment or presentation publication is authorized. GitHub issue/PR/push/merge operations remain authorized by this AFK workflow.
+- Stop on BLOCKED, exhausted retry budget, failed required verification, or unexpected/ambiguous Git or PR state. Preserve logs and checkout; do not automatically restart blocked work or increase retries.
+- Expected open prerequisites in the graph below are normal sequencing constraints. If an otherwise eligible assigned issue becomes blocked, required verification fails, dependencies cannot be verified, or repository state is unexpected, report BLOCKED and stop with logs and work preserved. Do not skip a newly blocked issue to continue unrelated work or weaken any gate. If assigned issues remain open but none is executable, report BLOCKED rather than declaring completion.
 - Target only `junaidk14/log-watchdog`, default branch `main`, approved issues #1–#7. A later issue needs explicit scope authorization before this policy is widened.
 - Require an open issue with `ready-for-agent`. The label is necessary, not sufficient: a `blocked` label, open PR, open native blocker, unresolved textual prerequisite, or unreadable dependency excludes it.
 - Follow the generic policy's complete paginated enumeration of ready issues and open PRs. Fetch native dependencies with `gh api --paginate repos/junaidk14/log-watchdog/issues/<number>/dependencies/blocked_by`; resolve every returned blocker and every textual reference to its current state. API/auth failures mean BLOCKED, not an empty backlog.
@@ -19,6 +21,17 @@ The seven published issues are the approved implementation scope. Earlier planni
 - Choose the lowest-numbered executable issue and handle exactly that slice. Recheck its label, blocker state, and existing PR associations immediately before starting and before reporting PR READY. Include the checked prerequisites in the PR evidence. Agents do not remove labels or blockers to make work eligible.
 - #7 is optional and never a blocker for core issues. Keep it a single lightweight integration; absent credentials do not block local functionality or require invented live-call claims. If implementing it exceeds its stated scope or budget, report the limitation instead of broadening it.
 - FIX mode addresses only supplied review findings and necessary supporting changes on the same issue/branch/PR. Never implement another ticket as a convenient adjacent change.
+
+## PR metadata handoff gate
+
+Before every IMPLEMENT or FIX `PR READY` result, fetch fresh PR metadata and verify:
+
+- The PR is open, non-draft, same-repository, targets `main`, and has the expected base commit.
+- Its head branch is the assigned `issue-<number>-*` branch; local HEAD, pushed branch head and PR head SHA match.
+- `closingIssuesReferences` contains exactly the assigned issue and no others. Use one explicit closing directive for that issue. Describe prerequisites as `issue #N (completed)` rather than placing a closing keyword before another issue reference.
+- Auto-merge is unset, no competing PR claims the assigned issue, and there is no conflicting branch/base/issue metadata. Recheck readiness and all native/textual blockers as already required.
+
+Correct agent-created metadata mistakes on the same PR before returning control, then refetch and verify the complete metadata again; account for GitHub's asynchronous update propagation with bounded checks. Preserve unrelated reviewer/user content, commit history, protections and scope. Unexpected external changes, unverifiable state, or conflicts the agent cannot safely resolve require BLOCKED with logs preserved. Record the verified issue, PR, base, branch and head in the handoff evidence. This self-check supplements every existing runner gate and never substitutes for independent review or authorizes agent-owned merge.
 
 ## Product and design boundaries
 
