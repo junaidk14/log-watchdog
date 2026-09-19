@@ -822,3 +822,15 @@ Please commit and push the current project setup to main so the AFK runner can s
 ```text
 The project setup looks ready. Please start the AFK Codex runner for one issue only so we can validate the full workflow before continuing with the rest of the backlog.
 ```
+
+## Turn 27 — 2026-09-19T20:50:19.491788+00:00
+
+```text
+The run only got blocked because there’s no browser available in this environment. Update the project-specific AFK policy so browser-based UI checks are used when available, but don’t block the whole issue if there isn’t a browser. In that case, run all the frontend tests, builds, accessibility/static checks, and backend/integration checks that are available, and clearly note that rendered desktop, narrow-screen, and keyboard verification still needs a later manual check. Don’t change the generic runner or weaken any of the other verification.
+```
+
+## Turn 28 — 2026-09-19T20:51:35.762251+00:00
+
+```text
+Please commit and push these policy changes to main, then rerun the AFK runner for one issue only. I want to validate the full implementation → independent review → fix if needed → re-review → merge flow with the new browser-verification fallback in place.
+```

@@ -11,7 +11,7 @@ Status: **Used** means exercised in this project; **Configured** means selected 
 | OpenAI Codex | Used | AI coding agent for repository inspection, architecture collaboration, code and documentation changes, and verification. |
 | Codex CLI 0.155.1 | Used | Checked local version and non-interactive flags for runner compatibility; no autonomous implementation session launched. |
 | Bash 3.2.57 | Used | Validate the copied AFK runner with `bash -n`; also its execution shell when launched. |
-| AFK Codex runner (`junaidk14/tools`) | Configured | Generic runner and implementation/review prompts copied unchanged from commit `0e7016fd713b3306df0f44fb636b2d4c19ddc3f0`; Log Watchdog execution policy added separately. |
+| AFK Codex runner (`junaidk14/tools`) | Used | First one-issue run stopped before implementation because no browser was available. Project policy now permits an explicitly documented automated-check fallback with rendered UI checks pending manual verification. Generic runner and prompts remain unchanged from commit `0e7016fd713b3306df0f44fb636b2d4c19ddc3f0`. |
 | `jq` | Configured | Installed dependency used by the upstream runner to validate session results and GitHub state. |
 | Git | Used | Repository inspection and version control; inspected the remote and working-tree status. |
 | GitHub | Used | Remote repository at `junaidk14/log-watchdog`; queried issue and label inventory. |

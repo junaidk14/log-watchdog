@@ -36,12 +36,26 @@ Issue #1 establishes the application packaging, startup instructions, repeatable
 
 For every changed behavior:
 
-1. Run relevant backend tests and configured lint/type checks; run the frontend build and relevant frontend tests when frontend code changes. If no command exists yet, the owning bootstrap work must define and document it. Missing required verification is BLOCKED.
-2. Exercise the issue's full user path. UI evidence covers desktop and narrow layouts, keyboard navigation, loading/empty/error states, and the newly implemented interaction. Record real screenshots or browser evidence when available; source inspection is not a visual pass. Required checks that cannot run remain explicit blockers.
+1. Run relevant backend tests and configured lint/type checks; run the frontend build and relevant frontend tests when frontend code changes. If no command exists yet, the owning bootstrap work must define and document it. Missing required verification is BLOCKED except for the explicitly authorized browser-unavailable fallback below.
+2. Exercise the issue's full user path. When a usable browser is available, verify rendered desktop and narrow layouts, keyboard navigation, loading/empty/error states, and the newly implemented interaction, recording actual browser evidence. When no browser is available, continue implementation and apply the fallback below; browser absence alone must not block the issue. Source inspection is never a rendered verification pass.
 3. Use meaningful failure tests: malformed input/deduplication/isolation for ingestion; sparse/zero-error history, late arrivals and recovery for detection; retry/exhaustion/restart for delivery; privacy boundaries for analysis; protected evidence/reset races for retention. Test only the behaviors owned or affected by the current issue.
 4. Record exact commands, completed results, and the relevant environment or dataset in the PR. Treat 100k events and about 20 events/second as measured validation targets, not promised performance. Identify mocked versus actual provider/network evidence.
 
-A read-only reviewer inspects these tests and recorded evidence, traces each acceptance criterion, and flags missing proof. It must not install tools, start artifact-writing test runs, capture files, update design/audit documents, or repair code. No review is waived because the implementation session already performed a design review.
+### Browser-unavailable fallback
+
+The user explicitly authorized this exception for an environment with no available browser. Establish availability using the supported browser setup and recovery discovery, and record the observed result. A working browser with a failing application, failed interaction, failed test, or accessibility defect is not an unavailable browser. Do not remove or disable checks, misclassify a defect as an environment limitation, or bypass browser-tool restrictions to qualify for this fallback.
+
+If no usable browser exists:
+
+- Complete the issue's implementation and run all available frontend tests and builds, accessibility/static checks, configured lint/type checks, and backend/integration checks for the slice. Include available DOM/component interaction and accessibility tests; do not claim they establish rendered layout or real-browser keyboard behavior.
+- Bootstrap any test/build commands owned by the current issue as usual. The absence of an existing frontend scaffold or test script is not permission to skip its creation. Failures or missing required non-browser checks still block PR READY; all other verification requirements remain unchanged.
+- In the PR verification section, list each executed command and its completed result, the browser discovery failure, and any browser-dependent check not run. Include an explicit **Manual UI verification pending** checklist for rendered desktop layout, rendered narrow-screen layout/overflow, keyboard navigation/focus behavior, and browser-dependent loading/empty/error states and changed interactions. Name the affected screens and a short reproduction path.
+- State the same limitation in the session's final JSON summary: **Browser unavailable; rendered desktop, narrow-screen, and keyboard verification require a later manual check.** Retain the runner's JSON schema and elapsed-time reporting.
+- Treat these rendered checks as deferred, not passed. Browser absence alone does not prevent PR creation, a passing independent review, or the runner's existing merge gate when all other requirements are satisfied. Do not claim full visual/accessibility validation. This user-authorized exception also applies to browser-dependent visual-review steps in applicable skills; do not re-request an unavailable-browser waiver.
+
+A read-only reviewer inspects tests and recorded evidence, traces each acceptance criterion, and flags missing proof outside this explicitly permitted rendered-check deferral. For a fallback PR, verify that browser absence is documented, all available automated checks completed successfully, the implementation is present, and the manual checklist identifies the outstanding checks. Do not raise a finding solely because the documented browser-only checks remain pending; report real defects, missing automated evidence, or misuse of the fallback normally. Mention the deferred manual checks in the review summary, including a passing verdict.
+
+The reviewer must not install tools, start artifact-writing test runs, capture files, update design/audit documents, or repair code. No review is waived because the implementation session already performed a design review. Fresh review, fix/re-review, labels, blocker checks, and all generic runner merge requirements remain unchanged.
 
 ## Audit and result protocol
 
