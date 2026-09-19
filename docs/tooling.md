@@ -148,3 +148,11 @@ No external runtime services, images, fonts, LLM calls, or webhook delivery are 
 - Temporary external PR #10 resume script — Reuses the generic runner session functions and complete independent review/fix/re-review/merge gates, starting at review for the existing PR. Preserves logs outside the repo; generic runner files remain unchanged.
 - Codex Fast mode — Existing user configuration has `service_tier = "fast"`; CLI reports `fast_mode` stable/enabled. Inherited by fresh sessions, without reducing reasoning or verification. Configuration checked against [official speed documentation](https://developers.openai.com/es-419/docs/agent-configuration/speed); actual server-side tier availability is not guaranteed by the setting.
 - `pr` and `writing-for-agents` skills — Used for the closing-reference correction and updated execution scope respectively.
+
+
+## PR #10 review fixes R1 and R2
+
+- `diagnosing-bugs` skill, Vitest/jsdom and Testing Library — Used to reproduce four failing return-focus cases, then verify primary-navigation return, unavailable/hidden origins, browser Back after clearing selection, delayed evidence and failed evidence responses. The existing recovered-incident traversal now also asserts focus.
+- React/TypeScript, History API, MutationObserver and computed styles — Used to preserve explicit focus destinations, reject hidden targets and wait for evidence loading before falling back to the incident heading. No dependencies added.
+- Impeccable context/craft-floor/detector and Browser skill/runtime — Used for the scoped accessibility refinement; detector returned no findings. Supported browser setup failed and recovery discovery returned an empty list, so rendered checks remain pending.
+- Existing frontend/backend build, test, lint, type, format, contrast and loopback runtime commands — Reused for verification. `pr` skill, GitHub CLI, Git and clock tool used for the existing PR update and elapsed-time evidence.

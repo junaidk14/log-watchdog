@@ -88,7 +88,7 @@ export function EvidencePane({
     data !== null &&
     data.measurement.id !== Number(evaluation);
   return (
-    <div className="evidence-pane">
+    <div className="evidence-pane" aria-busy={(!data || switching) && !error}>
       {error && (
         <div role="alert" className="error">
           <p>{error}</p>

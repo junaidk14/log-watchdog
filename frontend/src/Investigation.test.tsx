@@ -320,3 +320,121 @@ it("keeps keyboard focus and interval through multiple-window selection and ever
   expect(last.searchParams.get("start")).toBe(older.start);
   expect(last.searchParams.get("end")).toBe(older.end);
 });
+
+it.each([undefined, "removed-control", "incident-1"])(
+  "returns from primary Logs with saved focus %s to visible incident detail",
+  async (savedFocus) => {
+    const user = userEvent.setup();
+    const { container } = render(<Router />);
+    // Model the narrow layout's hidden queue without claiming rendered coverage.
+    const style = document.createElement("style");
+    style.textContent = ".has-selection .incident-queue { display: none; }";
+    container.append(style);
+    await user.click(
+      await screen.findByRole("link", {
+        name: "Investigate checkout incident #1",
+      }),
+    );
+    await screen.findByRole("link", { name: "View evaluated logs" });
+    await user.click(screen.getByRole("link", { name: "Logs" }));
+    await screen.findByRole("heading", { name: "Logs" });
+    if (savedFocus !== undefined) {
+      window.history.replaceState(
+        { ...window.history.state, returnState: { focus: savedFocus } },
+        "",
+      );
+    }
+    await user.click(screen.getByRole("link", { name: "Back to incident" }));
+    await waitFor(() => {
+      const heading = screen.getByRole("heading", { name: "checkout · open" });
+      expect(heading).toBeVisible();
+      expect(heading).toHaveFocus();
+    });
+    expect(window.location.search).toContain("incident=1");
+    expect(window.location.search).toContain("evaluation=91");
+  },
+);
+
+it("restores the incident and evaluation into visible detail after clearing selection and browser Back", async () => {
+  const user = userEvent.setup();
+  const { container } = render(<Router />);
+  const style = document.createElement("style");
+  style.textContent =
+    ".has-selection .incident-queue { display: none; } .incident-workbench:not(.has-selection) .incident-pane { display: none; }";
+  container.append(style);
+  await user.click(
+    await screen.findByRole("link", {
+      name: "Investigate checkout incident #1",
+    }),
+  );
+  await screen.findByRole("link", { name: "View evaluated logs" });
+  await user.click(screen.getByRole("button", { name: "Back to incidents" }));
+  await waitFor(() =>
+    expect(
+      screen.getByRole("link", { name: "Investigate checkout incident #1" }),
+    ).toHaveFocus(),
+  );
+  expect(window.location.search).not.toContain("incident=");
+  await act(async () => window.history.back());
+  await waitFor(() => {
+    const heading = screen.getByRole("heading", { name: "checkout · open" });
+    expect(heading).toBeVisible();
+    expect(heading).toHaveFocus();
+  });
+  expect(window.location.search).toContain("incident=1");
+  expect(window.location.search).toContain("evaluation=91");
+  expect(await screen.findByLabelText("Evaluated window")).toHaveValue("91");
+});
+
+it.each([true, false])(
+  "waits for returning evidence before restoring a control or falling back (success=%s)",
+  async (ok) => {
+    const user = userEvent.setup();
+    render(<Router />);
+    await user.click(
+      await screen.findByRole("link", {
+        name: "Investigate checkout incident #1",
+      }),
+    );
+    await user.click(
+      await screen.findByRole("link", { name: "View evaluated logs" }),
+    );
+    await screen.findByRole("heading", { name: "Logs" });
+    let finish!: (response: unknown) => void;
+    const delayed = new Promise((resolve) => {
+      finish = resolve;
+    });
+    fetchMock.mockImplementation(async (url: string) =>
+      url.includes("overview")
+        ? { ok: true, json: async () => structuredClone(overview) }
+        : delayed,
+    );
+    await user.click(screen.getByRole("link", { name: "Back to incident" }));
+    await screen.findByText("Loading evaluated evidence…");
+    expect(
+      screen.getByRole("heading", { name: "checkout · open" }),
+    ).not.toHaveFocus();
+    await act(async () =>
+      finish({
+        ok,
+        json: async () => (ok ? evidence : { detail: "Evidence unavailable" }),
+      }),
+    );
+    await waitFor(() =>
+      expect(
+        ok
+          ? screen.getByRole("link", { name: "View evaluated logs" })
+          : screen.getByRole("heading", { name: "checkout · open" }),
+      ).toHaveFocus(),
+    );
+    // Completion must not steal focus again when the user chooses another control.
+    const back = screen.getByRole("button", { name: "Back to incidents" });
+    back.focus();
+    await user.click(screen.getByRole("button", { name: "Refresh overview" }));
+    await waitFor(() =>
+      expect(
+        screen.getByRole("button", { name: "Refresh overview" }),
+      ).toHaveFocus(),
+    );
+  },
+);

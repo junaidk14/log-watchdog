@@ -42,7 +42,11 @@ export function PageLink({
           window.location.href,
         );
         window.history.pushState(
-          { returnState: previous, focus, ...destination },
+          {
+            returnState: previous,
+            ...destination,
+            focus: destination?.focus || focus,
+          },
           "",
           href,
         );
@@ -56,7 +60,27 @@ export function PageLink({
   );
 }
 
-export function usePageRestoration(ready: boolean) {
+function focusVisible(target: HTMLElement | null) {
+  if (!target) return false;
+  for (
+    let element: HTMLElement | null = target;
+    element;
+    element = element.parentElement
+  ) {
+    const style = window.getComputedStyle(element);
+    if (
+      element.hidden ||
+      element.inert ||
+      style.display === "none" ||
+      style.visibility === "hidden"
+    )
+      return false;
+  }
+  target.focus({ preventScroll: true });
+  return document.activeElement === target;
+}
+
+export function usePageRestoration(ready: boolean, fallback?: string) {
   const pending = useRef(true);
   useEffect(() => {
     const mark = () => {
@@ -70,8 +94,12 @@ export function usePageRestoration(ready: boolean) {
     const restore = () => {
       const state = window.history.state;
       const target = state?.focus ? document.getElementById(state.focus) : null;
-      if (state?.focus && !target) return false;
-      target?.focus({ preventScroll: true });
+      if (state?.focus && !focusVisible(target)) {
+        // Evidence controls arrive asynchronously. Once loading settles, a
+        // missing or hidden origin must not leave restoration pending forever.
+        if (document.querySelector('main [aria-busy="true"]')) return false;
+        focusVisible(fallback ? document.getElementById(fallback) : null);
+      }
       if (typeof state?.scrollY === "number") window.scrollTo(0, state.scrollY);
       pending.current = false;
       return true;
@@ -80,7 +108,12 @@ export function usePageRestoration(ready: boolean) {
     const observer = new MutationObserver(() => {
       if (restore()) observer.disconnect();
     });
-    observer.observe(document.body, { childList: true, subtree: true });
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ["aria-busy"],
+    });
     return () => observer.disconnect();
   });
 }

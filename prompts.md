@@ -921,3 +921,8 @@ Once all remaining issues are complete, stop and give me a concise status summar
 ```
 
 Root coordinator corrected accidental closing-keyword phrases in PR #10 prerequisite notes; the intended sole closing directive is issue #3. Resume uses a temporary external script with the unchanged generic review/fix/merge loop and safety checks; no implementation session is reused. After merge, update project policy on clean main for the newly authorized #4–#7 run.
+
+
+## 2026-09-19T22:04:31.464044+00:00 — FIX issue #3 / PR #10
+
+Runner assignment: FIX only R1 and R2 on `issue-3-investigation-workbench`, base `755ebbf9568f08ec2f85ead34c1c77bd6204a6d2`, reviewed head `9c86ef3d22adb3eba4008516b8a13ff885db54d6`. Issue: https://github.com/junaidk14/log-watchdog/issues/3. R1: primary-navigation Logs saves an undefined origin focus, overriding Back to incident's destination; restore a valid fallback and use the incident heading for unavailable origins. R2: Back to incidents saves `incident-null` in the outgoing detail entry; save an existing detail target and verify browser Back restores the same incident/evaluation and visible detail focus. Add DOM regressions, verify, commit and push the same branch, and update the existing PR. No merge, approval, auto-merge, other issue work, or protected runner-file changes. Browser setup/recovery found no browser; use the authorized fallback and retain the manual checklist.

@@ -58,6 +58,7 @@ function respond(value = data) {
 }
 beforeEach(() => {
   window.history.replaceState({}, "", "/?view=overview&dataset=demo");
+  vi.stubGlobal("scrollTo", vi.fn());
   fetchMock.mockReset();
   fetchMock.mockImplementation(() => respond());
   vi.stubGlobal("fetch", (url: string, ...args: unknown[]) => {
@@ -115,7 +116,7 @@ it("selects with keyboard, preserves selection through recovery and returns focu
   await waitFor(() =>
     expect(
       screen.getByRole("heading", { name: "checkout · recovered" }),
-    ).toBeInTheDocument(),
+    ).toHaveFocus(),
   );
 });
 

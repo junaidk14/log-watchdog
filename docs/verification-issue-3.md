@@ -59,3 +59,40 @@ Browser unavailable; rendered desktop, narrow-screen, and keyboard verification 
 The separate read-only documenter compared PRODUCT.md, DESIGN.md, the surface brief/sidecar, frontend diff and complete component/CSS source. This is an ordinary extension: palette, system fonts, control radii, visible focus, severity styling, immediate transitions and the 900px full-width detail breakpoint remain unchanged. New composition is the two-column semantic queue table, ruled evidence section, full-width window selector, existing chart, pattern/summary/sample links and scoped Logs context controls. No imagery or external assets were added.
 
 Existing design files are preserved under the skill's ordinary-extension rule. Pre-existing planning statements and issue #2 descriptions now lag the implemented issue #3 flow; the sidecar also omits the already-existing 900px breakpoint. This drift is reported rather than repaired as an unrelated side effect. The comparison is source-only, not rendered verification.
+
+
+## PR #10 independent-review fixes — R1 and R2
+
+Verified a clean existing branch at reviewed head `9c86ef3d22adb3eba4008516b8a13ff885db54d6`, open non-draft PR #10 against the supplied main base, and open ready issue #3 with closed prerequisite #2. Changes are restricted to the two focus findings and necessary tests/documentation; no new architectural decision or dependency.
+
+`npm --prefix frontend test -- src/Investigation.test.tsx` first reproduced four failures (4 existing tests passed): primary Logs → Back with undefined, removed or hidden saved targets, and Back to incidents → browser Back. After correction, this command passed all 10 tests. Saved undefined origins no longer overwrite explicit destinations; clearing selection records the incident heading in the outgoing entry. Restoration rejects hidden/unfocusable targets and waits for evidence's busy state to settle before falling back, including failed responses. Two additional delayed-response tests preserve valid initiating controls and verify error fallback. Existing recovered-incident traversal now asserts heading focus. Narrow queue hiding in jsdom models visibility only, not rendered viewport behavior.
+
+Completed FIX verification:
+
+| Command | Result |
+| --- | --- |
+| `npm --prefix frontend run build` | Passed; 33 modules, JS 259.57 kB / 79.60 kB gzip |
+| `npm --prefix frontend run typecheck` | Passed |
+| `npm --prefix frontend run lint` | Passed |
+| `npm --prefix frontend run format:check` | Passed |
+| `npm --prefix frontend test` | 32 passed across 3 files, including axe DOM rules |
+| `.venv/bin/ruff check log_watchdog tests scripts` | Passed |
+| `.venv/bin/ruff format --check log_watchdog tests scripts` | Passed; 12 files |
+| `.venv/bin/mypy` | Passed; 7 source files |
+| `.venv/bin/python scripts/check_contrast.py` | Passed; existing palette 5.19:1–14.24:1 |
+| `.venv/bin/pytest -q` | 50 passed; two existing upstream deprecation warnings |
+| `/Users/junaidahamad/.agents/skills/impeccable/scripts/impeccable detect --json frontend/src/navigation.tsx frontend/src/Overview.tsx frontend/src/App.tsx frontend/src/EvidencePane.tsx` | `[]`, no source findings |
+
+The initial formatting invocation used paths relative to the wrong working directory and made no changes; running the installed Prettier from `frontend` corrected it. The first full frontend run exposed jsdom's unimplemented `scrollTo` in the existing Overview history test now that restoration completes; that test now stubs scrolling and asserts restored focus. Final frontend run has no such warning. No check was weakened.
+
+### Manual UI verification pending — additional return paths
+
+Browser setup again returned **No browser is available** for localhost; after supported recovery guidance, discovery returned **[]**. The existing desktop, narrow-layout/overflow, keyboard and loading/empty/error checklist above still applies. Add these paths on desktop and at phone width/200% zoom, using only the keyboard:
+
+- [ ] Investigate → primary-navigation Logs → Back to incident: preserve incident/evaluation and visibly focus detail heading. Repeat with the saved origin unavailable and after an evidence failure.
+- [ ] Investigate → select an evaluated window → Back to incidents → browser Back: restore that same incident/window and focus the visible detail heading, not the hidden queue. Repeat through recovery.
+- [ ] Investigate → a pattern/sample/evaluated-logs link → Back: wait for delayed evidence, restore the initiating control when present, otherwise the detail heading; subsequent refresh must not steal focus.
+
+Browser unavailable; rendered desktop, narrow-screen, and keyboard verification require a later manual check.
+
+FIX runtime validation: `.venv/bin/python scripts/validate_runtime.py` completed successfully on a synthetic temporary SQLite database using the actual launcher and loopback HTTP. Verified dashboard/assets, 40 evaluated versus 41 broader events, filters/sample links, unchanged measurements, persistence/restart, isolation, all five demo transitions and a real-clock worker minute. Measured 100k ingestion in 1.701s; first/deep/filtered browse median 3.95/6.62/11.06ms; 100 events paced at 20/s in 4.957s, ingestion median/max 2.80/8.77ms. These are local measurements, not performance guarantees. `git diff --check` passed.

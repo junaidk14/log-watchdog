@@ -221,7 +221,10 @@ export function Overview() {
       window.clearInterval(timer);
     };
   }, [dataset, revision, acceptResults]);
-  usePageRestoration(data !== null || error !== null);
+  usePageRestoration(
+    data !== null || error !== null,
+    selected ? "incident-heading" : "queue-heading",
+  );
   useEffect(() => {
     const back = () => {
       setLocation(window.location.search);
@@ -275,7 +278,7 @@ export function Overview() {
       {
         ...window.history.state,
         scrollY: window.scrollY,
-        focus: `incident-${id}`,
+        focus: id ? `incident-${id}` : "incident-heading",
       },
       "",
       window.location.href,

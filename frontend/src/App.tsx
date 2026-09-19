@@ -253,7 +253,7 @@ export function App() {
     event.preventDefault();
     navigate({ ...draft, page: 1 });
   }
-  usePageRestoration(!loading);
+  usePageRestoration(!loading, "logs-heading");
   function clear() {
     navigate({
       ...filters,
@@ -405,7 +405,7 @@ export function App() {
               />{" "}
               Include later arrivals
             </label>
-            <PageLink href={viewUrl("incidents")} focus="evaluated-logs" back>
+            <PageLink href={viewUrl("incidents")} focus="incident-heading" back>
               Back to incident
             </PageLink>
             <button
