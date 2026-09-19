@@ -9,7 +9,7 @@ Status: **Used** means exercised in this project; **Configured** means selected 
 | Tool | Status | Purpose |
 | --- | --- | --- |
 | OpenAI Codex | Used | AI coding agent for repository inspection, architecture collaboration, code and documentation changes, and verification. |
-| Codex CLI 0.155.1 | Used | Checked local version and non-interactive flags for runner compatibility; no autonomous implementation session launched. |
+| Codex CLI 0.155.1 | Used | Checked local version and non-interactive flags for runner compatibility; initial version check preceded execution; issue #1 implementation has now run under the project policy. |
 | Bash 3.2.57 | Used | Validate the copied AFK runner with `bash -n`; also its execution shell when launched. |
 | AFK Codex runner (`junaidk14/tools`) | Used | First one-issue run stopped before implementation because no browser was available. Project policy now permits an explicitly documented automated-check fallback with rendered UI checks pending manual verification. Generic runner and prompts remain unchanged from commit `0e7016fd713b3306df0f44fb636b2d4c19ddc3f0`. |
 | `jq` | Configured | Installed dependency used by the upstream runner to validate session results and GitHub state. |
@@ -41,7 +41,7 @@ Only skills actually applied or explicitly configured for this project are liste
 | `grill-with-docs` | Used | Combine the design interview with ongoing architectural decision and glossary documentation. |
 | `grilling` | Used | Shape the MVP through rounds of questions with explicit recommendations and confirmed choices. |
 | `impeccable` (`init`) | Used | Capture durable product facts in `PRODUCT.md`; code-first workflow selected and stored in `.impeccable/config.json`. |
-| `impeccable` (new UI design) | Used | Shape the selected Incident workbench around overview, incident evidence, filtered logs, and webhook delivery history; code-first implementation remains pending. |
+| `impeccable` (new UI design) | Used | Shape the selected Incident workbench around overview, incident evidence, filtered logs, and webhook delivery history; used for the issue #1 shell/log explorer, source detector and separate finish review; rendered verification is pending because browser discovery returned no browsers. |
 | `impeccable` (`critique`) | Used | Independently assess the documented UI flow and selected Incident workbench proposal; rendered-UI verification is unavailable before implementation. |
 | `impeccable` (`document`, seed mode) | Used | Record the user-selected Incident workbench in `DESIGN.md` and its surface brief, without inventing extracted tokens or implemented components. |
 | `to-tickets` | Used | Draft and publish seven approved end-to-end MVP slices with acceptance criteria, ready-for-agent labels, and verified native blocking edges. |
@@ -53,7 +53,7 @@ Only skills actually applied or explicitly configured for this project are liste
 
 | Language or format | Status | Purpose |
 | --- | --- | --- |
-| Python | Used / Planned | Used for development scripts; selected by the user as the application language. Application implementation has not started. |
+| Python | Used | Python 3.14.5 verified in the application virtual environment; implements validation, persistence, API, tests and verification scripts. |
 | Markdown | Used | Agent instructions, configuration documentation, tooling inventory, and the prompt audit log. |
 | Shell commands | Used | Local inspection and execution through zsh. |
 
@@ -61,15 +61,15 @@ Only skills actually applied or explicitly configured for this project are liste
 
 | Component | Status | Selection |
 | --- | --- | --- |
-| API framework | Planned | FastAPI, selected for the Python API and local application. |
-| Database | Planned | SQLite, selected for free local persistence. |
-| Dashboard framework | Planned | React, selected for a lightweight investigation dashboard. |
+| API framework | Used | FastAPI 0.141.1 for typed ingestion/browsing and static dashboard serving; Pydantic 2.13.5 validates shared events. |
+| Database | Used | SQLite through Python sqlite3, WAL mode, dataset-scoped uniqueness and indexed browsing; no separate service or ORM. |
+| Dashboard framework | Used | React with TypeScript; Vite builds the Logs explorer for serving by FastAPI. Exact versions are in frontend/package-lock.json. |
 | Optional LLM provider | Planned | Google Gemini API via server-side REST; default `gemini-3.5-flash-lite`, configurable through environment variables. No live integration verified yet; see ADR-021. |
 
 ## Project records
 
 - [Product context](../PRODUCT.md): durable users, purpose, operating context, constraints, and open product details.
-- [Design seed](../DESIGN.md): selected visual direction and explicitly unresolved implementation values; not an extracted or verified design system.
+- [Design system](../DESIGN.md): implemented issue #1 tokens and components, with browser-dependent verification explicitly pending.
 - [AFK runner setup](../afk-Codex/README.md): pinned provenance, unchanged execution flow, launch prerequisites, and validation.
 - [UI investigation flow](ui-flow.md): workbench interactions, evaluated-evidence scope, clock/recovery feedback, delivery endings, and keyboard acceptance cases.
 - [Agent instructions](../AGENTS.md): entry point for repository-specific engineering conventions and the ongoing tooling documentation requirement.
@@ -78,3 +78,29 @@ Only skills actually applied or explicitly configured for this project are liste
 - [Architectural decisions](adr/decisions.md): concise decision, rationale, and status entries for material architectural choices actually made.
 
 Versions are omitted until verified from the environment or project dependency files.
+
+
+## Issue #1 implementation and verification tooling
+
+| Tool | Status | Purpose |
+| --- | --- | --- |
+| Uvicorn 0.53.0 | Used | Documented Python launcher binds 127.0.0.1:8000 with one worker. |
+| Pydantic | Used | Shared event schema, JSON metadata bounds, timezone normalization, field-indexed validation. |
+| setuptools / editable Python package | Used | Local installation and `log-watchdog` entry point; requirements-dev.lock pins the exercised Python dependencies. |
+| uv | Used | Create the virtual environment and install/verify the Python lockfile; standard venv/pip instructions are also documented. |
+| Node.js 26.0.0 / npm 12.0.2 | Used | Frontend dependency installation, repeatable npm ci, scripts and lockfile. |
+| TypeScript | Used | Strict frontend type checking as a standalone command and before builds. |
+| Vite 6.4.3 / React plugin | Used | Production frontend bundles and loopback development proxy. |
+| pytest 9.1.1 / httpx 0.28.1 | Used | API/integration tests and actual HTTP startup, persistence/restart and bounded performance measurements. |
+| Ruff 0.16.8 / mypy 1.20.2 | Used | Python lint/format checks and strict application type checks. |
+| Vitest 4.1.11 / jsdom | Used | DOM interaction regressions; no rendered-browser claims. |
+| React Testing Library / user-event / jest-dom | Used | Filter, Back, expansion/focus, race, error and same-query tests. |
+| axe-core / eslint-plugin-jsx-a11y | Used | Available DOM accessibility and JSX checks. Color contrast is deferred to rendering, with static palette ratios separately checked by scripts/check_contrast.py. Named scroll regions are intentionally allowed keyboard focus. |
+| ESLint / typescript-eslint | Used | Frontend and configuration linting. The installed ESLint 9 line reports a support deprecation warning; checks pass, and npm audit reports zero vulnerabilities. |
+| Prettier | Used | Frontend formatting and repeatable format:check. |
+| Impeccable detector | Used | Scanned App.tsx and styles.css; no detector findings. Source evidence only. |
+| Impeccable finish reviewer and documenter subagents | Used | Skill-required separate source review and actual design-token documentation. Reviewer scored two navigation fixes resolved; visual checks remain pending. |
+| `pr` skill | Used | Structure the issue #1 PR with scope, before/after evidence, decisions, exact verification and limitations. |
+| `domain-modeling` skill | Used | Record atomic batch identity and direct SQLite/offset-browsing decisions as ADR-023 and ADR-024. |
+
+No external runtime services, images, fonts, LLM calls, or webhook delivery are introduced by issue #1. Browser setup and supported recovery both found no usable browser; the policy's automated fallback was applied. Detailed evidence and pending manual checks are in [issue #1 verification](verification-issue-1.md).

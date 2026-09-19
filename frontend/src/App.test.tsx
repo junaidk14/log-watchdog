@@ -1,0 +1,246 @@
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import axe from "axe-core";
+import { App } from "./App";
+
+const row = {
+  sequence: 1,
+  event_id: "evt-1",
+  timestamp: "2026-01-01T11:59:00.000000Z",
+  service: "checkout",
+  severity: "INFO",
+  message: "Operation completed",
+  metadata: { synthetic: true },
+  ingested_at: "2026-01-01T12:00:00Z",
+};
+const result = {
+  dataset: "demo",
+  total: 101,
+  page: 1,
+  page_size: 50,
+  events: [row],
+};
+function respond(body = result) {
+  return Promise.resolve({ ok: true, json: async () => body } as Response);
+}
+const fetchMock = vi.fn();
+beforeEach(() => {
+  window.history.replaceState({}, "", "/");
+  vi.stubGlobal("fetch", fetchMock);
+  vi.stubGlobal("scrollTo", vi.fn());
+  fetchMock.mockReset();
+  fetchMock.mockImplementation(() => respond());
+});
+
+describe("log explorer", () => {
+  it("shows loading, count, metadata, and accessible expansion without losing focus", async () => {
+    let resolve!: (value: Response) => void;
+    fetchMock.mockReturnValueOnce(
+      new Promise<Response>((r) => {
+        resolve = r;
+      }),
+    );
+    render(<App />);
+    expect(screen.getByRole("status")).toHaveTextContent("Loading logs");
+    await act(async () => resolve(await respond()));
+    expect(
+      await screen.findByText("101 matching events · Page 1 of 3"),
+    ).toBeInTheDocument();
+    const user = userEvent.setup();
+    const expand = screen.getByRole("button", { name: "Expand event evt-1" });
+    expand.focus();
+    await user.keyboard("{Enter}");
+    expect(expand).toHaveFocus();
+    expect(expand).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByText(/"synthetic": true/)).toBeVisible();
+    await user.keyboard("{Enter}");
+    expect(expand).toHaveAttribute("aria-expanded", "false");
+  });
+
+  it("persists all filters in the URL, pages, and restores context on Back", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await screen.findByText(row.message);
+    await user.type(screen.getByLabelText("Service"), "checkout");
+    await user.selectOptions(screen.getByLabelText("Severity"), "ERROR");
+    await user.type(
+      screen.getByLabelText("From (UTC)"),
+      "2026-01-01T11:30:00Z",
+    );
+    await user.type(screen.getByLabelText("To (UTC)"), "2026-01-01T12:00:00Z");
+    await user.type(screen.getByLabelText("Message contains"), "timeout");
+    await user.click(screen.getByRole("button", { name: "Apply filters" }));
+    await waitFor(() =>
+      expect(fetchMock).toHaveBeenLastCalledWith(
+        expect.stringContaining("severity=ERROR"),
+        expect.anything(),
+      ),
+    );
+    const filteredUrl = window.location.href;
+    expect(new URL(filteredUrl).searchParams.get("message")).toBe("timeout");
+    await user.click(screen.getByRole("button", { name: "Next" }));
+    await waitFor(() =>
+      expect(fetchMock).toHaveBeenLastCalledWith(
+        expect.stringContaining("page=2"),
+        expect.anything(),
+      ),
+    );
+    expect(screen.getByRole("heading", { name: "Logs" })).toHaveFocus();
+    act(() => {
+      window.history.replaceState({}, "", filteredUrl);
+      window.dispatchEvent(
+        new PopStateEvent("popstate", { state: { scrollY: 420 } }),
+      );
+    });
+    await waitFor(() => expect(window.scrollTo).toHaveBeenCalledWith(0, 420));
+    expect(screen.getByLabelText("Service")).toHaveValue("checkout");
+    expect(screen.getByLabelText("Message contains")).toHaveValue("timeout");
+    await waitFor(() =>
+      expect(fetchMock).toHaveBeenLastCalledWith(
+        expect.stringContaining("page=1"),
+        expect.anything(),
+      ),
+    );
+  });
+
+  it("keeps unchanged Apply and Clear usable without duplicate history entries", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await screen.findByText(row.message);
+    const historyLength = window.history.length;
+    await user.click(screen.getByRole("button", { name: "Apply filters" }));
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+    expect(screen.getByText(row.message)).toBeVisible();
+    await user.click(screen.getByRole("button", { name: "Clear filters" }));
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(3));
+    expect(screen.getByText(row.message)).toBeVisible();
+    expect(window.history.length).toBe(historyLength);
+  });
+
+  it("waits for Back results before restoring scroll, including an identical URL", async () => {
+    render(<App />);
+    await screen.findByText(row.message);
+    let resolve!: (value: Response) => void;
+    fetchMock.mockReturnValueOnce(
+      new Promise<Response>((r) => {
+        resolve = r;
+      }),
+    );
+    act(() =>
+      window.dispatchEvent(
+        new PopStateEvent("popstate", { state: { scrollY: 800 } }),
+      ),
+    );
+    expect(screen.getByRole("status")).toHaveTextContent("Loading logs");
+    expect(window.scrollTo).not.toHaveBeenCalled();
+    await act(async () => resolve(await respond()));
+    expect(screen.getByText(row.message)).toBeVisible();
+    expect(window.scrollTo).toHaveBeenCalledWith(0, 800);
+  });
+
+  it("switches datasets, preserves compatible filters, and clears within the active dataset", async () => {
+    window.history.replaceState({}, "", "/?dataset=live&service=checkout");
+    const user = userEvent.setup();
+    render(<App />);
+    await screen.findByText(row.message);
+    await user.selectOptions(screen.getByLabelText("Dataset"), "historical");
+    await waitFor(() =>
+      expect(fetchMock).toHaveBeenLastCalledWith(
+        expect.stringContaining("/historical/events?service=checkout"),
+        expect.anything(),
+      ),
+    );
+    await user.click(screen.getByRole("button", { name: "Clear filters" }));
+    expect(window.location.search).toBe("?dataset=historical&page=1");
+  });
+
+  it("explains empty results and recovers from a failed initial request", async () => {
+    fetchMock.mockRejectedValueOnce(
+      new Error("Connection failed. Check the local server and retry."),
+    );
+    const user = userEvent.setup();
+    render(<App />);
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Connection failed",
+    );
+    fetchMock.mockImplementation(() =>
+      respond({ ...result, total: 0, events: [] }),
+    );
+    await user.click(screen.getByRole("button", { name: "Retry" }));
+    expect(
+      await screen.findByRole("heading", { name: "No matching logs" }),
+    ).toBeVisible();
+    expect(
+      screen.getByRole("button", { name: "Clear filters and view all" }),
+    ).toBeEnabled();
+  });
+
+  it("retains the last same-query result after a refresh failure", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await screen.findByText(row.message);
+    fetchMock.mockRejectedValueOnce(new Error("Server unavailable"));
+    await user.click(screen.getByRole("button", { name: "Refresh" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Showing results fetched at",
+    );
+    expect(screen.getByText(row.message)).toBeVisible();
+  });
+
+  it.each([
+    "?dataset=unknown",
+    "?severity=bad",
+    "?page=0",
+    "?start=yesterday",
+    "?start=2026-01-02T00:00:00Z&end=2026-01-01T00:00:00Z",
+  ])("rejects malformed URL filters: %s", async (url) => {
+    window.history.replaceState({}, "", url);
+    render(<App />);
+    expect(await screen.findByRole("alert")).toBeVisible();
+    expect(fetchMock).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: "Clear filters" }));
+    await screen.findByText(row.message);
+  });
+
+  it("does not let an old response leak into a newly selected dataset", async () => {
+    let resolve!: (value: Response) => void;
+    fetchMock.mockReturnValueOnce(
+      new Promise<Response>((r) => {
+        resolve = r;
+      }),
+    );
+    render(<App />);
+    fetchMock.mockImplementation(() =>
+      respond({ ...result, dataset: "live", total: 0, events: [] }),
+    );
+    fireEvent.change(screen.getByLabelText("Dataset"), {
+      target: { value: "live" },
+    });
+    await screen.findByRole("heading", { name: "No matching logs" });
+    await act(async () => resolve(await respond()));
+    expect(screen.queryByText(row.message)).not.toBeInTheDocument();
+  });
+
+  it("renders untrusted messages as text and passes available DOM accessibility checks", async () => {
+    fetchMock.mockImplementation(() =>
+      respond({
+        ...result,
+        events: [{ ...row, message: "<script>alert(1)</script>" }],
+      }),
+    );
+    const { container } = render(<App />);
+    await screen.findByText("<script>alert(1)</script>");
+    expect(container.querySelector("script")).toBeNull();
+    const report = await axe.run(container, {
+      rules: { "color-contrast": { enabled: false } },
+    });
+    expect(report.violations).toEqual([]);
+  });
+});
