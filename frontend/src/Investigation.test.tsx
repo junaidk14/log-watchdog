@@ -1,4 +1,10 @@
-import { act, render, screen, waitFor } from "@testing-library/react";
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, expect, it, vi } from "vitest";
 import axe from "axe-core";
@@ -352,6 +358,65 @@ it.each([undefined, "removed-control", "incident-1"])(
     });
     expect(window.location.search).toContain("incident=1");
     expect(window.location.search).toContain("evaluation=91");
+  },
+);
+
+it.each([false, true])(
+  "restores primary Logs browser Back after delayed evidence (missing identity=%s)",
+  async (missingIdentity) => {
+    const user = userEvent.setup();
+    render(<Router />);
+    await user.click(
+      await screen.findByRole("link", {
+        name: "Investigate checkout incident #1",
+      }),
+    );
+    await screen.findByRole("link", { name: "View evaluated logs" });
+    const logs = screen.getByRole("link", { name: "Logs" });
+    logs.focus();
+    if (missingIdentity) {
+      // Model an older entry with no saved identity, without another focusin.
+      window.history.replaceState(
+        { ...window.history.state, focus: undefined },
+        "",
+      );
+      fireEvent.click(logs);
+    } else {
+      await user.keyboard("{Enter}");
+    }
+    await screen.findByRole("heading", { name: "Logs" });
+    let finish!: (response: unknown) => void;
+    const delayed = new Promise((resolve) => {
+      finish = resolve;
+    });
+    fetchMock.mockImplementation(async (url: string) =>
+      url.includes("overview")
+        ? { ok: true, json: async () => structuredClone(overview) }
+        : delayed,
+    );
+    await act(async () => window.history.back());
+    await screen.findByText("Loading evaluated evidence…");
+    expect(
+      screen.getByRole("heading", { name: "checkout · open" }),
+    ).not.toHaveFocus();
+    await act(async () => finish({ ok: true, json: async () => evidence }));
+    await waitFor(() => {
+      const heading = screen.getByRole("heading", { name: "checkout · open" });
+      expect(heading).toBeVisible();
+      expect(heading).toHaveFocus();
+    });
+    expect(window.location.search).toContain("incident=1");
+    expect(window.location.search).toContain("evaluation=91");
+    expect(screen.getByLabelText("Evaluated window")).toHaveValue("91");
+    await user.click(screen.getByRole("button", { name: "Refresh overview" }));
+    await waitFor(() =>
+      expect(
+        screen.getByRole("button", { name: "Refresh overview" }),
+      ).toBeEnabled(),
+    );
+    expect(
+      screen.getByRole("button", { name: "Refresh overview" }),
+    ).toHaveFocus();
   },
 );
 

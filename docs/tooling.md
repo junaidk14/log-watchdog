@@ -172,3 +172,10 @@ No external runtime services, images, fonts, LLM calls, or webhook delivery are 
 - React/TypeScript and History API — Used for stable control IDs and nonempty saved focus fallback; no new dependencies or architectural decisions.
 - Browser skill/runtime — Used for supported setup and recovery discovery: no browser available; discovery returned `[]`.
 - Existing frontend/backend build, lint, type, format, contrast, test and loopback runtime tools; `pr` skill and GitHub CLI — Used for verification and updating the existing PR.
+
+
+## PR #10 primary-Logs browser-Back fix R1
+
+- `diagnosing-bugs`, React/TypeScript History API, Vitest/jsdom and Testing Library — Used for an actual Router regression of Investigate → primary Logs → browser Back with delayed evidence, including an older entry without a focus identity. Existing focus snapshots survive id-less links; saved positions enable fallback. No new dependencies.
+- Impeccable context/craft-floor/detector and Browser runtime — Used for scoped focus verification. Detector found no source issues; supported browser setup failed and recovery returned `[]`, so rendered checks remain pending.
+- Existing build/test/lint/type/format/contrast/runtime commands, Git/GitHub CLI and `pr` skill — Used for verification and the same-PR update. Codex sub-agent used for the user-requested fresh whole-PR read-only review.

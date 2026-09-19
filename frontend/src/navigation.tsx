@@ -34,7 +34,10 @@ export function PageLink({
         )
           return;
         event.preventDefault();
-        const previous = { scrollY: window.scrollY, focus: props.id };
+        const previous = {
+          scrollY: window.scrollY,
+          focus: props.id || window.history.state?.focus,
+        };
         const destination = back ? window.history.state?.returnState : null;
         window.history.replaceState(
           { ...window.history.state, ...previous },
@@ -110,9 +113,13 @@ export function usePageRestoration(
       if (document.querySelector('main [aria-busy="true"]')) return false;
       const state = window.history.state;
       const target = state?.focus ? document.getElementById(state.focus) : null;
-      if (state?.focus != null && !focusVisible(target)) {
+      const hasSnapshot =
+        state?.focus != null || typeof state?.scrollY === "number";
+      if (hasSnapshot && !focusVisible(target)) {
         // Evidence controls arrive asynchronously. Once loading settles, a
         // missing or hidden origin must not leave restoration pending forever.
+        // A saved position also identifies older entries without focus IDs;
+        // a fresh entry without a snapshot does not request focus restoration.
         focusVisible(fallback ? document.getElementById(fallback) : null);
       }
       if (typeof state?.scrollY === "number") window.scrollTo(0, state.scrollY);

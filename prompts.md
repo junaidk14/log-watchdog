@@ -936,3 +936,39 @@ Runner assignment: FIX only R1 on `issue-3-investigation-workbench`, base `755eb
 ## 2026-09-19T22:15:11.323305+00:00 — FIX issue #3 / PR #10 empty-focus finding R1
 
 Runner assignment: FIX only R1 on `issue-3-investigation-workbench`, base `755ebbf9568f08ec2f85ead34c1c77bd6204a6d2`, reviewed head `5d3a3260c3921ca813cb81f39525fde7aba74267`. Issue: https://github.com/junaidk14/log-watchdog/issues/3. Back to incidents and Refresh overview have no stable focus IDs; persisting an empty identity skips reload restoration and fallback. Give these controls stable identities, prevent empty saved identities, and restore a visible heading for unavailable targets. Add delayed-evidence reload regressions preserving selection/window/scroll, verify, commit/push the existing branch and update PR #10. No merge, approval, auto-merge, other issue work, or protected runner-file changes.
+
+
+# Root audit — 2026-09-19T22:18:51Z
+
+```text
+Fix PR #10 so it only closes issue #3 and no longer closes #1 or #2. Ignore if PR#10 is merged already.
+
+Then continue the AFK workflow from where it stopped: run the independent review, fix anything the reviewer finds, re-review, and merge only after it passes.
+
+Also tighten the project-specific AFK policy so future implementation/fix sessions verify their PR metadata before returning PR READY. In particular, the PR should target main, close only the assigned issue, have the expected branch/head, and not have conflicting PR metadata. If the agent created incorrect PR metadata, it should fix that itself before handing control back to the runner.
+
+Keep the current incident-workbench UI direction intact unless the reviewer finds a concrete issue with it. Don’t expand scope or redesign anything as part of this fix.
+
+After #3 is merged, continue through #4, #5, #6, and #7 with the same implementation -> independent review -> fix/re-review -> merge flow.
+
+If anything gets blocked or the repo enters an unexpected state, stop safely and preserve the logs instead of weakening verification.
+```
+
+Runner stopped at its unchanged three-fix limit with one remaining return-focus defect. PR #10 is open, closes only #3, and has clean pushed head 66ff84a741e09c402c2e070e29091d15383a6b72. No merge or subsequent issue execution. Policy activation deferred to preserve the fixed review base; a proposed updated policy is saved alongside this audit without changing the checkout.
+
+
+## 2026-09-19T22:23:59.791002+00:00 — Fresh FIX issue #3 / PR #10 browser-Back R1
+
+```text
+I’m going offline now. Please continue in AFK mode from the current state.
+
+First, address only the remaining PR #10 review finding about keyboard focus on Investigate -> Logs -> browser Back. Use a fresh fix session, add/update the regression test, run the required verification, then run a fresh independent review of the whole PR. Merge only if that review passes.
+
+After #3 is merged, continue through issues #4, #5, #6, and #7 with the same implementation -> independent review -> fix/re-review -> merge gates.
+
+Do not weaken verification, bypass blockers, or improvise around unexpected repository state. If anything becomes BLOCKED, hits a retry limit, fails verification, or enters an ambiguous Git/PR state, stop safely and preserve the logs/state for me to inspect later.
+
+Keep prompts.md updated and do not wait for interactive approval.
+```
+
+Session assignment: FIX only remaining R1 on `issue-3-investigation-workbench`, base `755ebbf9568f08ec2f85ead34c1c77bd6204a6d2`, reviewed head `66ff84a741e09c402c2e070e29091d15383a6b72`. Issue: https://github.com/junaidk14/log-watchdog/issues/3. Preserve outgoing focus for id-less PageLink navigation and restore missing-focus history entries after delayed evidence without stealing focus on ordinary refresh. Add actual Router browser-Back regression; retain explicit Back and background-refresh coverage. User authorizes one fresh fix and a whole-PR independent read-only review; stop on failed verification, ambiguous metadata or a failing next review. Verify open/non-draft same-repository PR, main at supplied base, assigned branch and matching local/pushed/PR head, sole closing reference #3, no auto-merge or competing PR. Record both root audit turns here. Never merge in this implementation session; the root coordinator owns later policy activation and issue continuation. Protected runner files remain untouched.

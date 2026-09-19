@@ -182,3 +182,55 @@ Browser unavailable; rendered desktop, narrow-screen, and keyboard verification 
 ### Merge Danger
 
 **Door:** two-way. **Blast Radius:** focus. The shared restoration hook also serves Logs; the complete frontend suite passes. No storage or API changes.
+
+
+## Fresh R1 fix: primary Logs → browser Back
+
+Id-less primary navigation overwrote the outgoing entry's focus with undefined. PageLink now retains the saved identity, and the restoration hook recognizes a saved scroll position as a snapshot even when its focus identity is missing. It waits for evidence before using the visible heading fallback. Fresh entries without snapshots do not request focus, and completed restoration remains inactive during ordinary refreshes. No new architecture or dependency; incident-workbench direction unchanged.
+
+```diff
+ on(leave)
+-  save(link.id)
++  save(link.id || savedFocus)
+ on(restore)
+-  skip entries without focus
++  use heading fallback for saved positions without focus
+```
+
+### Evidence
+
+- Before: `npm --prefix frontend test -- src/Investigation.test.tsx -t 'primary Logs browser Back'` reproduced both new failures: normal keyboard navigation and a legacy missing-focus entry returned focus to BODY after delayed evidence.
+- After: `npm --prefix frontend test -- src/Investigation.test.tsx` passed all 19 tests. Actual Router regressions call `window.history.back()`, delay evidence, assert visible heading focus after loading, preserve incident #1/window 91, and assert subsequent Refresh overview retains focus. Existing explicit Back, reload and background-refresh coverage remains enabled. HTTP is mocked in DOM tests; these are not rendered-browser claims.
+
+| Command | Completed result |
+| --- | --- |
+| `npm --prefix frontend run build` | Passed; 33 modules, JS 260.44 kB / 79.77 kB gzip |
+| `npm --prefix frontend run typecheck` | Passed |
+| `npm --prefix frontend run lint` | Passed |
+| `npm --prefix frontend run format:check` | Passed |
+| `npm --prefix frontend test` | 41 passed across 3 files, including axe DOM checks |
+| `.venv/bin/ruff check log_watchdog tests scripts` | Passed |
+| `.venv/bin/ruff format --check log_watchdog tests scripts` | Passed; 12 files |
+| `.venv/bin/mypy` | Passed; 7 source files |
+| `.venv/bin/python scripts/check_contrast.py` | Passed; all 9 palette checks |
+| `.venv/bin/pytest -q` | 50 passed; 2 existing upstream deprecation warnings |
+| `.venv/bin/python scripts/validate_runtime.py` | Passed actual loopback HTTP/assets, five-step demo, evidence, restart/isolation and real-clock worker |
+| `/Users/junaidahamad/.agents/skills/impeccable/scripts/impeccable detect --json frontend/src/navigation.tsx` | `[]`, no source findings |
+| `git diff --check` | Passed |
+
+Runtime validation used temporary synthetic SQLite data on macOS 15.6 arm64 / Python 3.14.5. Evaluated/broader evidence stayed 40/41; filters/sample/restart passed. 100k ingestion: 1.377s; first/deep/filtered browse medians: 3.01/5.20/9.21ms; 100 events paced at 20/s: 4.957s; ingestion median/max: 5.14/8.80ms. Local measurements only; no external provider or webhook claim.
+
+### Manual UI verification pending
+
+Supported Browser `getForUrl("http://127.0.0.1:8000/")` returned **No browser is available**. Read supported recovery documentation; `agent.browsers.list()` returned `[]`. Authorized fallback applies. Existing whole-issue checklist remains pending, with the R1 path explicitly added:
+
+- [ ] Rendered desktop: Demo → Advance → Investigate → primary-navigation Logs → browser Back. Confirm selected incident/window and evidence layout remain intact.
+- [ ] Rendered narrow-screen layout/overflow: repeat at phone width and 200% zoom; returned detail and focused heading remain visible.
+- [ ] Keyboard navigation/focus: repeat with Tab/Enter and browser Back, delay evidence, verify visible incident heading after loading; then refresh and confirm focus does not jump.
+- [ ] Browser-dependent loading/empty/error states: repeat this return with delayed or failed evidence, then retry; confirm existing empty/unavailable explanations and fallback behavior.
+
+Browser unavailable; rendered desktop, narrow-screen, and keyboard verification require a later manual check.
+
+### Merge Danger
+
+**Door:** two-way. **Blast Radius:** focus. The shared navigation hook also serves Logs; all frontend regressions pass. No data/API changes. Both requested root prompt audits are recorded; protected runner files are unchanged. Independent review and merge remain separate gates; this FIX session never merges.
