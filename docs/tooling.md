@@ -306,3 +306,7 @@ Existing FastAPI/React infrastructure now supports session-only Gemini key entry
 - **Diagnosing Bugs skill — Used.** Deterministic red/green backend API and React integration regressions reproduced dotted-key rejection, input truncation and stale parent errors. No separate review pass, per user request.
 - **Google AI Developers documentation/forum — Consulted.** Google's announcement confirms the transition to AQ authorization keys: https://discuss.ai.google.dev/t/my-api-key-is-only-aq-not-standard/172262. Only synthetic key fixtures were used locally; no credential inspection or provider call.
 - Existing pytest, Vitest/Testing Library, Ruff, mypy, TypeScript, ESLint, Prettier, Vite and contrast checks validate the focused change. No added dependency.
+
+## Evidence eligibility and readability follow-up
+
+Existing React/native HTML select and input controls, SQLite dataset-scoped service lookup, pytest and Vitest were reused without new dependencies. Playwriter session 3 inspected the rendered changes in local headless Chrome using a disposable database on port 8001, with background delivery disabled. A read-only SQLite aggregate confirmed mixed trusted/unverified Demo provenance in the user database; no log messages or credentials were inspected. No real Gemini request or automatic user-data reset occurred.

@@ -174,7 +174,7 @@ export function EvidencePane({
             >
               {data.windows.map((w) => (
                 <option key={w.id} value={w.id}>
-                  {w.start} · {w.status}
+                  {w.start.slice(0, 16).replace("T", " ")} UTC · {w.status}
                 </option>
               ))}
             </select>
@@ -226,9 +226,7 @@ export function EvidencePane({
             )}
             <h3>Local evidence summary</h3>
             <p>
-              Non-LLM analysis. The recorded window contains{" "}
-              {data.measurement.errors} ERROR/FATAL events among{" "}
-              {data.measurement.total} events.{" "}
+              Non-LLM analysis.{" "}
               {data.measurement.status === "spike detected"
                 ? "The observed error-log rate exceeded its service-specific baseline threshold."
                 : "This window did not establish a new spike."}{" "}

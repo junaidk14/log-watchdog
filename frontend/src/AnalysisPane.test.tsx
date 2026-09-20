@@ -282,3 +282,29 @@ it("waits for key storage before enabling preview and clears previous errors on 
     fetchMock.mock.calls.some(([url]) => url === "/api/analysis/send"),
   ).toBe(false);
 });
+
+it("explains unverified Demo evidence and links to reset without sending or resetting", async () => {
+  fetchMock.mockResolvedValueOnce({
+    ...reply({ detail: "Unverified logs require paid configuration." }, false),
+    status: 403,
+  });
+  const user = userEvent.setup();
+  mount();
+  await user.click(
+    screen.getByRole("button", { name: "Preview evidence for analysis" }),
+  );
+  expect(await screen.findByRole("alert")).toHaveTextContent(
+    "Your key is configured",
+  );
+  expect(screen.getByRole("alert")).toHaveTextContent(
+    "Reset deletes Demo logs",
+  );
+  expect(screen.getByRole("link", { name: "Open Demo reset" })).toHaveAttribute(
+    "href",
+    "?view=overview&dataset=demo",
+  );
+  expect(
+    screen.queryByRole("button", { name: "Send for analysis" }),
+  ).not.toBeInTheDocument();
+  expect(fetchMock).toHaveBeenCalledTimes(1);
+});

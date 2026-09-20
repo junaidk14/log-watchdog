@@ -35,6 +35,8 @@ type LogEvent = {
   ingested_at: string;
 };
 type Results = {
+  services?: string[];
+  services_truncated?: boolean;
   dataset: Dataset;
   evaluated_total?: number;
   retained_total?: number;
@@ -474,18 +476,46 @@ export function App() {
         )}
         <section className="explorer" aria-label="Log explorer">
           <form onSubmit={submit} className="filters" aria-label="Filter logs">
-            <label>
-              Service
-              <input
-                readOnly={!!filters.incident}
-                value={draft.service}
-                maxLength={120}
-                placeholder="All services"
-                onChange={(e) =>
-                  setDraft({ ...draft, service: e.target.value })
-                }
-              />
-            </label>
+            <div className="service-filter">
+              <label htmlFor="service-input">Service</label>
+              <div className="service-controls">
+                <select
+                  aria-label="Choose service"
+                  disabled={!!filters.incident || !results}
+                  value={draft.service}
+                  onChange={(e) =>
+                    setDraft({ ...draft, service: e.target.value })
+                  }
+                >
+                  <option value="">All services</option>
+                  {draft.service &&
+                    !(results?.services ?? []).includes(draft.service) && (
+                      <option value={draft.service}>{draft.service}</option>
+                    )}
+                  {(results?.services ?? []).map((service) => (
+                    <option key={service} value={service}>
+                      {service}
+                    </option>
+                  ))}
+                </select>
+                <input
+                  id="service-input"
+                  readOnly={!!filters.incident}
+                  autoComplete="off"
+                  value={draft.service}
+                  maxLength={120}
+                  placeholder="Or type a name"
+                  onChange={(e) =>
+                    setDraft({ ...draft, service: e.target.value })
+                  }
+                />
+              </div>
+              {results?.services_truncated && (
+                <span className="hint">
+                  First 200 services shown; type another exact name.
+                </span>
+              )}
+            </div>
             <label>
               Severity
               <select

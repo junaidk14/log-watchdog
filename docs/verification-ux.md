@@ -50,3 +50,13 @@ Logs: `/tmp/watchdog-ux-tests-final.log`, `/tmp/watchdog-rendered-ux-backend.log
 - **P3:** Full UTC timestamps and representative log samples remain verbose on narrow screens. Precision and direct evidence links were retained deliberately; further density tuning is optional.
 
 Coverage limits: local headless Chrome only, not the user's extension-connected tab, physical mobile devices, other browser engines or a complete assistive-technology audit. Live Gemini success remains unverified and requires user approval before any provider call. No external submission or deployment.
+
+
+## Evidence eligibility and readability follow-up — 2026-09-20
+
+- Reproduced preview HTTP 403 with configured synthetic credentials and deliberately unverified events in a disposable database. The UI correctly distinguishes key presence from evidence eligibility and links to Overview's existing Demo reset confirmation. No automatic reset, credential disclosure or provider call.
+- Reset only the disposable Demo fixture and advanced one minute. The fresh incident produced a successful local preview labeled verified synthetic Demo evidence; Send for analysis remained untouched. The real database and port-8000 server were left unchanged.
+- Playwriter headless Chrome, 1440px and 390px: service dropdown populates dataset choices, selection updates the text input, Apply filters produces matching events; incident-scoped controls remain locked. Compact queue and selected evidence remain readable. Narrow service controls fit side by side. Existing exact-name entry has a React regression test.
+- All 91 frontend tests and 78 backend API/analysis tests passed, along with production build/typecheck, ESLint, Prettier, Ruff lint/format, mypy and contrast checks. One earlier existing delivery keyboard test failed transiently; subsequent full-suite runs passed without changing delivery behavior. One lint invocation could not locate its executable transiently; rerun passed. No checks were disabled.
+- Console showed only the intentional HTTP 403 during the privacy-gate reproduction; subsequent fresh preview and navigation had no console errors. Screenshots: `/tmp/watchdog-readability-desktop.png`, `/tmp/watchdog-readability-narrow.png`, `/tmp/watchdog-service-narrow-final.png`. Test logs: `/tmp/watchdog-readability-frontend.log`, `/tmp/watchdog-readability-backend.log`.
+- No P0/P1 found in affected flows. Remaining P3: representative event timestamps remain verbose by design. Browser coverage remains local headless Chrome; no live Gemini provider validation.

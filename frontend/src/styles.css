@@ -1050,3 +1050,13 @@ h3[tabindex]:focus-visible {
     margin: 0;
   }
 }
+
+.service-filter {
+  min-width: 0;
+}
+.service-controls {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  margin-top: 6px;
+}

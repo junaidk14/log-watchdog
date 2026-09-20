@@ -383,3 +383,25 @@ it("exposes the file chooser immediately through Historical and the Import JSON 
   expect(await screen.findByLabelText("JSON log file")).toBeVisible();
   expect(window.location.search).toContain("dataset=historical");
 });
+
+it("offers dataset service choices while retaining exact free-text filtering", async () => {
+  fetchMock.mockImplementation(() =>
+    Promise.resolve({
+      ok: true,
+      json: async () => ({ ...result, services: ["checkout", "worker"] }),
+    }),
+  );
+  const user = userEvent.setup();
+  render(<App />);
+  await screen.findByText(row.message);
+  const service = screen.getByRole("textbox", { name: "Service" });
+  await user.selectOptions(
+    screen.getByRole("combobox", { name: "Choose service" }),
+    "worker",
+  );
+  expect(service).toHaveValue("worker");
+  await user.clear(service);
+  await user.type(service, "custom-service");
+  await user.click(screen.getByRole("button", { name: "Apply filters" }));
+  expect(window.location.search).toContain("service=custom-service");
+});

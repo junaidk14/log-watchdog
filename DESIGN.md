@@ -189,3 +189,10 @@ Gemini setup is an inline disclosure with a password input, session-key save and
 - Don't let decorative treatment compete with investigation evidence.
 - Don't imply volume is anomalous or absent traffic proves health.
 - Don't treat source or DOM checks as rendered layout or real-browser keyboard verification.
+
+
+### Focused readability refinement
+
+Incident queue rows prioritize service, lifecycle state and last-spike error-log rate. Full abnormal-window measurements and lifecycle intervals belong to the selected investigation, with timeline/baseline detail under its existing disclosure. Window choices use minute-resolution UTC labels; recorded bounds remain precise in the measurement panel. Avoid repeating event totals in the local summary.
+
+Logs exposes a native service dropdown alongside the existing exact-name text field. Both edit the same draft filter; Apply filters commits it. Choices cover the current dataset independently of other filters, capped at 200 with a truncation hint. Incident-scoped service controls remain locked to their evidence provenance.

@@ -1370,3 +1370,18 @@ No broad UX changes and no separate reviewer pass needed for this bug.
 Synthetic regressions reproduced HTTP 422 for dotted authorization-key shapes, 256-character frontend truncation and stale analysis errors after successful configuration refresh. The fix accepts bounded opaque visible-ASCII keys (2,048 characters), synchronizes setup/preview availability, and clears the appropriate parent error on successful refresh. Existing backend memory storage and preview effective-settings lookup already shared the correct object; they were not replaced. Clear still restores the environment fallback and invalidates previews. No actual user key was inspected, persisted, logged or submitted to a provider. The separately running app was left untouched; its backend needs a restart to load source changes.
 
 Verification passed: 77 backend/API tests, all 89 frontend tests, production build, TypeScript, ESLint, Prettier, Ruff lint/format, mypy and static contrast. Logs: /tmp/watchdog-key-backend-final.log and /tmp/watchdog-key-all-frontend.log. No separate reviewer pass or external publication.
+
+
+## 2026-09-20 — Evidence privacy guidance and focused readability
+
+```text
+[Image #1]
+I'm able to now input the API key, but getting the attached error.
+In the logs tab, we should make service a dropdown along with the text input.
+
+We can improve the readability further for the incidents tab, as it is still quite information-heavy, along with redundant values like time interval for the spike.
+```
+
+The attached screenshot showed a configured key with the existing real/unverified-evidence privacy gate. Read-only aggregate inspection found older unverified Demo events alongside trusted simulator events. Preserved that gate, clarified the message and linked to the existing explicit reset confirmation. Added dataset-scoped service choices alongside free text and reduced repeated incident queue measurements. User data and the running user server were left untouched; browser tests use a disposable fixture and no provider call.
+
+Verification: 91 frontend and 78 backend API/analysis tests; build/typecheck, lint/format, mypy and contrast passed. Playwriter desktop/narrow checks verified filtering, privacy guidance and successful fresh-synthetic preview without sending. Documentation updated; no architecture change.

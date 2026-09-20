@@ -734,19 +734,29 @@ export function Overview() {
                               selected === String(i.id) &&
                               " · Selected"}
                           </p>
-                          <p>
-                            Latest abnormal window: {pct(i.measurement.rate)}{" "}
-                            observed / {pct(i.measurement.expected)} expected
-                            error-log rate
-                          </p>
-                          <p className="hint">
-                            Measurement (UTC): {time(i.measurement.start)} →{" "}
-                            {time(i.measurement.end)}
-                          </p>
-                          <p className="hint">
-                            Incident interval (UTC): {time(i.start)} →{" "}
-                            {time(i.end)}
-                          </p>
+                          {isIncidents ? (
+                            <p>
+                              Last spike: {pct(i.measurement.rate)} error-log
+                              rate
+                            </p>
+                          ) : (
+                            <>
+                              <p>
+                                Latest abnormal window:{" "}
+                                {pct(i.measurement.rate)} observed /{" "}
+                                {pct(i.measurement.expected)} expected error-log
+                                rate
+                              </p>
+                              <p className="hint">
+                                Measurement (UTC): {time(i.measurement.start)} →{" "}
+                                {time(i.measurement.end)}
+                              </p>
+                              <p className="hint">
+                                Incident interval (UTC): {time(i.start)} →{" "}
+                                {time(i.end)}
+                              </p>
+                            </>
+                          )}
                         </div>
                         <div>
                           <a

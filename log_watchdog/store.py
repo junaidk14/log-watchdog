@@ -201,7 +201,17 @@ class Store:
                 "LIMIT ? OFFSET ?",
                 (*params, page_size, (page - 1) * page_size),
             ).fetchall()
+            services = [
+                row[0]
+                for row in db.execute(
+                    "SELECT DISTINCT service FROM events WHERE dataset=? "
+                    "ORDER BY service LIMIT 201",
+                    (dataset,),
+                )
+            ]
         return {
+            "services": services[:200],
+            "services_truncated": len(services) > 200,
             "dataset": dataset,
             "total": count,
             "page": page,
