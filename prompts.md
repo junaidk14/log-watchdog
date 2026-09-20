@@ -1520,3 +1520,34 @@ Avoid re-checking the entire application for minor text/CSS changes unless somet
 ```
 
 Applied immediately: completed frontend checks before the browser pass, then checked only the new Demo walkthrough and its navigation/focus/responsive behavior. Future small copy/CSS work follows this bounded verification preference.
+
+## 2026-09-20 — Targeted micro-interactions
+
+```text
+Please do one small, targeted micro-interaction pass on the current UI.
+
+Use the installed Emil Kowalski motion/animation guidance if available in this session.
+
+The goal is to make state changes feel smoother and more polished without making the app flashy.
+
+Focus only on places where motion improves comprehension, such as:
+- Gemini loading -> response appearing
+- expanding/collapsing evidence or delivery details
+- incident selection or status changes
+- loading/success/error feedback
+- controls or sections appearing/disappearing
+
+Keep it restrained:
+- short, subtle transitions
+- no bouncy/decorative animation
+- no delays to interaction
+- preserve keyboard/focus behavior
+- respect prefers-reduced-motion
+- do not change layout, information architecture, or application logic
+
+Please inspect the rendered UI first, make only the interactions that genuinely benefit from motion, then do a targeted visual check of those changed areas.
+
+At the end, report where motion was added and why.
+```
+
+Applied the installed Emil design-engineering skill. Inspected Gemini preview/setup and delivery details before editing. Added a 140ms opacity-only entry transition from 0.85 to 1 for setup, evidence packet, result and delivery detail content. Exits remain immediate; no timing/handler/route/backend change. Reduced-motion disables it; visible keyboard focus suppresses transitions. Existing frontend checks passed before the targeted after-check. Gemini response verification used a browser-intercepted mock, with no external provider request.

@@ -321,3 +321,9 @@ Existing React/native HTML select and input controls, SQLite dataset-scoped serv
 ## Demo walkthrough and browser-check scope
 
 Existing React PageLink/native anchors and CSS provide the compact guide; no new dependency or runner. Impeccable refinement guidance was reused. Frontend tests/typecheck/lint/build run before Playwriter. Per user preference, minor copy/style changes use targeted browser checks only when needed for the changed screen/flow, navigation, focus, responsiveness or interactions; reserve full-app browser validation for pre-merge or observed problems. This pass exercised only the new Demo flow in a disposable database with background delivery disabled.
+
+## Targeted motion pass
+
+- **Emil design-engineering skill — Used.** Guided short purposeful entry feedback, custom ease-out, interruptible CSS transitions and immediate keyboard interactions.
+- **CSS `@starting-style` — Used.** Progressive enhancement for 140ms opacity-only entry on Gemini setup/packet/result and delivery details. No animation library or JavaScript timing state. Unsupported browsers show content immediately. Reduced-motion opts out; visible keyboard focus suppresses motion.
+- **Playwriter — Used for targeted checks only.** Inspected the two affected flows before editing, then verified after passing frontend checks. A browser route intercepted the Gemini send and supplied an explicitly simulated response; nothing reached the backend send endpoint or Google. Test fixture only, with background delivery disabled.

@@ -78,3 +78,11 @@ No P0/P1/P2 issue found in the inspected flows. P3: precise evidence timestamps 
 Playwriter verified a fresh disposable Demo: reset confirmation; walkthrough link focuses receiver heading; save fail-first-then-succeed; reminder returns focus to Advance; advance creates checkout incident; investigation anchor focuses queue; incident opens its delivery history and expandable payload. Inspected the guide at desktop and 390px. Captures: `/tmp/walkthrough-desktop.png`, `/tmp/walkthrough-narrow.png`. The reused browser initially polled an old-run URL against the new fixture and recorded expected HTTP 410 responses before the fresh navigation; after the targeted flow, no new console errors appeared. Test log: `/tmp/watchdog-walkthrough-tests.log`.
 
 The user's port-8000 server was left running. The disposable port-8001 fixture disables the background worker, so the newly created notification remains pending; this verifies UI flow and creation, not real HTTP/retry timing. Backend delivery behavior is unchanged. No full-app browser repetition and no provider call.
+
+## Targeted micro-interactions — 2026-09-20
+
+Before editing, inspected Gemini setup/local preview and delivery details in the rendered isolated fixture. All 94 frontend tests, TypeScript, ESLint, build, Prettier, contrast and diff checks passed before the after-check. Log: `/tmp/watchdog-motion-tests.log`.
+
+Targeted Playwriter checks observed pointer-opened delivery details at opacity 0.85 with duration 0.14s, settling normally; keyboard expansion retained its trigger and expanded immediately. Reduced-motion computed duration is 0s. Verified a browser-intercepted Gemini loading→response cycle: the simulated result started at opacity 0.85 with 0.14s transition, then settled at opacity 1. No backend send or provider request occurred. Inspected the result and narrow delivery details; no console errors. Captures: `/tmp/motion-before-gemini.png`, `/tmp/motion-result.png`, `/tmp/motion-delivery-narrow.png`.
+
+No application timers, handlers, focus restoration, detector/delivery logic or layout changed. A result wrapper retains the existing paragraph typography/margins. Motion is a progressive CSS enhancement; unsupported browsers remain immediate. No new P0/P1/P2 issue found in this bounded pass. Browser coverage remains headless Chrome.

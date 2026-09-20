@@ -930,7 +930,8 @@ dd {
   margin-top: 24px;
   padding-top: 4px;
 }
-.analysis-pane > p {
+.analysis-pane > p,
+.analysis-result > p {
   max-width: 70ch;
   font-size: 14px;
 }
@@ -1134,6 +1135,7 @@ input[readonly] {
   margin-bottom: 0;
 }
 .analysis-pane > p,
+.analysis-result > p,
 .analysis-packet {
   margin-block: 12px;
 }
@@ -1184,5 +1186,29 @@ input[readonly] {
 @media (max-width: 900px) {
   .demo-walkthrough ol {
     grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Entry feedback only: preserve layout, immediate dismissal and keyboard response. */
+@media (prefers-reduced-motion: no-preference) {
+  :root:not(:has(:focus-visible))
+    :is(
+      #gemini-settings,
+      .analysis-packet,
+      .analysis-result,
+      .delivery-details:not([hidden])
+    ) {
+    transition: opacity 140ms cubic-bezier(0.23, 1, 0.32, 1);
+  }
+  @starting-style {
+    :root:not(:has(:focus-visible))
+      :is(
+        #gemini-settings,
+        .analysis-packet,
+        .analysis-result,
+        .delivery-details:not([hidden])
+      ) {
+      opacity: 0.85;
+    }
   }
 }

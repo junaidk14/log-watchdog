@@ -424,7 +424,11 @@ function DeliveryRow({
       >
         {expanded ? "Hide" : "View"} payload and attempts
       </button>
-      <div id={`attempts-${d.id}`} hidden={!expanded}>
+      <div
+        className="delivery-details"
+        id={`attempts-${d.id}`}
+        hidden={!expanded}
+      >
         <p>Destination: {d.destination}</p>
         <p>Stable delivery ID: {d.id}</p>
         <p>

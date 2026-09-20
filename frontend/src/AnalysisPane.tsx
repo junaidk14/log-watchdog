@@ -242,7 +242,7 @@ export function AnalysisPane({
         </>
       )}
       {result && (
-        <>
+        <div className="analysis-result">
           <h4>Gemini hypotheses — verify with evidence</h4>
           <p>
             Generated text may be wrong or follow misleading log content.
@@ -254,7 +254,7 @@ export function AnalysisPane({
           <ul>{result.analysis.possible_causes.map(claim)}</ul>
           <h4>Suggested next checks</h4>
           <ul>{result.analysis.next_checks.map(claim)}</ul>
-        </>
+        </div>
       )}
     </section>
   );

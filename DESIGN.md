@@ -206,3 +206,7 @@ All pages share a 1,320px maximum content area. Investigation allocates more wid
 ### Demo walkthrough
 
 Demo Overview includes a compact four-step “Try the Demo” ordered list: reset/confirm, configure and save receiver behavior in Deliveries, return and advance one minute, then investigate and inspect delivery history. Links target existing controls/pages and do not initiate mutations. Use the existing selected background, two columns on desktop and one below 900px. Hide the guide outside Demo Overview. Demo receiver settings repeat the sequence with links to Reset and Advance on Overview.
+
+### Restrained entry feedback
+
+Gemini setup, evidence packet, completed analysis and delivery detail content enter with opacity 0.85→1 over 140ms using `cubic-bezier(0.23, 1, 0.32, 1)`. No transform, height animation, delay, stagger or exit retention. Immediate dismissal and existing focus/hidden behavior remain. Enable only for `prefers-reduced-motion: no-preference` and when no visible keyboard focus exists. Unsupported `@starting-style` browsers display immediately. Do not animate routine polling, incident selection, alerts or loading text.
