@@ -421,8 +421,14 @@ export function Overview() {
     setLocation(window.location.search);
     setSelected(id);
     const selectionUrl = window.location.search;
+    const selectionFocus = document.activeElement;
     window.requestAnimationFrame(() => {
-      if (window.location.search !== selectionUrl) return;
+      if (
+        window.location.search !== selectionUrl ||
+        (document.activeElement !== selectionFocus &&
+          document.activeElement !== document.body)
+      )
+        return;
       if (id) heading.current?.focus();
       else
         (
@@ -678,7 +684,7 @@ export function Overview() {
               </p>
             )}
             <div
-              className={`incident-workbench ${isIncidents ? "investigation-view" : ""} ${selected ? "has-selection" : ""} ${!selected && data.incidents.length === 0 ? "is-empty" : ""}`}
+              className={`incident-workbench ${isIncidents ? "investigation-view" : "summary-view"} ${selected && isIncidents ? "has-selection" : ""} ${!selected && data.incidents.length === 0 ? "is-empty" : ""}`}
             >
               <section
                 className="incident-queue"
@@ -708,165 +714,169 @@ export function Overview() {
                   </p>
                 )}
                 {data.incidents.length > 0 && (
-                  <table className="incident-table">
-                    <caption className="sr-only">Incident queue</caption>
-                    <thead>
-                      <tr>
-                        <th scope="col">Service and measurement</th>
-                        <th scope="col">Investigation</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {data.incidents.map((i) => (
-                        <tr
-                          key={i.id}
-                          className={
-                            selected === String(i.id)
-                              ? "incident-row selected"
-                              : "incident-row"
-                          }
-                        >
-                          <td>
-                            <h3>{i.service}</h3>
-                            <p>
-                              <strong>
-                                {i.state === "open" ? "Open" : "Recovered"}
-                              </strong>
-                              {selected === String(i.id) && " · Selected"}
-                            </p>
-                            <p>
-                              Latest abnormal window: {pct(i.measurement.rate)}{" "}
-                              observed / {pct(i.measurement.expected)} expected
-                              error-log rate
-                            </p>
-                            <p className="hint">
-                              Measurement (UTC): {time(i.measurement.start)} →{" "}
-                              {time(i.measurement.end)}
-                            </p>
-                            <p className="hint">
-                              Incident interval (UTC): {time(i.start)} →{" "}
-                              {time(i.end)}
-                            </p>
-                          </td>
-                          <td>
-                            <a
-                              id={`incident-${i.id}`}
-                              href={viewUrl("incidents", {
-                                incident: String(i.id),
-                                run: data.run ?? null,
-                                evaluation: null,
-                              })}
-                              aria-current={
-                                selected === String(i.id) ? "true" : undefined
+                  <ul className="incident-list" aria-label="Incident queue">
+                    {data.incidents.map((i) => (
+                      <li
+                        key={i.id}
+                        className={
+                          isIncidents && selected === String(i.id)
+                            ? "incident-row selected"
+                            : "incident-row"
+                        }
+                      >
+                        <div>
+                          <h3>{i.service}</h3>
+                          <p>
+                            <strong>
+                              {i.state === "open" ? "Open" : "Recovered"}
+                            </strong>
+                            {isIncidents &&
+                              selected === String(i.id) &&
+                              " · Selected"}
+                          </p>
+                          <p>
+                            Latest abnormal window: {pct(i.measurement.rate)}{" "}
+                            observed / {pct(i.measurement.expected)} expected
+                            error-log rate
+                          </p>
+                          <p className="hint">
+                            Measurement (UTC): {time(i.measurement.start)} →{" "}
+                            {time(i.measurement.end)}
+                          </p>
+                          <p className="hint">
+                            Incident interval (UTC): {time(i.start)} →{" "}
+                            {time(i.end)}
+                          </p>
+                        </div>
+                        <div>
+                          <a
+                            className="action-link"
+                            id={`incident-${i.id}`}
+                            href={viewUrl("incidents", {
+                              incident: String(i.id),
+                              run: data.run ?? null,
+                              evaluation: null,
+                            })}
+                            aria-current={
+                              isIncidents && selected === String(i.id)
+                                ? "true"
+                                : undefined
+                            }
+                            onClick={(event) => {
+                              if (
+                                !event.ctrlKey &&
+                                !event.metaKey &&
+                                !event.shiftKey &&
+                                !event.altKey &&
+                                event.button === 0
+                              ) {
+                                event.preventDefault();
+                                select(String(i.id));
                               }
-                              onClick={(event) => {
-                                if (
-                                  !event.ctrlKey &&
-                                  !event.metaKey &&
-                                  !event.shiftKey &&
-                                  !event.altKey &&
-                                  event.button === 0
-                                ) {
-                                  event.preventDefault();
-                                  select(String(i.id));
-                                }
-                              }}
-                            >
-                              Investigate {i.service} incident #{i.id}
-                            </a>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                            }}
+                          >
+                            Investigate {i.service} incident #{i.id}
+                          </a>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
                 )}
               </section>
-              <section
-                className="incident-pane"
-                hidden={!selected && data.incidents.length === 0}
-                aria-labelledby="incident-heading"
-              >
-                <h2 id="incident-heading" ref={heading} tabIndex={-1}>
-                  {incident
-                    ? `${incident.service} · ${incident.state}`
-                    : selected
-                      ? "Incident unavailable"
-                      : "Select an incident"}
-                </h2>
-                {selected && (
-                  <button id="back-to-incidents" onClick={() => select(null)}>
-                    Back to incidents
-                  </button>
-                )}
-                {selected && !incident && (
-                  <p>
-                    Incident unavailable in this dataset or no longer retained.
-                    <PageLink
-                      href={`?view=overview&dataset=${dataset}`}
-                      focus="queue-heading"
-                    >
-                      Return to current {dataset}
-                    </PageLink>
-                  </p>
-                )}
-                {!selected && (
-                  <p>
-                    Select an incident to compare its recorded measurement with
-                    the baseline.
-                  </p>
-                )}
-                {incident && (
-                  <>
-                    {incident.state === "recovered" && (
-                      <p>
-                        Selected incident recovered. Selection and evidence
-                        remain available.
-                      </p>
-                    )}
-                    <p className="recovery-status">{recoveryStatus}</p>
-                    <dl>
-                      <dt>Incident interval (UTC)</dt>
-                      <dd>
-                        {time(incident.start)} → {time(incident.end)}
-                      </dd>
-                      <dt>Latest abnormal window</dt>
-                      <dd>
-                        {time(incident.measurement.start)} →{" "}
-                        {time(incident.measurement.end)}
-                      </dd>
-                      <dt>Observed error-log rate</dt>
-                      <dd>
-                        {pct(incident.measurement.rate)} ·{" "}
-                        {incident.measurement.errors} ERROR/FATAL /{" "}
-                        {incident.measurement.total} events
-                      </dd>
-                      <dt>Expected baseline</dt>
-                      <dd>
-                        {pct(incident.measurement.expected)} ·{" "}
-                        {incident.measurement.baseline_count} prior normal
-                        windows / {incident.measurement.baseline_total} events
-                      </dd>
-                      <dt>Threshold</dt>
-                      <dd>
-                        {pct(incident.measurement.threshold)} · observed must
-                        exceed threshold
-                      </dd>
-                    </dl>
-                    <p className="workspace-footnote">
-                      Recorded measurements exclude later arrivals. Detection is
-                      a statistical heuristic, not a probability of failure.
+              {isIncidents && (
+                <section
+                  className="incident-pane"
+                  hidden={!selected && data.incidents.length === 0}
+                  aria-labelledby="incident-heading"
+                >
+                  <h2 id="incident-heading" ref={heading} tabIndex={-1}>
+                    {incident
+                      ? `${incident.service} · ${incident.state}`
+                      : selected
+                        ? "Incident unavailable"
+                        : "Select an incident"}
+                  </h2>
+                  {selected && (
+                    <button id="back-to-incidents" onClick={() => select(null)}>
+                      Back to incidents
+                    </button>
+                  )}
+                  {selected && !incident && (
+                    <p>
+                      Incident unavailable in this dataset or no longer
+                      retained.
+                      <PageLink
+                        href={`?view=overview&dataset=${dataset}`}
+                        focus="queue-heading"
+                      >
+                        Return to current {dataset}
+                      </PageLink>
                     </p>
-                    <EvidencePane
-                      key={`${dataset}-${selected}`}
-                      dataset={dataset}
-                      incident={selected!}
-                      run={params.get("run") ?? data.run}
-                      evaluation={params.get("evaluation")}
-                      refreshKey={fetched ?? ""}
-                    />
-                  </>
-                )}
-              </section>
+                  )}
+                  {!selected && (
+                    <p>
+                      Select an incident to compare its recorded measurement
+                      with the baseline.
+                    </p>
+                  )}
+                  {incident && (
+                    <>
+                      {incident.state === "recovered" && (
+                        <p>
+                          Selected incident recovered. Selection and evidence
+                          remain available.
+                        </p>
+                      )}
+                      <p className="recovery-status">{recoveryStatus}</p>
+                      <details className="incident-background">
+                        <summary>Incident timeline and baseline</summary>
+                        <dl>
+                          <dt>Incident interval (UTC)</dt>
+                          <dd>
+                            {time(incident.start)} → {time(incident.end)}
+                          </dd>
+                          <dt>Latest abnormal window</dt>
+                          <dd>
+                            {time(incident.measurement.start)} →{" "}
+                            {time(incident.measurement.end)}
+                          </dd>
+                          <dt>Observed error-log rate</dt>
+                          <dd>
+                            {pct(incident.measurement.rate)} ·{" "}
+                            {incident.measurement.errors} ERROR/FATAL /{" "}
+                            {incident.measurement.total} events
+                          </dd>
+                          <dt>Expected baseline</dt>
+                          <dd>
+                            {pct(incident.measurement.expected)} ·{" "}
+                            {incident.measurement.baseline_count} prior normal
+                            windows / {incident.measurement.baseline_total}{" "}
+                            events
+                          </dd>
+                          <dt>Threshold</dt>
+                          <dd>
+                            {pct(incident.measurement.threshold)} · observed
+                            must exceed threshold
+                          </dd>
+                        </dl>
+                        <p className="workspace-footnote">
+                          Recorded measurements exclude later arrivals.
+                          Detection is a statistical heuristic, not a
+                          probability of failure.
+                        </p>
+                      </details>
+                      <EvidencePane
+                        key={`${dataset}-${selected}`}
+                        dataset={dataset}
+                        incident={selected!}
+                        run={params.get("run") ?? data.run}
+                        evaluation={params.get("evaluation")}
+                        refreshKey={fetched ?? ""}
+                      />
+                    </>
+                  )}
+                </section>
+              )}
             </div>
             {!isIncidents && (
               <section

@@ -124,13 +124,13 @@ it("retains values and selected detail on refresh error and retries", async () =
   window.history.replaceState(
     {},
     "",
-    "/?view=overview&dataset=demo&incident=1",
+    "/?view=incidents&dataset=demo&incident=1",
   );
   const user = userEvent.setup();
   render(<Overview />);
   await screen.findByRole("heading", { name: "checkout · open" });
   fetchMock.mockRejectedValueOnce(new Error("Local server offline"));
-  await user.click(screen.getByRole("button", { name: "Refresh overview" }));
+  await user.click(screen.getByRole("button", { name: "Refresh incidents" }));
   expect(await screen.findByRole("alert")).toHaveTextContent(
     "Showing results fetched at",
   );
@@ -250,7 +250,7 @@ it("shows sparse recovery, delayed live windows and exact chart values accessibl
   window.history.replaceState(
     {},
     "",
-    "/?view=overview&dataset=live&incident=1",
+    "/?view=incidents&dataset=live&incident=1",
   );
   fetchMock.mockImplementation(() =>
     respond({
@@ -275,6 +275,8 @@ it("shows sparse recovery, delayed live windows and exact chart values accessibl
   expect(
     screen.getByText(/Evaluation delayed for window starting/),
   ).toBeInTheDocument();
+  await userEvent.setup().click(screen.getByRole("link", { name: "Overview" }));
+  await screen.findByText("Service trends");
   await userEvent
     .setup()
     .click(screen.getByText("Evaluated windows for checkout"));

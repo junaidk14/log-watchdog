@@ -9,7 +9,7 @@ The MVP implements all seven approved issues: ingestion and browsing, statistica
 - **Inspectable:** exact webhook payloads, attempt outcomes and restart recovery.
 - **Optional AI:** local summary always available; external analysis requires a preview and explicit send.
 
-[Presentation](docs/presentation.md) · [Final validation and limitations](docs/final-validation.md) · [Architecture decisions](docs/adr/decisions.md) · [Prompt audit](prompts.md) · [Tooling](docs/tooling.md)
+[Presentation](docs/presentation.md) · [Final validation and limitations](docs/final-validation.md) · [Rendered UX checks](docs/verification-ux.md) · [Architecture decisions](docs/adr/decisions.md) · [Prompt audit](prompts.md) · [Tooling](docs/tooling.md)
 
 ## Start locally
 
@@ -41,7 +41,7 @@ For frontend development, keep the API running and use `npm --prefix frontend ru
 
 The detector compares ERROR/FATAL events divided by **all logs**, not failed requests. It uses a configurable, sample-size-aware statistical heuristic with smoothed history and a minimum increase guard. [Formula, defaults and limitations](docs/detection.md).
 
-Overview shows recent incidents and current service trends. **Incidents** opens the focused queue/evidence workbench without the service-trend section. Each incident row labels its latest abnormal measurement window separately from the full incident interval; a recovered incident can therefore retain a 40% abnormal measurement while the latest evaluated service window is 0%.
+Overview shows recent incidents and current service trends. **Incidents** opens the focused queue/evidence workbench without the service-trend section. Overview never displays the full evidence pane. The investigation action row leads to evaluated logs, delivery history and optional Gemini; expand **Incident timeline and baseline** for lifecycle detail. Each incident row labels its latest abnormal measurement window separately from the full incident interval; a recovered incident can therefore retain a 40% abnormal measurement while the latest evaluated service window is 0%.
 
 ## Architecture
 
@@ -60,7 +60,7 @@ flowchart LR
 
 Demo, Live and Historical are isolated datasets. Evaluation watermarks preserve recorded evidence despite late logs. SQLite stores incidents, delivery work and attempt history; the single process resumes pending work after restart. Retention protects open investigations and pending notifications. No external webhook destinations, hosting, authentication, chat or agent orchestration are included.
 
-For optional analysis, open an incident → **Optional Gemini analysis → Gemini setup**, enter a key, and choose **Use key for this session**. The password field clears immediately; only configured/not-configured state is shown. The backend keeps the key in memory until **Clear key** or server shutdown. `GEMINI_API_KEY` in the server environment remains the fallback; clearing the session key does not remove that environment value. No backend restart is needed for a UI-supplied key. `GEMINI_MODEL` is configurable. Verified synthetic Demo evidence is the default eligibility boundary; enabling real-log analysis additionally requires appropriate paid-service configuration and `GEMINI_PAID_SERVICE=true`. Preview the bounded redacted packet, then explicitly **Send for analysis**. Redaction cannot guarantee removal of every secret. No live Gemini call has been verified. [Configuration, privacy and error behavior](docs/analysis.md).
+For optional analysis, open an incident → **Gemini analysis → Gemini setup** (use **Get Gemini API key** for Google AI Studio), enter a key, and choose **Use key for this session**. The password field clears immediately; only configured/not-configured state is shown. The backend keeps the key in memory until **Clear key** or server shutdown. `GEMINI_API_KEY` in the server environment remains the fallback; clearing the session key does not remove that environment value. No backend restart is needed for a UI-supplied key. `GEMINI_MODEL` is configurable. Verified synthetic Demo evidence is the default eligibility boundary; enabling real-log analysis additionally requires appropriate paid-service configuration and `GEMINI_PAID_SERVICE=true`. Preview the bounded redacted packet, then explicitly **Send for analysis**. Redaction cannot guarantee removal of every secret. No live Gemini call has been verified. [Configuration, privacy and error behavior](docs/analysis.md).
 
 ## Ingest and browse
 

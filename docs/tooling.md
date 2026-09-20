@@ -292,3 +292,11 @@ Project-specific AFK policy now authorizes #4–#7 and requires implementation/f
 ## Bounded product cleanup
 
 Existing FastAPI/React infrastructure now supports session-only Gemini key entry without a new service, dependency or storage system. Impeccable refinement guidance and domain-modeling decision documentation were used; the code-review skill provides independent Standards/Spec checks. Browser setup was attempted again and recovery returned no browsers, so rendered checks remain unverified. The favicon is an original code-generated ICO using Python’s standard `struct` module, served by FastAPI and copied by Vite. Credential tests use visibly synthetic values only; no user key is recorded in tools, artifacts or telemetry.
+
+## Rendered UX cleanup
+
+- **Playwriter skill and CLI — Used.** Before/after rendered inspection in local headless Chrome, session 3, at 1440px and 390px. The extension did not attach even after the user enabled it; supported headless mode succeeded. Screenshots, accessibility snapshots, layout inspection, keyboard/Back/Forward, synthetic upload and memory-key/preview/clear checks used a temporary database. No external provider request. Only failed request URLs/statuses were collected, never request bodies or credentials.
+- **Impeccable polish guidance — Used.** Scoped refinement of existing page responsibilities, action hierarchy, alignment and copy; preserves the incident-workbench direction.
+- **Chrome DevTools MCP — Not used.** Reserved for diagnosis if the rendered checks expose a problem that needs it.
+
+- **Google AI for Developers documentation — Consulted.** Verified the official AI Studio API-key destination via https://ai.google.dev/gemini-api/docs/api-key. No account access or key creation performed.

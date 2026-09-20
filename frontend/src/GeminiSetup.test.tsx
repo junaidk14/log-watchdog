@@ -24,6 +24,9 @@ it("sends the typed key only in the backend request, clears the field and suppor
   render(<GeminiSetup disabled={false} onChanged={changed} />);
   await user.click(screen.getByRole("button", { name: "Gemini setup" }));
   expect(await screen.findByText("Not configured")).toBeInTheDocument();
+  expect(
+    screen.getByRole("link", { name: "Get Gemini API key" }),
+  ).toHaveAttribute("href", "https://aistudio.google.com/apikey");
   const input = screen.getByLabelText("Gemini API key");
   expect(input).toHaveAttribute("type", "password");
   await user.type(input, "synthetic-session-key");

@@ -115,7 +115,9 @@ export function AnalysisPane({
 
   return (
     <section className="analysis-pane" aria-labelledby="analysis-heading">
-      <h3 id="analysis-heading">Optional Gemini analysis</h3>
+      <h3 id="analysis-heading" tabIndex={-1}>
+        Optional Gemini analysis
+      </h3>
       <p>
         Preview a small evidence sample before choosing whether to send it. The
         local summary above works without Gemini credentials.

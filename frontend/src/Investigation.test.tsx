@@ -858,3 +858,40 @@ it("distinguishes Incidents from Overview, scopes measurements, and restores des
   await act(async () => window.history.back());
   await waitFor(() => expect(document.title).toBe("Incidents · Log Watchdog"));
 });
+
+it("keeps Overview a summary even with a retained incident URL and exposes investigation actions after selection", async () => {
+  window.history.replaceState(
+    {},
+    "",
+    "/?view=overview&dataset=demo&incident=1",
+  );
+  const user = userEvent.setup();
+  render(<Router />);
+  const investigate = await screen.findByRole("link", {
+    name: "Investigate checkout incident #1",
+  });
+  expect(
+    screen.queryByRole("heading", { name: "checkout · open" }),
+  ).not.toBeInTheDocument();
+  expect(investigate).not.toHaveAttribute("aria-current");
+  expect(
+    screen.queryByRole("link", { name: "View evaluated logs" }),
+  ).not.toBeInTheDocument();
+  await user.click(investigate);
+  await screen.findByRole("group", { name: "Investigation actions" });
+  expect(window.location.search).toContain("view=incidents");
+  expect(screen.queryByText("Service trends")).not.toBeInTheDocument();
+  const scroll = vi.fn();
+  screen.getByRole("heading", {
+    name: "Optional Gemini analysis",
+  }).scrollIntoView = scroll;
+  await user.click(screen.getByRole("button", { name: "Gemini analysis" }));
+  expect(
+    screen.getByRole("heading", { name: "Optional Gemini analysis" }),
+  ).toHaveFocus();
+  expect(
+    fetchMock.mock.calls.some(([url]) =>
+      String(url).includes("/analysis/send"),
+    ),
+  ).toBe(false);
+});

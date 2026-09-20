@@ -195,7 +195,6 @@ export function Deliveries() {
           </button>
           {fetched && <p>Last successful refresh: {fetched}</p>}
         </section>
-        {dataset === "demo" && <ReceiverControl />}
         <p role="status" className="sr-only">
           {announcement}
         </p>
@@ -249,6 +248,7 @@ export function Deliveries() {
             />
           ))}
         </section>
+        {dataset === "demo" && <ReceiverControl />}
       </main>
     </div>
   );
@@ -284,7 +284,7 @@ function ReceiverControl() {
   return (
     <section
       id="receiver-controls"
-      className="dataset-context"
+      className="receiver-settings"
       aria-labelledby="receiver-heading"
     >
       <h2 id="receiver-heading">Demo receiver behavior</h2>

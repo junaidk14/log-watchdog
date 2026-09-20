@@ -81,21 +81,30 @@ export function GeminiSetup({
       >
         Gemini setup
       </button>
+      <p className="key-status" aria-live="polite">
+        <strong>
+          {configured === null
+            ? "Open setup to check key status."
+            : configured
+              ? "Configured"
+              : "Not configured"}
+        </strong>
+        {" · "}
+        <a
+          href="https://aistudio.google.com/apikey"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Get Gemini API key
+        </a>
+      </p>
       {open && (
         <div id="gemini-settings">
-          <p>
-            <strong>
-              {configured === null
-                ? "Configuration not checked"
-                : configured
-                  ? "Configured"
-                  : "Not configured"}
-            </strong>
-          </p>
           <p className="hint">
-            Keys entered here stay only in server memory until cleared or the
-            server stops. The server environment is the fallback. Saving a key
-            does not send evidence or verify provider access.
+            Your key stays in server memory for this local session, until
+            cleared or the server stops. Clear key restores any server
+            environment key. Saving does not send evidence or verify provider
+            access.
           </p>
           <form
             onSubmit={(event) => {

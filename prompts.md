@@ -1210,3 +1210,122 @@ The user stopped their app; the coordinator resumed full backend and real-HTTP v
 ### Cleanup verification and review fixes
 
 The initial independent Standards/Spec reviews found two concrete edge cases: preview construction surviving a key change, and direct Investigate navigation leaving the previous title. Both were fixed within the bounded cleanup with regression coverage. Final verification passed 132 backend tests, 86 frontend tests, all configured checks and actual HTTP/runtime validation including synthetic key setup/clear and favicon delivery. User data was untouched; no real key or provider request was used. Rendered checks remain unverified because the supported browser connection is unavailable.
+
+## Rendered UX cleanup request — 2026-09-20
+
+```text
+I manually reviewed the rendered app and want one focused UX cleanup pass.
+
+Please use Playwriter to inspect the actual UI before and after changes. Use Chrome DevTools MCP only when diagnosis is needed.
+
+The main problem is that the app is functional but not intuitive enough. I often have to search for the next action, the hierarchy feels weak, and the layout feels clunky.
+
+Please improve these four areas:
+
+1. Flow and page responsibilities
+
+Keep the product flow clear:
+
+Overview
+-> notice an incident
+-> Investigate
+-> Incidents workspace
+-> inspect evidence/logs
+-> check delivery
+-> optionally use Gemini
+
+Overview should remain a summary page.
+
+Incidents should be the full investigation workspace.
+
+Clicking Investigate from Overview should take the user to Incidents with that incident selected.
+
+Do not duplicate the full investigation experience on Overview.
+
+2. Information hierarchy and discoverability
+
+Each page should make it obvious:
+- where I am
+- what matters most
+- what I should do next
+
+Important actions should be easy to find without scanning the whole page.
+
+Please specifically check the discoverability of:
+- Investigate incident
+- Historical JSON import
+- delivery history
+- Gemini setup and analysis
+- Demo advance/reset actions
+
+Use progressive disclosure where appropriate so secondary details do not compete with the main task.
+
+3. Alignment, spacing, and polish
+
+Make the whole application feel visually consistent and smoother.
+
+Please improve:
+- shared content grid across pages
+- alignment of headings, panels, inputs, selects, buttons, and text boxes
+- consistent control heights and widths
+- consistent label/control alignment
+- consistent panel padding and margins
+- cleaner queue/detail alignment
+- spacing between sections
+- reduction of unnecessary nested borders/boxes
+- consistency between the denser Logs page and the rest of the app
+
+The UI should feel clean, deliberate, and polished, not decorative.
+
+4. Copy and Gemini UX
+
+Review visible UI text for:
+- consistent sentence case
+- consistent terminology
+- concise action-oriented button labels
+- clearer status wording
+- removal of redundant text
+
+For Gemini:
+- keep the memory-only key setup
+- add a small “Get Gemini API key” link to the official Google/AI Studio page
+- make configured/not configured state clear
+- explain that the key stays in server memory for this local session
+- keep Clear key
+- keep Preview -> explicit Send for analysis
+- do not make a real Gemini call unless I approve it
+
+Before editing:
+- inspect the current rendered app
+- identify which issues are genuine
+- avoid changing things that already work well
+
+After editing:
+- use Playwriter again on desktop and narrow widths
+- verify Overview -> Investigate -> Incidents
+- verify Logs/Historical, Deliveries, and Gemini setup
+- verify keyboard/focus and Back/Forward behavior
+- check console/network errors
+- run relevant frontend/backend tests and build/type/lint/static checks
+
+Report:
+- what changed
+- any remaining P0/P1/P2/P3 UX issues
+
+If there are no P0/P1 issues, say so explicitly.
+```
+
+Playwriter skill and full CLI documentation read. Initial sandbox relay startup failed; an authorized retry outside the sandbox reached the relay but is waiting for the Chrome extension. Requested that the user enable it on the app tab. UI edits remain pending the required rendered inspection. No Gemini call made.
+
+
+### Playwriter enabled — 2026-09-20
+
+```text
+> Playwriter’s relay is running, but the Chrome extension hasn’t connected. Please open the local app in Chrome and click the Playwriter extension icon on that tab, then let me know it’s enabled. This is needed for the rendered inspection you requested before edits.
+
+enabled
+```
+
+The extension still did not attach on retry. Playwriter local headless Chrome succeeded, so the requested before/after rendered inspection proceeded with that supported mode. The previously running app stopped before navigation; the coordinator launched its own isolated temporary database server for the checks and stopped only that server before backend HTTP tests. Rendered checks covered Overview/Investigate, evaluated Logs and Back/Forward focus, delivery payload/attempts, Historical upload and browse interval, Gemini synthetic-key setup/local preview/clear (never Send), and reset confirmation/cancel. No user credentials or user database were accessed. Findings and verification are recorded in docs/verification-ux.md.
+
+Final verification: 87 frontend tests and 132 backend tests passed, alongside build/type/lint/format/static contrast and the full temporary-database HTTP runtime validation. Playwriter after-checks found no app console/network errors. No P0/P1/P2 UX issue was found in the inspected paths; verbose full UTC timestamps on narrow screens remain a P3 density limitation. A separately running server occupied port 8000 after verification; it was left untouched. No GitHub publication or external submission performed for this pass.
