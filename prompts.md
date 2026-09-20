@@ -1641,3 +1641,84 @@ Please make the smallest change needed and add/update regression coverage if app
 ```
 
 Reproduced Reset scrolling from 330 to 0 through implicit focus scrolling. Reset completion/cancel now focus without scrolling. Incident selection focuses without implicit scrolling and reveals only the nearest off-screen destination, recording its final scroll immediately for rapid Back/Forward. Advance did not reproduce a jump and remains unchanged. Updated regression coverage, passed frontend checks, and verified targeted desktop/narrow behavior with Playwriter against an isolated fixture. No backend changes.
+
+## 2026-09-20 — Presentation handoff package
+
+```text
+I’m preparing the final AI-generated presentation for this project.
+
+Please create a presentation handoff package without changing application behavior.
+
+1. Capture clean screenshots with Playwriter
+
+Save them under:
+
+docs/screenshots/
+
+Use a consistent desktop viewport and safe Demo/synthetic data only.
+
+Please capture:
+
+- overview.png
+  Use the polished dark-mode Overview with:
+  - Try the Demo guidance visible
+  - a meaningful recent/recovered incident
+  - service trends visible
+
+- incidents.png
+  Incidents workspace with an incident selected and the key investigation context visible.
+
+- evaluated-logs.png
+  Logs opened from “View evaluated logs”, with the incident/evaluated-window context and filtered evidence visible.
+
+- deliveries.png
+  Delivery history showing a meaningful notification state, preferably successful delivery with attempts or retry behavior visible.
+
+- historical.png
+  Historical Logs view with the JSON import entry point and imported historical data/trends visible.
+
+- gemini-setup.png
+  Gemini setup/configuration state, without exposing any real API key.
+
+Do not capture Gemini analysis output. I already have a separate screenshot for the Gemini response that will be used in the presentation.
+
+Please avoid browser chrome where possible, avoid secrets/private information, and make sure each screenshot shows a meaningful state rather than an empty page.
+
+2. Create a short presentation handoff file:
+
+docs/presentation-handoff.md
+
+Keep it concise and include:
+
+- one-sentence project summary
+- problem being solved
+- core user journey
+- architecture summary
+- detection approach in plain language
+- Demo scenario in 4–5 steps
+- key product capabilities
+- agentic development workflow
+- current test/validation summary
+- known limitations
+- Tagle result if already documented
+- confirmation that no cloud resources or hosted environments were used
+- important repo links:
+  README
+  docs/README.md
+  MVP spec
+  ADR decisions
+  tooling
+  prompts.md
+  final validation
+  presentation source
+
+Use the latest implementation and current documentation as the source of truth. Do not invent unverified claims.
+
+At the end, report:
+- screenshot file paths
+- which screenshots were skipped and why
+- path to presentation-handoff.md
+- anything that still needs manual confirmation before the final deck
+```
+
+Captured all six requested images with Playwriter at a consistent desktop viewport using a separate synthetic database copy, no background delivery or provider call, and no real key. Historical uses 60 newly generated synthetic records imported through the UI. Handoff documents capture provenance, test scope, no cloud application infrastructure, and absence of a documented Tagle result. User app remained untouched; no application source changed or external submission occurred.

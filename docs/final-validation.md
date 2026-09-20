@@ -10,7 +10,7 @@ All seven MVP issues completed the implementation → independent review → fix
 
 | Scope | Recorded result | Evidence |
 | --- | --- | --- |
-| Current theme/frontend | 97 tests in 8 files; build/TypeScript, ESLint, Prettier passed | `/tmp/watchdog-theme-tests.log`; [UX record](verification-ux.md) |
+| Current frontend/scroll fix | 97 tests in 8 files; build/TypeScript, ESLint, Prettier passed | `/tmp/watchdog-scroll-tests.log`; [UX record](verification-ux.md) |
 | Light/dark palette | 23 text/control/focus pairs per theme pass their 4.5:1 text or 3:1 control/focus thresholds | `scripts/check_contrast.py`; source ratios, not WCAG certification |
 | Latest backend changes | 78 API/analysis tests passed after key-shape and service-choice fixes; Ruff lint/format, mypy passed | `/tmp/watchdog-readability-backend.log`; [UX record](verification-ux.md) |
 | Latest full backend/runtime pass | 132 backend tests and real-HTTP runtime validator passed at rendered UX cleanup, before the later key/filter additions | `/tmp/watchdog-rendered-ux-backend.log`, `/tmp/watchdog-rendered-ux-runtime.log` |
@@ -53,3 +53,7 @@ Generic AFK runner files were preserved. Logs remain under `/private/tmp/log-wat
 - Exact evidence timestamps remain verbose at narrow widths. No P0/P1/P2 was found in the bounded UI checks; this is not a guarantee that no defects exist.
 
 Run current checks using [README verification commands](../README.md#verify). Full backend HTTP tests/runtime require port 8000 exclusively; do not silently stop a separately launched user app.
+
+## Presentation assets
+
+The [presentation handoff](presentation-handoff.md) records six Playwriter captures at a 1600 × 1200 desktop viewport, using an isolated copy of synthetic Demo verification data plus a fresh synthetic Historical upload. Delivery outcomes shown are persisted results from the earlier browser run, not a new delivery test. No real key, Gemini output or provider call was used. Application source was unchanged in this asset-only pass.

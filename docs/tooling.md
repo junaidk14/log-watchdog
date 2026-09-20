@@ -32,7 +32,7 @@ The installed stack versions were recorded during implementation (Python 3.14.5,
 | Ruff / mypy / TypeScript / ESLint / Prettier | Used | Lint, types and formatting |
 | `scripts/check_contrast.py` | Used | Text/control/focus ratios for both palettes; not a rendered accessibility audit |
 | `scripts/validate_runtime.py` | Used | Temporary-database real loopback HTTP, restart, lifecycle, 100k-event/20-events-per-second exercises |
-| Playwriter CLI / local headless Chrome | Used | Rendered desktop/narrow inspection, keyboard/Back/Forward, Demo scroll regression reproduction, targeted motion and theme checks; extension mode failed to attach |
+| Playwriter CLI / local headless Chrome | Used | Rendered desktop/narrow inspection, keyboard/Back/Forward, Demo scroll regression reproduction, targeted motion and theme checks, and synthetic presentation screenshots under `docs/screenshots/`; extension mode failed to attach |
 | In-app browser runtime | Used for discovery | Initial discovery/recovery found no browser; this historical limitation was later overcome through Playwriter headless mode |
 | Chrome DevTools MCP | Not used | Reserved for diagnosis when needed |
 | Codex execution/patch, clock, question and collaboration tools | Used | Local edits, timing, clarification and explicitly scoped independent agents |
