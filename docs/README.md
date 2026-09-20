@@ -1,6 +1,6 @@
 # Documentation
 
-Start with the [project README](../README.md) to run the app and follow the Demo. This index separates current product references from historical implementation evidence; files keep their existing locations.
+Start with the [project README](../README.md) to run the app and follow the Demo. Use the references below for the current product, validation and handoff. Dated verification reports live together in `verification/`; original ticket drafts stay in `ticket-drafts/`.
 
 ## Product and implementation
 
@@ -22,7 +22,7 @@ Historical JSON ingestion, schema, API examples and exact upload limits are in t
 ## Validation and handoff
 
 - [Current validation summary](final-validation.md): latest check scope, earlier full runtime evidence and remaining limitations.
-- [Rendered UX checks](verification-ux.md): dated browser, polish, walkthrough, motion and theme passes.
+- [Rendered UX checks](verification/ux.md): dated browser, polish, walkthrough, motion and theme passes.
 - [Launch video](../brag-output/README.md): 18-second local MP4, poster, editable composition and share caption.
 - [Presentation handoff](presentation-handoff.md): concise project facts, screenshot manifest and final-deck confirmation items.
 - [Presentation](presentation.md): AI-generated Markdown deck; local artifact, not externally submitted.
@@ -33,8 +33,8 @@ Historical JSON ingestion, schema, API examples and exact upload limits are in t
 
 These are snapshots of their original work, not current test counts or pending-task lists:
 
-- Issue verification: [1](verification-issue-1.md), [2](verification-issue-2.md), [3](verification-issue-3.md), [4](verification-issue-4.md), [5](verification-issue-5.md), [6](verification-issue-6.md), [7](verification-issue-7.md).
-- [Bounded cleanup verification](verification-cleanup.md).
+- Issue verification: [1](verification/issue-1.md), [2](verification/issue-2.md), [3](verification/issue-3.md), [4](verification/issue-4.md), [5](verification/issue-5.md), [6](verification/issue-6.md), [7](verification/issue-7.md).
+- [Bounded cleanup verification](verification/cleanup.md).
 - [Original ticket drafts and GitHub issue index](ticket-drafts/README.md).
 
 ## Agent workflow

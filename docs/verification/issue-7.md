@@ -22,7 +22,7 @@ Initial formatting/lint attempts exposed long Python literals and an incorrect P
 
 ## External provider boundary
 
-Gemini transport uses controlled responses in tests. The local runtime validator uses a synthetic placeholder key and never calls Send; it overrides inherited Gemini environment settings. No real Gemini call, account billing/quota validation or real-log transmission occurred. The [official model catalog](https://ai.google.dev/gemini-api/docs/models) listed `gemini-3.5-flash-lite` on 2026-09-20 UTC; live access remains unverified. See [analysis behavior and configuration](analysis.md).
+Gemini transport uses controlled responses in tests. The local runtime validator uses a synthetic placeholder key and never calls Send; it overrides inherited Gemini environment settings. No real Gemini call, account billing/quota validation or real-log transmission occurred. The [official model catalog](https://ai.google.dev/gemini-api/docs/models) listed `gemini-3.5-flash-lite` on 2026-09-20 UTC; live access remains unverified. See [analysis behavior and configuration](../analysis.md).
 
 ## Manual UI verification pending
 

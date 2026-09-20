@@ -1,6 +1,6 @@
 # Tooling inventory
 
-Current consolidated inventory. **Used** means exercised in this project; **Configured** means available/configured without a completed use. Historical per-turn details remain in [prompts.md](../prompts.md), issue verification reports and the [UX record](verification-ux.md). Availability alone is not use.
+Current consolidated inventory. **Used** means exercised in this project; **Configured** means available/configured without a completed use. Historical per-turn details remain in [prompts.md](../prompts.md), issue verification reports and the [UX record](verification/ux.md). Availability alone is not use.
 
 ## Application
 
@@ -39,7 +39,8 @@ The installed stack versions were recorded during implementation (Python 3.14.5,
 | Web tool / official provider docs | Used | Architecture, statistical and provider-contract research; no account/key provisioning |
 | Hyperframes 0.8.53 / GSAP 3.14.2 / FFmpeg 8.1.2 | Used | Local 18-second launch-video composition, browser checks, encoding and poster frame; no hosted rendering or publication |
 | NumPy / uv isolated tooling cache | Used | Official Hyperframes audio-band extraction for a restrained music-responsive accent; app requirements unchanged |
-| Markdown / Mermaid | Used | Product/architecture docs and local AI-generated presentation; no slide publication |
+| Markdown / Mermaid | Used | Product/architecture docs and local AI-generated presentation; documentation index and grouped verification reports; no slide publication |
+| Python standard library / ripgrep / Git | Used | Documentation path updates, relative-link and heading-anchor checks, preserved audit-history check, commit and push |
 | macOS `open` / Impeccable CLI | Used | Initial local design choices and context/critique/audit/refinement workflows |
 
 No cloud compute, hosted database, cloud storage or deployment resources were provisioned or used for the MVP. GitHub and AI development services are distinct from application infrastructure. The optional external Gemini integration is not described as cloud-free execution if a user elects to send evidence.

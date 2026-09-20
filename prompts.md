@@ -1745,3 +1745,21 @@ install numpy if required
 Used NumPy through uv tooling to run the official audio extraction helper. Only a thin accent rule responds to extracted music data; UI/text remain steady. The uv command unexpectedly synchronized the repository's local virtual environment; immediately restored requirements-dev.lock, removed its generated uv.lock, and verified all 27 installed project packages are compatible. NumPy stays in the separate uv tooling cache. No dependency manifest changed.
 
 Launch-video outcome: full Hyperframes check passed (zero errors, 90/90 contrast checks), final 18-second 1080p/30fps H.264/AAC render completed locally. Selected a settled 1.4-second poster and baked frame zero; preserved duration, 540 frames and original encoded audio. Inspected rendered evidence/closing frames, saved share copy and verification notes. No publication. Bundled music redistribution terms remain to be confirmed before public posting.
+
+## 2026-09-20 — Documentation organization
+
+```text
+Please reorganize the Markdown documentation so the repo is easier to navigate.
+
+Prefer a clean docs/ structure and a simple docs/README.md index. Move only files where it clearly helps, update all relative links, and avoid unnecessary churn.
+
+Keep prompts.md at the repo root. Do not change application code.
+
+Afterward, report what moved and confirm links still work.
+
+Finally commit and push.
+```
+
+Grouped the seven issue verification reports plus cleanup and UX reports under docs/verification/. Updated current documentation links, relocated-report links, and the index. Kept root entry points, presentation assets and runner documentation in place. Prior prompt history, including historical path references, remains unchanged. Validation checks current documentation links and heading anchors; no application code changed. Commit and push requested for the current cleanup-main-flows branch.
+
+Validation: all 131 checked relative links and heading anchors in current Markdown documentation resolve; historical prompts excluded from link rewriting/checking to preserve their exact text. Prior audit content is byte-for-byte unchanged. Git whitespace check passed. Application tests were not rerun for this documentation-only change.

@@ -35,10 +35,10 @@ There is one active analysis request at a time, outside SQLite transactions, to 
 
 The default model is listed in the [official model catalog](https://ai.google.dev/gemini-api/docs/models), checked 2026-09-20 UTC. The adapter follows [generateContent REST documentation](https://ai.google.dev/api/generate-content). The privacy gate follows the distinction described in [Gemini API terms](https://ai.google.dev/gemini-api/terms). Catalog availability does not prove a particular account's access, billing status or quota.
 
-Controlled-response tests verify request content, headers, endpoint, bounds, errors and reference validation. **No live Gemini call was made**; real account access and provider output quality remain unverified. No real user logs were transmitted for testing. See [issue #7 verification](verification-issue-7.md) for the original report and [current validation](final-validation.md) for later rendered setup/preview checks and their limits.
+Controlled-response tests verify request content, headers, endpoint, bounds, errors and reference validation. **No live Gemini call was made**; real account access and provider output quality remain unverified. No real user logs were transmitted for testing. See [issue #7 verification](verification/issue-7.md) for the original report and [current validation](final-validation.md) for later rendered setup/preview checks and their limits.
 
 
-Successful save/clear invalidates prior preview/result/errors. Successful status refresh clears stale setup/analysis errors; preview/send stays disabled while setup is pending. Key-shape and stale-error regressions are recorded in [UX verification](verification-ux.md).
+Successful save/clear invalidates prior preview/result/errors. Successful status refresh clears stale setup/analysis errors; preview/send stays disabled while setup is pending. Key-shape and stale-error regressions are recorded in [UX verification](verification/ux.md).
 
 ## Older Demo evidence and configured keys
 

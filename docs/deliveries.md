@@ -30,4 +30,4 @@ Seven-day retention and Demo-only reset are implemented. Retention preserves act
 
 The **Try the Demo** guide on Overview links to receiver settings. Deliveries repeats the reset → choose behavior → advance sequence; it does not run those actions automatically. Desktop places settings beside history; narrow screens place them below.
 
-See [issue #4 verification](verification-issue-4.md) for historical HTTP evidence and [current validation](final-validation.md) for later browser coverage and limits.
+See [issue #4 verification](verification/issue-4.md) for historical HTTP evidence and [current validation](final-validation.md) for later browser coverage and limits.

@@ -110,7 +110,7 @@ A precise, restrained operations workspace. Compact ruled rows, clear labels, an
 - Compact ruled rows with explicit severity labels.
 - Inline evidence, UTC labels, and visible dataset context.
 
-This document describes the completed MVP and final code-first refinement. Sources are `frontend/src/ThemeToggle.tsx`, `frontend/src/styles.css`, `Overview.tsx`, `EvidencePane.tsx`, `App.tsx`, `Deliveries.tsx`, `Historical.tsx`, and `AnalysisPane.tsx`. No raster assets, external fonts, or chart library are used. The focused UX pass was inspected before and after in Playwriter local headless Chrome at 1440px and 390px, including keyboard and Back/Forward checks. Extension-mode Chrome did not attach; this is not a physical-device or cross-browser claim. See `docs/verification-ux.md` for current evidence.
+This document describes the completed MVP and final code-first refinement. Sources are `frontend/src/ThemeToggle.tsx`, `frontend/src/styles.css`, `Overview.tsx`, `EvidencePane.tsx`, `App.tsx`, `Deliveries.tsx`, `Historical.tsx`, and `AnalysisPane.tsx`. No raster assets, external fonts, or chart library are used. The focused UX pass was inspected before and after in Playwriter local headless Chrome at 1440px and 390px, including keyboard and Back/Forward checks. Extension-mode Chrome did not attach; this is not a physical-device or cross-browser claim. See `docs/verification/ux.md` for current evidence.
 
 ## Colors
 

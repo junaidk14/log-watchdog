@@ -10,9 +10,9 @@ All seven MVP issues completed the implementation → independent review → fix
 
 | Scope | Recorded result | Evidence |
 | --- | --- | --- |
-| Current frontend/scroll fix | 97 tests in 8 files; build/TypeScript, ESLint, Prettier passed | `/tmp/watchdog-scroll-tests.log`; [UX record](verification-ux.md) |
+| Current frontend/scroll fix | 97 tests in 8 files; build/TypeScript, ESLint, Prettier passed | `/tmp/watchdog-scroll-tests.log`; [UX record](verification/ux.md) |
 | Light/dark palette | 23 text/control/focus pairs per theme pass their 4.5:1 text or 3:1 control/focus thresholds | `scripts/check_contrast.py`; source ratios, not WCAG certification |
-| Latest backend changes | 78 API/analysis tests passed after key-shape and service-choice fixes; Ruff lint/format, mypy passed | `/tmp/watchdog-readability-backend.log`; [UX record](verification-ux.md) |
+| Latest backend changes | 78 API/analysis tests passed after key-shape and service-choice fixes; Ruff lint/format, mypy passed | `/tmp/watchdog-readability-backend.log`; [UX record](verification/ux.md) |
 | Latest full backend/runtime pass | 132 backend tests and real-HTTP runtime validator passed at rendered UX cleanup, before the later key/filter additions | `/tmp/watchdog-rendered-ux-backend.log`, `/tmp/watchdog-rendered-ux-runtime.log` |
 | Original handoff | 121 backend / 81 frontend tests plus full runtime passed before PR #15 | Historical logs under `/private/tmp/log-watchdog-final-checks/` |
 
@@ -22,7 +22,7 @@ Current theme work changes frontend presentation and the contrast script only. N
 
 Playwriter local headless Chrome became available after initial in-app browser discovery failed. Earlier “browser unavailable” reports remain accurate for those original runs, but are no longer the current validation status.
 
-Recorded rendered checks cover desktop/narrow Overview, selected Incidents, evaluated Logs, Historical upload, Deliveries and Gemini setup; keyboard selection and expansion; Back/Forward restoration; Demo controls; synthetic key save/preview/clear; and a prior actual local HTTP 200 delivery. Later targeted passes covered old-Demo privacy guidance, fresh-synthetic preview, compact copy/layout, the four-step Demo walkthrough and reduced-motion micro-interactions. Theme validation adds system preference, persistence, accessible switching and both palettes on main pages at 1440px/390px. Details and scope boundaries are in [the dated UX record](verification-ux.md).
+Recorded rendered checks cover desktop/narrow Overview, selected Incidents, evaluated Logs, Historical upload, Deliveries and Gemini setup; keyboard selection and expansion; Back/Forward restoration; Demo controls; synthetic key save/preview/clear; and a prior actual local HTTP 200 delivery. Later targeted passes covered old-Demo privacy guidance, fresh-synthetic preview, compact copy/layout, the four-step Demo walkthrough and reduced-motion micro-interactions. Theme validation adds system preference, persistence, accessible switching and both palettes on main pages at 1440px/390px. Details and scope boundaries are in [the dated UX record](verification/ux.md).
 
 Later port-8001 fixtures disable delivery workers so they cannot post into the user's port-8000 app. Their pending notifications establish UI creation/navigation, not a new real-HTTP retry test. Gemini response animation was verified with a browser-intercepted mock, never a live provider request.
 
@@ -40,7 +40,7 @@ Original handoff measurements on Python 3.14.5/macOS arm64: 100,000 events inges
 
 ## Review history
 
-PRs #8–#14 received independent reviews and fixes for timestamp overflow, recovery eligibility, navigation/focus, upload validation, stale Demo runs and malformed provider responses. The repo-wide Standards and Spec reviews at `a74989466e8fd2b4e50982fc59a794bd6b834b93` (baseline `b63023517099daacb05f1e606a3d3ccdb287ffbc`) both passed with zero findings before PR #15. The bounded cleanup's separate review findings and fixes are in [its report](verification-cleanup.md). Those reviews do not automatically cover later user-directed refinements.
+PRs #8–#14 received independent reviews and fixes for timestamp overflow, recovery eligibility, navigation/focus, upload validation, stale Demo runs and malformed provider responses. The repo-wide Standards and Spec reviews at `a74989466e8fd2b4e50982fc59a794bd6b834b93` (baseline `b63023517099daacb05f1e606a3d3ccdb287ffbc`) both passed with zero findings before PR #15. The bounded cleanup's separate review findings and fixes are in [its report](verification/cleanup.md). Those reviews do not automatically cover later user-directed refinements.
 
 Generic AFK runner files were preserved. Logs remain under `/private/tmp/log-watchdog-afk-logs/`; [ticket index](ticket-drafts/README.md) links the original scope.
 

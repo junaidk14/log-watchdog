@@ -9,7 +9,7 @@ The MVP implements all seven approved issues: ingestion and browsing, statistica
 - **Inspectable:** exact webhook payloads, attempt outcomes and restart recovery.
 - **Optional AI:** local summary always available; external analysis requires a preview and explicit send.
 
-[Documentation index](docs/README.md) · [Presentation](docs/presentation.md) · [Final validation and limitations](docs/final-validation.md) · [Rendered UX checks](docs/verification-ux.md) · [Architecture decisions](docs/adr/decisions.md) · [Prompt audit](prompts.md) · [Tooling](docs/tooling.md)
+[Documentation index](docs/README.md) · [Presentation](docs/presentation.md) · [Final validation and limitations](docs/final-validation.md) · [Rendered UX checks](docs/verification/ux.md) · [Architecture decisions](docs/adr/decisions.md) · [Prompt audit](prompts.md) · [Tooling](docs/tooling.md)
 
 ## Start locally
 
@@ -113,7 +113,7 @@ npm --prefix frontend test
 
 Backend tests cover schema failures, complete-batch rollback, ID generation/deduplication/conflicts, normalization, literal filters, paging, dataset isolation, seed idempotence, and SQLite restart. Frontend tests cover query/Back restoration (including response timing), same-query actions, dataset races, expansion/focus, loading/empty/error/retry, literal rendering of untrusted messages, and available axe DOM accessibility rules. jsdom cannot establish rendered layout, contrast, or real-browser keyboard behavior. ESLint explicitly permits focusable named `region` elements to make the overflowing table keyboard-scrollable; other accessibility rules remain active.
 
-See [issue #1 evidence](docs/verification-issue-1.md), [issue #2 evidence](docs/verification-issue-2.md), [issue #3 evidence](docs/verification-issue-3.md), [issue #4 evidence](docs/verification-issue-4.md), [issue #5 evidence](docs/verification-issue-5.md), [issue #6 evidence](docs/verification-issue-6.md), and [issue #7 evidence](docs/verification-issue-7.md) for historical issue evidence. [Current validation](docs/final-validation.md) records later browser coverage and remaining limitations.
+See [issue #1 evidence](docs/verification/issue-1.md), [issue #2 evidence](docs/verification/issue-2.md), [issue #3 evidence](docs/verification/issue-3.md), [issue #4 evidence](docs/verification/issue-4.md), [issue #5 evidence](docs/verification/issue-5.md), [issue #6 evidence](docs/verification/issue-6.md), and [issue #7 evidence](docs/verification/issue-7.md) for historical issue evidence. [Current validation](docs/final-validation.md) records later browser coverage and remaining limitations.
 
 ## Investigate evaluated evidence
 
@@ -137,7 +137,7 @@ Imports persist across restart and never train Demo/Live baselines or create inc
 - `POST /api/historical/upload`: raw UTF-8 JSON array (not multipart), with required `Content-Type: application/json` (optional charset parameter). Unsupported or missing media types return 415 before ingestion. Bounded during request streaming; returns inserted/duplicate counts, event IDs, Historical dataset and the file's UTC start/end. Optional UTF-8 BOM accepted.
 - `GET /api/historical/trends`: optional exact `service`, inclusive timezone-aware `start`/`end`; returns aggregate volume and error-log rate buckets. No detector baseline or live-incident semantics.
 
-See [the synthetic upload walkthrough and verification](docs/verification-issue-5.md). Run backend tests and runtime validation sequentially: both require loopback port 8000.
+See [the synthetic upload walkthrough and verification](docs/verification/issue-5.md). Run backend tests and runtime validation sequentially: both require loopback port 8000.
 
 ## Reset Demo
 
