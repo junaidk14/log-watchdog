@@ -201,3 +201,84 @@ it("invalidates the visible preview after a session key change without sending e
     fetchMock.mock.calls.some(([url]) => url === "/api/analysis/send"),
   ).toBe(false);
 });
+
+it("clears stale setup and preview errors after successful status refresh", async () => {
+  fetchMock
+    .mockResolvedValueOnce(reply({ configured: false }))
+    .mockResolvedValueOnce({ ...reply({}, false), status: 422 })
+    .mockResolvedValueOnce(
+      reply({ detail: "Gemini is not configured." }, false),
+    )
+    .mockResolvedValueOnce(reply({ configured: true }))
+    .mockResolvedValueOnce(reply(preview));
+  const user = userEvent.setup();
+  mount();
+  await user.click(screen.getByRole("button", { name: "Gemini setup" }));
+  await screen.findByText("Not configured");
+  await user.type(screen.getByLabelText("Gemini API key"), "synthetic");
+  await user.click(
+    screen.getByRole("button", { name: "Use key for this session" }),
+  );
+  await screen.findByRole("alert");
+  await user.click(
+    screen.getByRole("button", { name: "Preview evidence for analysis" }),
+  );
+  await screen.findByText("Gemini is not configured.");
+  await user.click(screen.getByRole("button", { name: "Refresh key status" }));
+  await screen.findByText("Configured");
+  expect(screen.queryAllByRole("alert")).toHaveLength(0);
+  await user.click(
+    screen.getByRole("button", { name: "Preview evidence for analysis" }),
+  );
+  expect(await screen.findByText(preview.packet)).toBeInTheDocument();
+});
+
+it("waits for key storage before enabling preview and clears previous errors on save", async () => {
+  let finish!: (value: unknown) => void;
+  fetchMock
+    .mockResolvedValueOnce(
+      reply({ detail: "Gemini is not configured." }, false),
+    )
+    .mockResolvedValueOnce(reply({ configured: false }))
+    .mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          finish = resolve;
+        }),
+    )
+    .mockResolvedValueOnce(reply(preview));
+  const user = userEvent.setup();
+  mount();
+  await user.click(
+    screen.getByRole("button", { name: "Preview evidence for analysis" }),
+  );
+  await screen.findByRole("alert");
+  await user.click(screen.getByRole("button", { name: "Gemini setup" }));
+  await screen.findByText("Not configured");
+  const key = "AQ." + "synthetic".repeat(60);
+  await user.type(screen.getByLabelText("Gemini API key"), key);
+  await user.click(
+    screen.getByRole("button", { name: "Use key for this session" }),
+  );
+  expect(JSON.parse(fetchMock.mock.calls[2][1].body)).toEqual({ key });
+  expect(fetchMock.mock.calls[2][1]).toMatchObject({
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Log-Watchdog-Settings": "1",
+    },
+  });
+  expect(
+    screen.getByRole("button", { name: "Preview evidence for analysis" }),
+  ).toBeDisabled();
+  await act(async () => finish(reply({ configured: true })));
+  expect(await screen.findByText("Configured")).toBeInTheDocument();
+  expect(screen.queryAllByRole("alert")).toHaveLength(0);
+  await user.click(
+    screen.getByRole("button", { name: "Preview evidence for analysis" }),
+  );
+  expect(await screen.findByText(preview.packet)).toBeInTheDocument();
+  expect(
+    fetchMock.mock.calls.some(([url]) => url === "/api/analysis/send"),
+  ).toBe(false);
+});

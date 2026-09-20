@@ -1329,3 +1329,44 @@ enabled
 The extension still did not attach on retry. Playwriter local headless Chrome succeeded, so the requested before/after rendered inspection proceeded with that supported mode. The previously running app stopped before navigation; the coordinator launched its own isolated temporary database server for the checks and stopped only that server before backend HTTP tests. Rendered checks covered Overview/Investigate, evaluated Logs and Back/Forward focus, delivery payload/attempts, Historical upload and browse interval, Gemini synthetic-key setup/local preview/clear (never Send), and reset confirmation/cancel. No user credentials or user database were accessed. Findings and verification are recorded in docs/verification-ux.md.
 
 Final verification: 87 frontend tests and 132 backend tests passed, alongside build/type/lint/format/static contrast and the full temporary-database HTTP runtime validation. Playwriter after-checks found no app console/network errors. No P0/P1/P2 UX issue was found in the inspected paths; verbose full UTC timestamps on narrow screens remain a P3 density limitation. A separately running server occupied port 8000 after verification; it was left untouched. No GitHub publication or external submission performed for this pass.
+
+## Gemini setup bug — 2026-09-20
+
+```text
+I found a bug in the Gemini setup flow.
+
+Current behavior:
+- I enter a Gemini API key
+- click “Use key for this session”
+- then click “Preview evidence for analysis”
+- the app still says Gemini is not configured
+- I also see:
+  “Could not update or read Gemini setup. Check the local server and enter a valid key to retry.”
+- once that error appears, it stays visible until I click “Clear key”
+
+Please inspect the current frontend/backend implementation and fix the actual cause.
+
+Check specifically:
+- the request made by “Use key for this session”
+- request headers/payload
+- backend session-key storage
+- configured-status refresh
+- preview endpoint/configuration check
+- stale frontend error state after a successful save/status refresh
+- whether saving a key properly invalidates and resets previous preview/configuration errors
+
+Expected behavior:
+- after saving a valid key, the UI should show configured
+- Preview evidence should work immediately afterward
+- previous setup/preview errors should clear after a successful save or status refresh
+- Clear key should remove only the memory override and restore environment fallback behavior
+- no key should be persisted, logged, returned, or displayed
+
+Please fix this with the smallest coherent change, add/update regression tests, and run the relevant frontend/backend checks.
+
+No broad UX changes and no separate reviewer pass needed for this bug.
+```
+
+Synthetic regressions reproduced HTTP 422 for dotted authorization-key shapes, 256-character frontend truncation and stale analysis errors after successful configuration refresh. The fix accepts bounded opaque visible-ASCII keys (2,048 characters), synchronizes setup/preview availability, and clears the appropriate parent error on successful refresh. Existing backend memory storage and preview effective-settings lookup already shared the correct object; they were not replaced. Clear still restores the environment fallback and invalidates previews. No actual user key was inspected, persisted, logged or submitted to a provider. The separately running app was left untouched; its backend needs a restart to load source changes.
+
+Verification passed: 77 backend/API tests, all 89 frontend tests, production build, TypeScript, ESLint, Prettier, Ruff lint/format, mypy and static contrast. Logs: /tmp/watchdog-key-backend-final.log and /tmp/watchdog-key-all-frontend.log. No separate reviewer pass or external publication.

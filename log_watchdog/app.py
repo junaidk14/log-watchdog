@@ -137,13 +137,15 @@ def create_app(db_path: Path | None = None, frontend: Path | None = None) -> Fas
                 if not isinstance(value, dict) or set(value) != {"key"}:
                     raise ValueError
                 key = value["key"]
-                if not isinstance(key, str) or not re.fullmatch(r"[A-Za-z0-9_-]{1,256}", key):
+                # Treat credentials as opaque header values, including AQ. auth keys.
+                # Bound size and reject whitespace/control/non-ASCII characters.
+                if not isinstance(key, str) or not re.fullmatch(r"[!-~]{1,2048}", key):
                     raise ValueError
             except (ValueError, TypeError, RecursionError):
                 # Do not return validator locations, body values or parsing details.
                 raise HTTPException(
                     422,
-                    "Enter a valid Gemini API key (1–256 letters, digits, underscores or hyphens).",
+                    "Enter an API key using 1–2048 visible ASCII characters, without spaces.",
                 ) from None
         try:
             status = analysis.configure_key(key)

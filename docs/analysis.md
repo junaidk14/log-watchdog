@@ -26,7 +26,7 @@ There is one active analysis request at a time, outside SQLite transactions, to 
 ## API
 
 - `GET /api/analysis/key` returns only `{ "configured": true|false }` with `Cache-Control: no-store`.
-- `PUT /api/analysis/key` accepts only `{ "key": "..." }`; `DELETE /api/analysis/key` clears the session override. Both require the dashboard's `X-Log-Watchdog-Settings: 1` header and reject cross-origin requests. PUT requires JSON, limits the body to 4 KiB and validates a 1–256-character key without echoing invalid input. Responses contain only configured state; errors use fixed, credential-free text. Neither endpoint contacts Gemini.
+- `PUT /api/analysis/key` accepts only `{ "key": "..." }`; `DELETE /api/analysis/key` clears the session override. Both require the dashboard's `X-Log-Watchdog-Settings: 1` header and reject cross-origin requests. PUT requires JSON, limits the body to 4 KiB and accepts an opaque 1–2,048-character visible-ASCII key (including dotted authorization keys), rejecting whitespace/control characters without echoing invalid input. Responses contain only configured state; errors use fixed, credential-free text. Neither endpoint contacts Gemini.
 
 - `POST /api/datasets/{demo|live}/incidents/{id}/analysis/preview` accepts `{ "evaluation": <id>, "run": "<Demo UUID>" }`. Demo requires a run; Live can omit it. Returns an opaque preview ID, exact packet string, provider/model and local reference map. No external call occurs.
 - `POST /api/analysis/send` accepts only `{ "preview_id": "<UUID>", "confirm_send": true }`. Arbitrary packets, model changes and paid overrides are rejected.
@@ -36,3 +36,10 @@ There is one active analysis request at a time, outside SQLite transactions, to 
 The default model is listed in the [official model catalog](https://ai.google.dev/gemini-api/docs/models), checked 2026-09-20 UTC. The adapter follows [generateContent REST documentation](https://ai.google.dev/api/generate-content). The privacy gate follows the distinction described in [Gemini API terms](https://ai.google.dev/gemini-api/terms). Catalog availability does not prove a particular account's access, billing status or quota.
 
 Controlled-response tests verify request content, headers, endpoint, bounds, errors and reference validation. **No live Gemini call was made**; real account access and provider output quality remain unverified. No real user logs were transmitted for testing. See [issue #7 verification](verification-issue-7.md) for executed commands and deferred browser checks.
+
+
+## Session-key save regression fix
+
+The original local validator rejected dots and the password input truncated at 256 characters. That rejected authorization-key shapes emitted by AI Studio before they reached memory storage. The frontend/backend now share a 2,048-character bound without assuming a provider-specific alphabet. The 4 KiB request cap, same-origin/custom-header checks, memory-only override and environment fallback remain in place. Configured means a key is present, not that Google has authenticated it.
+
+Setup requests disable preview/send until complete. Successful save/clear invalidates the previous preview/result and errors; successful status refresh clears setup/analysis errors without discarding a valid preview. Regression tests cover no-environment save → configured status → immediate local preview using synthetic dotted/long keys, header/payload correctness, pending-save interlock, stale-error clearing and the existing clear/fallback/no-disclosure protections. No real key or provider call was used.

@@ -33,6 +33,7 @@ export function AnalysisPane({
   const [result, setResult] = useState<Result | null>(null);
   const [busy, setBusy] = useState<"preview" | "send" | null>(null);
   const [error, setError] = useState("");
+  const [setupBusy, setSetupBusy] = useState(false);
   const [attempted, setAttempted] = useState(false);
   const active = useRef<AbortController | null>(null);
   useEffect(() => () => active.current?.abort(), []);
@@ -124,6 +125,8 @@ export function AnalysisPane({
       </p>
       <GeminiSetup
         disabled={busy !== null}
+        onBusyChange={setSetupBusy}
+        onStatusRefreshed={() => setError("")}
         onChanged={() => {
           setPreview(null);
           setResult(null);
@@ -131,7 +134,10 @@ export function AnalysisPane({
           setError("");
         }}
       />
-      <button disabled={busy !== null} onClick={() => void request(false)}>
+      <button
+        disabled={busy !== null || setupBusy}
+        onClick={() => void request(false)}
+      >
         {preview ? "Create new preview" : "Preview evidence for analysis"}
       </button>
       <p role="status">
@@ -186,7 +192,7 @@ export function AnalysisPane({
             same packet again.
           </p>
           <button
-            disabled={busy !== null || result !== null}
+            disabled={busy !== null || setupBusy || result !== null}
             onClick={() => void request(true)}
           >
             Send for analysis

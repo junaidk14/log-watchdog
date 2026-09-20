@@ -3,9 +3,13 @@ import { useRef, useState } from "react";
 export function GeminiSetup({
   disabled,
   onChanged,
+  onStatusRefreshed,
+  onBusyChange,
 }: {
   disabled: boolean;
   onChanged: () => void;
+  onStatusRefreshed?: () => void;
+  onBusyChange?: (busy: boolean) => void;
 }) {
   const input = useRef<HTMLInputElement>(null);
   const [open, setOpen] = useState(false);
@@ -17,6 +21,7 @@ export function GeminiSetup({
   async function request(method: "GET" | "PUT" | "DELETE") {
     if (busy) return;
     setBusy(true);
+    onBusyChange?.(true);
     setError("");
     setMessage("");
     // Keep the typed value out of React state and clear the field before awaiting.
@@ -47,6 +52,7 @@ export function GeminiSetup({
       const status = await response.json();
       if (typeof status.configured !== "boolean") throw new Error();
       setConfigured(status.configured);
+      if (method === "GET") onStatusRefreshed?.();
       if (method !== "GET") {
         onChanged();
         setMessage(
@@ -63,6 +69,7 @@ export function GeminiSetup({
       setConfigured(null);
     } finally {
       setBusy(false);
+      onBusyChange?.(false);
     }
   }
 
@@ -121,7 +128,7 @@ export function GeminiSetup({
                 autoComplete="off"
                 spellCheck={false}
                 autoCapitalize="none"
-                maxLength={256}
+                maxLength={2048}
                 required
                 disabled={busy || disabled}
               />
