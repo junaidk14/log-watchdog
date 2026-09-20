@@ -60,12 +60,12 @@ button:disabled {
   border-color: var(--rule);
   cursor: default;
 }
-button.primary {
+button.primary:not(:disabled) {
   background: var(--accent);
   border-color: var(--accent);
   color: white;
 }
-button.primary:hover {
+button.primary:hover:not(:disabled) {
   background: #195773;
   color: white;
 }
@@ -83,8 +83,8 @@ input::placeholder {
   opacity: 1;
 }
 :focus-visible {
-  outline: 3px solid var(--focus);
-  outline-offset: 3px;
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
 }
 ::selection {
   background: #c7e2ed;
@@ -325,12 +325,12 @@ pre {
   font-size: 12px;
 }
 .empty {
-  padding: 48px 24px;
-  text-align: center;
+  padding: 28px 20px;
+  text-align: left;
 }
 .empty p {
   max-width: 65ch;
-  margin: 0 auto 16px;
+  margin: 0 0 16px;
   color: var(--muted);
 }
 .error {
@@ -424,7 +424,10 @@ pre {
   select {
     font-size: 16px;
   }
-  button {
+  button,
+  input,
+  select,
+  summary {
     min-height: 44px;
   }
   .dataset-context {
@@ -513,14 +516,14 @@ nav a:not([aria-current]) {
   margin: 12px 0 20px;
 }
 .service-trends {
-  margin-top: 32px;
+  margin-top: 24px;
 }
 .service-trends > p {
   color: var(--muted);
   font-size: 13px;
 }
 .service-trend {
-  margin-top: 24px;
+  margin-top: 16px;
   padding: 20px;
   background: var(--surface);
   border: 1px solid var(--rule);
@@ -532,7 +535,7 @@ nav a:not([aria-current]) {
   gap: 24px;
 }
 .trend {
-  margin: 20px 0;
+  margin: 12px 0;
   min-width: 0;
 }
 .trend figcaption {
@@ -603,6 +606,7 @@ summary {
   }
   .rail nav {
     display: flex;
+    flex-wrap: wrap;
   }
   .trend-pair {
     grid-template-columns: minmax(0, 1fr);
@@ -624,7 +628,8 @@ summary {
   overflow-wrap: anywhere;
 }
 .evidence-pane h3 {
-  margin-top: 24px;
+  margin: 20px 0 6px;
+  font-size: 16px;
 }
 .evidence-pane li {
   margin-bottom: 12px;
@@ -756,4 +761,76 @@ button.destructive {
 .analysis-packet {
   max-height: 320px;
   overflow: auto;
+}
+
+/* Compact focus targets preserve navigation feedback without framing a whole row. */
+h1[tabindex]:focus-visible,
+h2[tabindex]:focus-visible {
+  width: fit-content;
+  max-width: 100%;
+  border-radius: 2px;
+}
+.incident-workbench.is-empty {
+  grid-template-columns: minmax(0, 1fr);
+}
+.empty-guidance {
+  max-width: 70ch;
+  font-size: 13px;
+}
+.is-empty .no-active {
+  padding: 4px 0 8px;
+}
+.chart-grid {
+  stroke: var(--rule);
+  stroke-dasharray: 2 4;
+  fill: none;
+}
+.chart-reading {
+  display: block;
+  color: var(--muted);
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+}
+.window-comparison {
+  margin: 12px 0;
+  padding: 12px 0;
+  border-block: 1px solid var(--rule);
+}
+.window-comparison figcaption {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.window-comparison dl {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+  margin-bottom: 8px;
+}
+.window-comparison dt {
+  font-size: 12px;
+  font-weight: 400;
+}
+.window-comparison dd {
+  font-size: 16px;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+.abnormal-value {
+  color: var(--error);
+}
+dd {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 700px) {
+  .event-detail dl,
+  .delivery-row dl {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 6px;
+  }
+  .event-detail dd,
+  .delivery-row dd {
+    margin-bottom: 12px;
+  }
 }

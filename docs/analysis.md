@@ -9,7 +9,7 @@ For Live or unverified Demo evidence, configure a key linked to a project with a
 ## User path
 
 1. Open Demo Overview, advance once, and Investigate checkout.
-2. Below the local summary, choose **Preview evidence for analysis**. This makes no external call. Missing credentials or an unpaid privacy restriction appears inline.
+2. After the local summary and supporting sample, choose **Preview evidence for analysis**. This makes no external call. Missing credentials or an unpaid privacy restriction appears inline.
 3. Read the exact evidence packet and disclosure. It contains a redacted service name, fixed evaluated counts/rates/window, and at most five evaluated messages with synthetic reference IDs. Metadata and original event IDs are omitted. Common credential assignments, authorization strings, emails and URLs receive basic redaction before messages are capped at 800 characters. Arbitrary text can still contain secrets; review every value.
 4. Choose **Send for analysis** to disclose that packet to Google. No later events or refreshed measurements are added. Gemini receives that exact string plus fixed system instructions and a structured output schema, not the rest of your investigation.
 5. Review the generated summary, possible causes and next checks as hypotheses. Each claim links only to validated supplied evidence. Links preserve dataset, incident, window and Demo run. Model text is rendered as plain text, without executable markup, external links or actions. References establish membership, not truth or proof of causation.

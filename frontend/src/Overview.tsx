@@ -58,6 +58,38 @@ export function Trend({
   rows: Measurement[];
   volume?: boolean;
 }) {
+  const latest = rows.at(-1);
+  if (rows.length === 1 && !volume) {
+    const row = rows[0];
+    return (
+      <figure className="window-comparison">
+        <figcaption>Error-log rate · recorded window</figcaption>
+        <dl>
+          <div>
+            <dt>Observed</dt>
+            <dd
+              className={
+                row.status === "spike detected" ? "abnormal-value" : undefined
+              }
+            >
+              {pct(row.rate)}
+            </dd>
+          </div>
+          <div>
+            <dt>Expected baseline</dt>
+            <dd>{pct(row.expected)}</dd>
+          </div>
+          <div>
+            <dt>Threshold</dt>
+            <dd>{pct(row.threshold)}</dd>
+          </div>
+        </dl>
+        <p className="hint">
+          {row.status} · {time(row.start)} → {time(row.end)}
+        </p>
+      </figure>
+    );
+  }
   const ceiling = volume ? Math.max(1, ...rows.map((row) => row.total)) : 1;
   const points = rows.map((row, index) => ({
     x: 42 + (index * 470) / Math.max(1, rows.length - 1),
@@ -68,15 +100,24 @@ export function Trend({
     <figure className="trend">
       <figcaption>
         {volume ? "Volume · events per minute" : "Error-log rate · percent"}
+        {latest && (
+          <span className="chart-reading">
+            Latest: {volume ? `${latest.total} events` : pct(latest.rate)}
+          </span>
+        )}
       </figcaption>
       <svg
         viewBox="0 0 540 180"
         role="img"
         aria-label={`${rows[0]?.service}: ${volume ? "volume" : "error-log rate"}. ${rows.length === 1 ? `${rows[0].errors} ERROR/FATAL / ${rows[0].total} events, observed ${pct(rows[0].rate)}, expected ${pct(rows[0].expected)}, threshold ${pct(rows[0].threshold)}.` : "Exact values in evaluated windows table below."}`}
       >
+        <path d="M42 20H520M42 77.5H520" className="chart-grid" />
         <path d="M42 20V135H520" className="chart-axis" />
         <text x="0" y="25">
           {volume ? ceiling : "100%"}
+        </text>
+        <text x="0" y="81.5">
+          {volume ? ceiling / 2 : "50%"}
         </text>
         <text x="10" y="139">
           0
@@ -99,9 +140,9 @@ export function Trend({
               <circle
                 cx={x}
                 cy={y}
-                r={row.status === "spike detected" ? 5 : 2.5}
+                r={!volume && row.status === "spike detected" ? 5 : 2.5}
                 className={
-                  row.status === "spike detected"
+                  !volume && row.status === "spike detected"
                     ? "chart-abnormal"
                     : "chart-observed"
                 }
@@ -120,7 +161,7 @@ export function Trend({
         <text x="42" y="165">
           {rows[0]?.start.slice(11, 16)}
         </text>
-        <text x="475" y="165">
+        <text x="520" y="165" textAnchor="end">
           {rows.at(-1)?.start.slice(11, 16)}
         </text>
       </svg>
@@ -593,11 +634,6 @@ export function Overview() {
             {resetError && <p role="alert">{resetError}</p>}
           </section>
         )}
-        <p className="workspace-footnote">
-          Routine data expires after seven days. Open investigations, their
-          evaluated evidence and pending deliveries are protected; this is not a
-          hard storage cap. Demo retention follows simulation time.
-        </p>
         <p className={resetMessage ? undefined : "sr-only"} role="status">
           {resetMessage || announcement}
         </p>
@@ -630,7 +666,7 @@ export function Overview() {
               </p>
             )}
             <div
-              className={`incident-workbench ${selected ? "has-selection" : ""}`}
+              className={`incident-workbench ${selected ? "has-selection" : ""} ${!selected && data.incidents.length === 0 ? "is-empty" : ""}`}
             >
               <section
                 className="incident-queue"
@@ -645,75 +681,92 @@ export function Overview() {
                     health.
                   </p>
                 )}
-                <table className="incident-table">
-                  <caption className="sr-only">Incident queue</caption>
-                  <thead>
-                    <tr>
-                      <th scope="col">Service and measurement</th>
-                      <th scope="col">Investigation</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {data.incidents.map((i) => (
-                      <tr
-                        key={i.id}
-                        className={
-                          selected === String(i.id)
-                            ? "incident-row selected"
-                            : "incident-row"
-                        }
-                      >
-                        <td>
-                          <h3>{i.service}</h3>
-                          <p>
-                            <strong>
-                              {i.state === "open" ? "Open" : "Recovered"}
-                            </strong>
-                            {selected === String(i.id) && " · Selected"}
-                          </p>
-                          <p>
-                            {pct(i.measurement.rate)} observed /{" "}
-                            {pct(i.measurement.expected)} expected error-log
-                            rate
-                          </p>
-                          <p className="hint">
-                            {time(i.start)} → {time(i.end)}
-                          </p>
-                        </td>
-                        <td>
-                          <a
-                            id={`incident-${i.id}`}
-                            href={viewUrl("incidents", {
-                              incident: String(i.id),
-                              run: data.run ?? null,
-                              evaluation: null,
-                            })}
-                            aria-current={
-                              selected === String(i.id) ? "true" : undefined
-                            }
-                            onClick={(event) => {
-                              if (
-                                !event.ctrlKey &&
-                                !event.metaKey &&
-                                !event.shiftKey &&
-                                !event.altKey &&
-                                event.button === 0
-                              ) {
-                                event.preventDefault();
-                                select(String(i.id));
-                              }
-                            }}
-                          >
-                            Investigate {i.service} incident #{i.id}
-                          </a>
-                        </td>
+                {data.incidents.length === 0 && !selected && (
+                  <p className="empty-guidance">
+                    {dataset === "demo" ? (
+                      "Use “Advance one minute” above to introduce the seeded downstream timeouts, then investigate the recorded spike."
+                    ) : (
+                      <>
+                        Send structured events through the{" "}
+                        <a href="/docs">local ingestion API</a>. Completed
+                        windows build each service’s baseline before detection
+                        begins.
+                      </>
+                    )}
+                  </p>
+                )}
+                {data.incidents.length > 0 && (
+                  <table className="incident-table">
+                    <caption className="sr-only">Incident queue</caption>
+                    <thead>
+                      <tr>
+                        <th scope="col">Service and measurement</th>
+                        <th scope="col">Investigation</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {data.incidents.map((i) => (
+                        <tr
+                          key={i.id}
+                          className={
+                            selected === String(i.id)
+                              ? "incident-row selected"
+                              : "incident-row"
+                          }
+                        >
+                          <td>
+                            <h3>{i.service}</h3>
+                            <p>
+                              <strong>
+                                {i.state === "open" ? "Open" : "Recovered"}
+                              </strong>
+                              {selected === String(i.id) && " · Selected"}
+                            </p>
+                            <p>
+                              {pct(i.measurement.rate)} observed /{" "}
+                              {pct(i.measurement.expected)} expected error-log
+                              rate
+                            </p>
+                            <p className="hint">
+                              {time(i.start)} → {time(i.end)}
+                            </p>
+                          </td>
+                          <td>
+                            <a
+                              id={`incident-${i.id}`}
+                              href={viewUrl("incidents", {
+                                incident: String(i.id),
+                                run: data.run ?? null,
+                                evaluation: null,
+                              })}
+                              aria-current={
+                                selected === String(i.id) ? "true" : undefined
+                              }
+                              onClick={(event) => {
+                                if (
+                                  !event.ctrlKey &&
+                                  !event.metaKey &&
+                                  !event.shiftKey &&
+                                  !event.altKey &&
+                                  event.button === 0
+                                ) {
+                                  event.preventDefault();
+                                  select(String(i.id));
+                                }
+                              }}
+                            >
+                              Investigate {i.service} incident #{i.id}
+                            </a>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
               </section>
               <section
                 className="incident-pane"
+                hidden={!selected && data.incidents.length === 0}
                 aria-labelledby="incident-heading"
               >
                 <h2 id="incident-heading" ref={heading} tabIndex={-1}>
@@ -883,6 +936,11 @@ export function Overview() {
             </section>
           </>
         )}
+        <p className="workspace-footnote">
+          Routine data expires after seven days. Open investigations, their
+          evaluated evidence and pending deliveries are protected; this is not a
+          hard storage cap. Demo retention follows simulation time.
+        </p>
       </main>
     </div>
   );

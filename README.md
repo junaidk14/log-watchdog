@@ -1,8 +1,15 @@
 # Log Watchdog
 
-A local, single-user structured log explorer built with FastAPI, SQLite, and React. Ingest events, filter them by dataset, service, severity, UTC interval or message, and inspect their metadata. No login or external credentials are needed.
+A local, API-first observability console that turns structured logs into an explainable investigation: **Overview → incident → evaluated logs → webhook delivery history**. FastAPI, SQLite and React run as one application. The complete core flow needs no account, paid database or external credentials.
 
-This implementation delivers structured ingestion and browsing, error-log rate detection, incident investigation, and actual local webhook delivery with persisted retries (issues #1–#6). Overview opens first; Incidents, Logs and Deliveries preserve investigation context. Historical JSON upload and trends are available in Logs → Historical. Seven-day retention and a Demo-only reset are implemented. Optional Gemini evidence analysis is available through explicit preview and send; credentials are never needed for the core flow. See [configuration, privacy and analysis limits](docs/analysis.md). See [data lifecycle and reset](docs/lifecycle.md). See [delivery behavior and the retry walkthrough](docs/deliveries.md). See [detector behavior and configuration](docs/detection.md) for the complete five-advance demonstration, formula, and persistence boundaries.
+The MVP implements all seven approved issues: ingestion and browsing, statistical error-log-rate detection, evidence-linked investigation, real local HTTP notifications with durable retries, historical JSON uploads, protected seven-day retention and Demo reset, and optional Gemini analysis. It is a single-user localhost tool, not a production monitoring platform.
+
+- **Reproducible:** three seeded services and an accelerated downstream-timeout scenario.
+- **Explainable:** observed versus expected error-log rate, evaluated windows, patterns and supporting logs. Missing traffic is not health.
+- **Inspectable:** exact webhook payloads, attempt outcomes and restart recovery.
+- **Optional AI:** local summary always available; external analysis requires a preview and explicit send.
+
+[Presentation](docs/presentation.md) · [Final validation and limitations](docs/final-validation.md) · [Architecture decisions](docs/adr/decisions.md) · [Prompt audit](prompts.md) · [Tooling](docs/tooling.md)
 
 ## Start locally
 
@@ -21,6 +28,37 @@ Alternatively, with `uv` installed, use `uv venv` and `uv pip install -r require
 The database defaults to `.data/watchdog.sqlite3` relative to the working directory. To use another database, set `LOG_WATCHDOG_DB=/absolute/path/watchdog.sqlite3` before starting. Restarting preserves events and does not repeat the seed. A new database receives 3,600 synthetic normal events across `api-gateway`, `checkout`, and `worker`, covering 30 minutes ending at 2026-01-01 12:00 UTC. These are labeled simulation timestamps, not current live activity. Historical and Live start empty.
 
 For frontend development, keep the API running and use `npm --prefix frontend run dev`. Vite binds to loopback and proxies `/api` to port 8000. Rebuild to update the dashboard served by FastAPI.
+
+## Five-minute walkthrough
+
+1. Open **Demo Overview**. The simulation is paused; normal history is already seeded. Use **Reset Demo** and confirm only if you want to discard the existing Demo investigation. Live and Historical remain intact.
+2. For the retry scenario, open **Deliveries**, choose **Fail first, then succeed** in the receiver controls and save before advancing. Return to Overview. Webhooks run in real time, independently of simulation time.
+3. Choose **Advance one minute**. Checkout produces 16 ERROR logs among 40 events (40.00%) and opens an incident. Select **Investigate checkout incident**.
+4. Inspect the recorded baseline, threshold and local summary. Open **View evaluated logs**, expand a message, then use Back. **Include later arrivals** explicitly broadens the evidence without changing the recorded measurement.
+5. Open **View delivery history**. Inspect the exact opening payload and the real HTTP 503 → 200 attempts. Wait for the real-time retry; advancing simulation does not accelerate it.
+6. Advance four more times from Overview. The second abnormal minute updates the same incident; three eligible normal minutes then mark it recovered. Inspect the separate recovery notification.
+7. Optionally use **Logs → Historical** to upload a JSON array (5 MB / 5,000 events max). Browse its trends; imported events do not train live baselines or trigger alerts.
+
+The detector compares ERROR/FATAL events divided by **all logs**, not failed requests. It uses a configurable, sample-size-aware statistical heuristic with smoothed history and a minimum increase guard. [Formula, defaults and limitations](docs/detection.md).
+
+## Architecture
+
+```mermaid
+flowchart LR
+    Sources[JSON API / simulator / historical upload] --> API[FastAPI]
+    UI[React dashboard] --> API
+    API --> DB[(SQLite)]
+    Loop[Single background loop] --> Detector[Per-service detector]
+    Detector --> DB
+    Loop --> Delivery[Durable delivery worker]
+    Delivery -->|Actual loopback HTTP| Receiver[Built-in test receiver]
+    Delivery --> DB
+    API -->|Preview + explicit send only| Gemini[Optional Gemini REST API]
+```
+
+Demo, Live and Historical are isolated datasets. Evaluation watermarks preserve recorded evidence despite late logs. SQLite stores incidents, delivery work and attempt history; the single process resumes pending work after restart. Retention protects open investigations and pending notifications. No external webhook destinations, hosting, authentication, chat or agent orchestration are included.
+
+For optional analysis, set `GEMINI_API_KEY` in the **server environment** and restart. `GEMINI_MODEL` is configurable. Verified synthetic Demo evidence is the default eligibility boundary; enabling real-log analysis additionally requires appropriate paid-service configuration and `GEMINI_PAID_SERVICE=true`. Preview the bounded redacted packet, then explicitly **Send for analysis**. Redaction cannot guarantee removal of every secret. No live Gemini call has been verified. [Configuration, privacy and error behavior](docs/analysis.md).
 
 ## Ingest and browse
 
@@ -47,7 +85,7 @@ Demo, live and historical queries always carry a dataset predicate. Historical e
 
 ## Verify
 
-Run after installing dependencies; build precedes backend tests because they verify compiled assets are actually served.
+Stop any running copy of the app before verification: the HTTP tests and runtime script require exclusive use of port 8000. Build precedes backend tests because they verify compiled assets are actually served.
 
 ```sh
 npm --prefix frontend run build
