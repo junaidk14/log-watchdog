@@ -597,3 +597,45 @@ it("explains a stale Overview on Back after two successful resets", async () => 
     fetchMock.mock.calls.filter(([url]) => url === "/api/demo/reset"),
   ).toHaveLength(2);
 });
+
+it("guides Demo Overview through existing controls without starting actions", async () => {
+  render(<Overview />);
+  await screen.findByRole("heading", { name: "Try the Demo" });
+  expect(screen.getByRole("link", { name: "Reset Demo" })).toHaveAttribute(
+    "href",
+    "#reset-demo",
+  );
+  expect(
+    screen.getByRole("link", {
+      name: "Choose receiver behavior in Deliveries",
+    }),
+  ).toHaveAttribute("href", "?view=deliveries&dataset=demo");
+  expect(
+    screen.getByRole("link", { name: "advance one minute" }),
+  ).toHaveAttribute("href", "#advance-demo");
+  expect(
+    screen.getByRole("button", { name: "Advance one minute" }),
+  ).toHaveAttribute("id", "advance-demo");
+  expect(
+    screen.getByRole("link", { name: "Investigate the incident" }),
+  ).toHaveAttribute("href", "#queue-heading");
+  expect(
+    fetchMock.mock.calls.every(
+      ([, options]) => !options?.method || options.method === "GET",
+    ),
+  ).toBe(true);
+});
+
+it.each(["?view=overview&dataset=live", "?view=incidents&dataset=demo"])(
+  "omits the walkthrough outside Demo Overview: %s",
+  async (url) => {
+    window.history.replaceState({}, "", url);
+    render(<Overview />);
+    await screen.findByRole("heading", {
+      name: /Recent incidents|Incident queue/,
+    });
+    expect(
+      screen.queryByRole("heading", { name: "Try the Demo" }),
+    ).not.toBeInTheDocument();
+  },
+);

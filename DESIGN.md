@@ -202,3 +202,7 @@ Logs exposes a native service dropdown alongside the existing exact-name text fi
 Use concise product labels: “Last refreshed”, “Latest window”, and “Demo · Simulated data”. Keep error-log rate, evaluated-evidence scope, UTC bounds and recovery meaning precise. Upload guidance leads with event count and MB; exact byte limits remain in documentation and validation. Memory-only key handling and explicit send consent stay visible.
 
 All pages share a 1,320px maximum content area. Investigation allocates more width to evidence; desktop Deliveries places receiver settings beside history and stacks them below at 1,100px. Helper prose is constrained to 70ch. Native selects use flat input styling and a small SVG chevron with reserved right padding, existing focus treatment and disabled colors. Forced-colors mode restores the system indicator. No custom combobox, font, palette, navigation or behavior change.
+
+### Demo walkthrough
+
+Demo Overview includes a compact four-step “Try the Demo” ordered list: reset/confirm, configure and save receiver behavior in Deliveries, return and advance one minute, then investigate and inspect delivery history. Links target existing controls/pages and do not initiate mutations. Use the existing selected background, two columns on desktop and one below 900px. Hide the guide outside Demo Overview. Demo receiver settings repeat the sequence with links to Reset and Advance on Overview.

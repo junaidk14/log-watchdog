@@ -70,3 +70,11 @@ Keyboard Enter followed Overview → Investigate → evaluated Logs. Browser Bac
 All 91 frontend tests passed, including upload, Gemini, accessibility and focus regressions. Production build/TypeScript, ESLint, Prettier, static contrast and diff checks passed. The existing delivery test now waits for initial heading restoration before moving focus, removing a harness race without changing application behavior or dropping assertions. Logs: `/tmp/watchdog-polish-final-tests.log`. Backend code is unchanged; no backend verification is claimed for this presentation-only pass.
 
 No P0/P1/P2 issue found in the inspected flows. P3: precise evidence timestamps remain verbose on narrow screens. Native popup menus can still use operating-system styling; the closed controls have the shared flat finish. Coverage is headless Chrome, not physical devices or a full screen-reader audit. No external provider validation or publication.
+
+## Demo walkthrough — 2026-09-20
+
+94 frontend tests, typecheck, ESLint, build, Prettier, contrast and diff checks passed before targeted browser verification. Regression tests assert the four existing-action links, no automatic mutation, and absence from Live Overview and Demo Incidents. The Advance anchor ID applies only on Overview to preserve existing Incidents focus restoration.
+
+Playwriter verified a fresh disposable Demo: reset confirmation; walkthrough link focuses receiver heading; save fail-first-then-succeed; reminder returns focus to Advance; advance creates checkout incident; investigation anchor focuses queue; incident opens its delivery history and expandable payload. Inspected the guide at desktop and 390px. Captures: `/tmp/walkthrough-desktop.png`, `/tmp/walkthrough-narrow.png`. The reused browser initially polled an old-run URL against the new fixture and recorded expected HTTP 410 responses before the fresh navigation; after the targeted flow, no new console errors appeared. Test log: `/tmp/watchdog-walkthrough-tests.log`.
+
+The user's port-8000 server was left running. The disposable port-8001 fixture disables the background worker, so the newly created notification remains pending; this verifies UI flow and creation, not real HTTP/retry timing. Backend delivery behavior is unchanged. No full-app browser repetition and no provider call.

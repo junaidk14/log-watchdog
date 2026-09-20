@@ -556,6 +556,37 @@ export function Overview() {
             </PageLink>
           </div>
         )}
+        {dataset === "demo" && !isIncidents && (
+          <section
+            className="demo-walkthrough"
+            aria-labelledby="demo-walkthrough-heading"
+          >
+            <h2 id="demo-walkthrough-heading">Try the Demo</h2>
+            <ol>
+              <li>
+                <a href="#reset-demo">Reset Demo</a> and confirm to start fresh.
+                This clears Demo history only.
+              </li>
+              <li>
+                <PageLink
+                  href="?view=deliveries&dataset=demo"
+                  focus="receiver-heading"
+                >
+                  Choose receiver behavior in Deliveries
+                </PageLink>
+                , then save it.
+              </li>
+              <li>
+                Return here and <a href="#advance-demo">advance one minute</a>{" "}
+                to generate a checkout incident.
+              </li>
+              <li>
+                <a href="#queue-heading">Investigate the incident</a>, then open
+                its delivery history to inspect the result and attempts.
+              </li>
+            </ol>
+          </section>
+        )}
         <div className="overview-controls">
           <div>
             <strong>
@@ -582,6 +613,7 @@ export function Overview() {
           <div className="overview-actions">
             {dataset === "demo" && (
               <button
+                id={isIncidents ? undefined : "advance-demo"}
                 className="primary"
                 disabled={busy || reset || confirmReset || !data}
                 onClick={() => void advance()}

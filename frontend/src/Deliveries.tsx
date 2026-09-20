@@ -289,7 +289,19 @@ function ReceiverControl() {
       className="receiver-settings"
       aria-labelledby="receiver-heading"
     >
-      <h2 id="receiver-heading">Demo receiver behavior</h2>
+      <h2 id="receiver-heading" tabIndex={-1}>
+        Demo receiver behavior
+      </h2>
+      <p>
+        <PageLink href="?view=overview&dataset=demo" focus="reset-demo">
+          Reset Demo
+        </PageLink>
+        , choose a receiver behavior, then advance one minute from{" "}
+        <PageLink href="?view=overview&dataset=demo" focus="advance-demo">
+          Overview
+        </PageLink>
+        .
+      </p>
       <p>
         Applies to new Demo notifications, including their retries. Live always
         uses Success.

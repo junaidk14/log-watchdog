@@ -1477,3 +1477,46 @@ Do not introduce new features in this pass.
 ```
 
 Completed a copy/CSS-only product refinement with one layout wrapper. Backend, handlers, detector and navigation logic unchanged. Before/after Playwriter inspection used the isolated port-8001 fixture, 1440px/390px. All 91 frontend tests, production build/typecheck, ESLint, Prettier and contrast passed. Updated the existing delivery keyboard test to await initial heading-focus restoration before moving focus, preserving its assertions. No provider call, user-data change, or external publication. See docs/verification-ux.md for scope and remaining limitations.
+
+## 2026-09-20 — Discoverable Demo walkthrough
+
+```text
+The Demo flow works, but it’s too hard for a reviewer to discover how to test it.
+
+Please add a lightweight Demo walkthrough on Overview, visible only in Demo mode, that guides the user through:
+
+1. Reset Demo
+2. Configure receiver behavior in Deliveries
+3. Advance one minute to generate the checkout incident
+4. Investigate the incident and inspect delivery history
+
+Use links to the existing pages/actions instead of duplicating functionality.
+
+Also add a short helper on Deliveries explaining how to generate a fresh Demo notification:
+“Reset Demo, choose a receiver behavior, then advance one minute from Overview.”
+
+Keep it compact and visually consistent.
+
+Do not add a one-click demo runner and do not change detector, retry, recovery, timing, or backend behavior.
+
+Afterward, verify the flow from a fresh Demo state and run the relevant frontend checks.
+```
+
+Added a four-step Demo-only Overview guide and a linked reminder beside Demo receiver settings. Links focus existing controls; no duplicate action handlers. Advance's new target ID is Overview-only, preserving Incidents focus behavior. Fresh isolated Demo verification followed reset → saved receiver choice → advance → checkout investigation → delivery history. No user data or backend logic changed. All 94 frontend tests, typecheck, lint, build, format and contrast passed.
+
+## 2026-09-20 — Target browser verification to change scope
+
+```text
+For small copy or styling changes, don’t run a full Playwriter walkthrough each time.
+
+Run the relevant frontend tests, typecheck, lint, and build first.
+
+Use Playwriter only for:
+- targeted verification of the specific changed screen/flow
+- changes affecting navigation, focus, responsiveness, or interactions
+- the final browser validation before merge
+
+Avoid re-checking the entire application for minor text/CSS changes unless something looks wrong.
+```
+
+Applied immediately: completed frontend checks before the browser pass, then checked only the new Demo walkthrough and its navigation/focus/responsive behavior. Future small copy/CSS work follows this bounded verification preference.

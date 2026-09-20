@@ -136,3 +136,5 @@ See [the synthetic upload walkthrough and verification](docs/verification-issue-
 ## Reset Demo
 
 In Demo Overview, choose **Reset demo**, then **Confirm reset Demo only**. This clears Demo investigation and delivery history, restores normal seeded history and receiver defaults, and leaves Live/Historical untouched. Cancellation, progress, outcome and stale-run errors are explicit. See [the reset walkthrough and retention limits](docs/lifecycle.md).
+
+Demo Overview includes **Try the Demo**, a four-step walkthrough linking to the existing reset, receiver settings, advance, and investigation controls. Reset first, then save the receiver behavior before advancing. The walkthrough never runs actions automatically.

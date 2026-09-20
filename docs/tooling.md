@@ -317,3 +317,7 @@ Existing React/native HTML select and input controls, SQLite dataset-scoped serv
 - **Native HTML select and CSS — Used.** `appearance: none` with an inline SVG chevron; native keyboard semantics retained and forced-colors fallback restores system appearance. No library added.
 - **Playwriter — Used.** Before/after desktop/narrow inspection in headless Chrome, plus keyboard navigation, Back/Forward, delivery expansion and select type-ahead in a disposable local fixture. No provider call or user-database write.
 - Existing Vitest/axe, TypeScript, Vite, ESLint, Prettier and contrast script cover the frontend-only change.
+
+## Demo walkthrough and browser-check scope
+
+Existing React PageLink/native anchors and CSS provide the compact guide; no new dependency or runner. Impeccable refinement guidance was reused. Frontend tests/typecheck/lint/build run before Playwriter. Per user preference, minor copy/style changes use targeted browser checks only when needed for the changed screen/flow, navigation, focus, responsiveness or interactions; reserve full-app browser validation for pre-merge or observed problems. This pass exercised only the new Demo flow in a disposable database with background delivery disabled.
