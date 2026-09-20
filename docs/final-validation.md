@@ -39,7 +39,7 @@ Polish replaces the unusable empty pane/table with guidance, uses a compact one-
 
 Final build and frontend suite passed: **81 tests in six files**. Build output: 286.75 kB JavaScript (86.68 kB gzip), 11.28 kB CSS (3.17 kB gzip). Typecheck, ESLint, Prettier, Ruff lint/format and mypy passed. Static palette contrast passed; focus-pair checks were added for the refined outline.
 
-The initial sandboxed backend run passed 117 tests but four TCP fixtures could not bind. An escalated rerun found port 8000 occupied by a separately launched app; that process was left untouched. The user stopped it, enabling the final full rerun. The completed rerun passed all 121 backend tests (two existing deprecation warnings). The independent final review is recorded below when completed. No failing checks are treated as passed.
+The initial sandboxed backend run passed 117 tests but four TCP fixtures could not bind. An escalated rerun found port 8000 occupied by a separately launched app; that process was left untouched. The user stopped it, enabling the final full rerun. The completed rerun passed all 121 backend tests (two existing deprecation warnings). The independent final review passed on both axes, as recorded below. No failing checks are treated as passed.
 
 Final check logs: `/private/tmp/log-watchdog-final-checks/`. Existing jsdom canvas diagnostics and Starlette/AnyIO deprecation warnings are recorded rather than suppressed. DOM tests do not measure rendered contrast or keyboard behavior.
 
@@ -64,3 +64,20 @@ Optional Gemini uses controlled responses in tests. No live provider call or rea
 The final static contrast check covers ten text pairs and three focus/surface pairs. Focus ratios are 7.91:1 on white, 7.30:1 on ground and 6.89:1 on selected fill. Contrast values do not establish rendered focus placement.
 
 The polish consumed and closed its exact critique snapshot after addressing all five scoped priorities. No post-polish visual score or unsupported browser claim was added. Temporary critique body was deleted; the archived detector report and verification logs are preserved outside the repository.
+
+
+## Independent repo-wide review
+
+Review fixed point: `b63023517099daacb05f1e606a3d3ccdb287ffbc` (before application implementation). Reviewed implementation and handoff head: `a74989466e8fd2b4e50982fc59a794bd6b834b93`. Both reviewers were fresh, independent and strictly read-only; neither ran artifact-producing tests or edited files.
+
+### Standards
+
+**REVIEW PASSED — zero findings.** No concrete documented-standard violation or actionable baseline smell found. Dataset isolation, immutable evaluated evidence, transactional delivery, protected retention, run-bound reset and external-analysis consent follow the recorded decisions. Tooling, decisions and verification limitations are documented.
+
+### Spec
+
+**REVIEW PASSED — zero findings.** No actionable missing requirement, incorrect implementation or scope expansion found against the seven ticket drafts, MVP specification, UI flow, Product and ADRs. The full detection → investigation → delivery/recovery path and bounded optional Gemini flow were traced. Final polish preserves the incident workbench.
+
+Both axes relied on recorded 121-backend/81-frontend and actual-HTTP evidence and explicitly retained the manual browser and live-provider limitations. The subsequent review-record update changes documentation only. PR #15 targets `main`, closes no issue, and covers the separately authorized final refinement. Its merge and final-head checks are recorded in GitHub; no external submission is part of that operation.
+
+The generic runner files retain their original Git blob hashes: `loop.sh` = `496d49c57f66aa7e11fd38a2184983a25deab4eb`, `prompt.md` = `459175ea131003e9d1e55874da63545279b5c080`, `review-prompt.md` = `2daeff1e5d5eea1cc9e77d8274790bee71b5e102`.
