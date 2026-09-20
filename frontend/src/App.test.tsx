@@ -301,3 +301,65 @@ it("restores the latest scroll on repeated Back/Forward after delayed results", 
   await traverse("back", "demo", 800);
   await traverse("forward", "live", 950);
 });
+
+it("withholds stale general Demo Logs on load, refresh and Back, and restores current browsing", async () => {
+  const savedUrl = "/?view=logs&dataset=demo&run=saved-run";
+  window.history.replaceState({}, "", savedUrl);
+  let reset = false;
+  fetchMock.mockImplementation((url: string) => {
+    if (
+      reset &&
+      new URL(url, window.location.origin).searchParams.get("run") ===
+        "saved-run"
+    ) {
+      return Promise.resolve({
+        ok: false,
+        status: 410,
+        json: async () => ({
+          detail: "This demo run was reset. Return to the current demo.",
+        }),
+      });
+    }
+    return respond({
+      ...result,
+      events: [
+        { ...row, message: reset ? "Replacement run event" : row.message },
+      ],
+    });
+  });
+  const user = userEvent.setup();
+  const mounted = render(<App />);
+  await screen.findByText(row.message);
+  reset = true; // another tab resets the Demo
+  await user.click(screen.getByRole("button", { name: "Refresh" }));
+  expect(await screen.findByRole("alert")).toHaveTextContent(
+    "This demo run was reset",
+  );
+  expect(screen.queryByText(row.message)).not.toBeInTheDocument();
+  expect(screen.queryByText("Replacement run event")).not.toBeInTheDocument();
+  expect(
+    screen.queryByText(/Showing results fetched at/),
+  ).not.toBeInTheDocument();
+  expect((await axe.run(document.body)).violations).toEqual([]);
+  mounted.unmount();
+  render(<App />); // reload the saved URL
+  expect(await screen.findByRole("alert")).toHaveTextContent(
+    "This demo run was reset",
+  );
+  await user.click(
+    screen.getByRole("link", { name: "Return to current demo" }),
+  );
+  expect(new URLSearchParams(window.location.search).get("view")).toBe("logs");
+  expect(new URLSearchParams(window.location.search).has("run")).toBe(false);
+  await screen.findByText("Replacement run event");
+  act(() => window.history.back());
+  await waitFor(() => expect(window.location.search).toBe(savedUrl.slice(1)));
+  expect(await screen.findByRole("alert")).toHaveTextContent(
+    "This demo run was reset",
+  );
+  expect(screen.queryByText("Replacement run event")).not.toBeInTheDocument();
+  await user.click(
+    screen.getByRole("link", { name: "Return to current demo" }),
+  );
+  await screen.findByText("Replacement run event");
+});

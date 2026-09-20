@@ -39,6 +39,7 @@ Choose **Live** in the dashboard, enter `checkout` in Service and `timeout` in M
 - Reusing a supplied ID with identical normalized content deduplicates **within that dataset**, including duplicates inside a batch. Different content conflicts; nothing is overwritten. Metadata key ordering and equivalent timezone offsets do not cause conflicts.
 - Omitted or null IDs generate a new UUID every time. **Retrying without a supplied ID does not deduplicate.** Producer retries should supply stable IDs.
 - `GET /api/datasets/{dataset}/events`: `service`, `severity`, `start`, `end`, `message`, `page` (default 1), `page_size` (default 50, max 100). Service and severity match exactly; message is literal case-insensitive substring matching using SQLite's built-in lowercasing (ASCII, not full Unicode case folding). Time bounds are inclusive and require a timezone; dashboard inputs use `Z` explicitly.
+- General Demo event browsing also accepts `run` (up to 100 characters). A stale run returns HTTP 410 with the reset explanation and no events; run identity, count, and page share one snapshot. Live/Historical ignore the run guard. Logs offers **Return to current demo** after a stale saved URL, refresh, or Back navigation.
 - Results include total matching count and newest-first events. Timestamp ties use insertion sequence. Count and page share one database snapshot. Pages are offset-based: new ingestion can move rows between pages across separate requests.
 - `GET /api/health` and API schema at `/docs`. Unknown API paths return 404.
 

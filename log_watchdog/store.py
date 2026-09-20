@@ -20,6 +20,10 @@ class EventConflict(Exception):
         super().__init__(f"Event ID {event_id!r} already exists with different content")
 
 
+class DemoRunReset(Exception):
+    """A run-tagged read no longer addresses the current Demo."""
+
+
 class Store:
     def __init__(self, path: Path) -> None:
         self.path = path
@@ -143,6 +147,7 @@ class Store:
         self,
         dataset: Dataset,
         *,
+        run: str | None = None,
         service: str | None = None,
         severity: str | None = None,
         start: datetime | None = None,
@@ -166,7 +171,11 @@ class Store:
             params.append(message)
         where = " AND ".join(clauses)
         with self.connection() as db:
-            db.execute("BEGIN")  # count and page come from one snapshot
+            db.execute("BEGIN")  # run identity, count and page come from one snapshot
+            if dataset == "demo" and run is not None:
+                current = db.execute("SELECT value FROM settings WHERE key='demo_run'").fetchone()
+                if current is None or run != current[0]:
+                    raise DemoRunReset("This demo run was reset. Return to the current demo.")
             count = db.execute(f"SELECT count(*) FROM events WHERE {where}", params).fetchone()[0]
             rows = db.execute(
                 f"SELECT * FROM events WHERE {where} ORDER BY timestamp DESC, sequence DESC "

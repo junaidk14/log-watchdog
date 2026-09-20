@@ -22,7 +22,7 @@ from .evidence import Evidence, EvidenceUnavailable
 from .historical import MAX_UPLOAD_BYTES, import_events, trends
 from .lifecycle import Lifecycle
 from .models import Dataset, IngestRequest, Severity, normalize_utc
-from .store import EventConflict, Store
+from .store import DemoRunReset, EventConflict, Store
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -211,6 +211,7 @@ def create_app(db_path: Path | None = None, frontend: Path | None = None) -> Fas
     @app.get("/api/datasets/{dataset}/events")
     def browse(
         dataset: Dataset,
+        run: Annotated[str | None, Query(max_length=100)] = None,
         service: Annotated[str | None, Query(max_length=120)] = None,
         severity: Severity | None = None,
         start: Annotated[AwareDatetime, AfterValidator(normalize_utc)] | None = None,
@@ -221,16 +222,20 @@ def create_app(db_path: Path | None = None, frontend: Path | None = None) -> Fas
     ) -> dict[str, Any]:
         if start is not None and end is not None and start > end:
             raise HTTPException(422, "Start time must be at or before end time")
-        return store.browse(
-            dataset,
-            service=service,
-            severity=severity,
-            start=start,
-            end=end,
-            message=message,
-            page=page,
-            page_size=page_size,
-        )
+        try:
+            return store.browse(
+                dataset,
+                run=run,
+                service=service,
+                severity=severity,
+                start=start,
+                end=end,
+                message=message,
+                page=page,
+                page_size=page_size,
+            )
+        except DemoRunReset as exc:
+            raise HTTPException(410, str(exc)) from exc
 
     @app.post("/api/historical/upload")
     async def upload_historical(request: Request) -> dict[str, Any]:

@@ -310,6 +310,13 @@ def main() -> None:
                 new_run = reset.json()["run"]
                 assert new_run != run and reset.json()["progress"]["steps"] == 0
                 assert reset.json()["incidents"] == []
+                stale_logs = client.get("/api/datasets/demo/events", params={"run": run})
+                assert stale_logs.status_code == 410 and "reset" in stale_logs.json()["detail"]
+                assert "events" not in stale_logs.json()
+                assert (
+                    client.get("/api/datasets/demo/events", params={"run": new_run}).json()["total"]
+                    == 3600
+                )
                 assert client.get("/api/datasets/demo/events").json()["total"] == 3600
                 assert client.get("/api/datasets/demo/deliveries").json()["deliveries"] == []
                 assert (
@@ -321,6 +328,9 @@ def main() -> None:
                 process.wait(timeout=10)
                 process = start()
                 assert client.get("/api/datasets/demo/overview").json()["run"] == new_run
+                assert (
+                    client.get("/api/datasets/demo/events", params={"run": run}).status_code == 410
+                )
                 assert client.get("/api/datasets/live/events").json()["total"] == before_live
                 assert client.get("/api/datasets/historical/events").json()["total"] == 2
                 new_incident = client.post("/api/demo/advance", params={"run": new_run}).json()[

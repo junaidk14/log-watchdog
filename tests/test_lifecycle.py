@@ -306,3 +306,59 @@ def test_startup_cleanup_uses_real_clock_and_preserves_demo(tmp_path):
             result = restarted.get(f"/api/datasets/{dataset}/events").json()
             assert [row["event_id"] for row in result["events"]] == ["recent"]
         assert restarted.get("/api/datasets/demo/events").json()["total"] == 3600
+
+
+def test_general_logs_reject_reset_run_and_restore_current_browsing(tmp_path):
+    app, client, lifecycle = setup(tmp_path)
+    original = client.get("/api/datasets/demo/overview").json()["run"]
+    saved_run = lifecycle.reset_demo(original)["run"]
+    path = "/api/datasets/demo/events"
+    assert client.get(path, params={"run": saved_run}).status_code == 200
+    current = lifecycle.reset_demo(saved_run)["run"]
+    app.state.store.ingest("demo", [event(datetime.now(UTC), "replacement-only")])
+    for browser in (client, TestClient(create_app(app.state.store.path))):
+        stale = browser.get(path, params={"run": saved_run})
+        assert stale.status_code == 410
+        assert stale.json() == {"detail": "This demo run was reset. Return to the current demo."}
+        restored = browser.get(path, params={"run": current})
+        assert restored.status_code == 200
+        assert restored.json()["events"][0]["event_id"] == "replacement-only"
+        assert browser.get(path).status_code == 200  # legacy URLs remain compatible
+        for dataset in ("live", "historical"):
+            assert (
+                browser.get(f"/api/datasets/{dataset}/events", params={"run": saved_run}).json()
+                == browser.get(f"/api/datasets/{dataset}/events").json()
+            )
+
+
+def test_general_logs_run_guard_and_events_share_snapshot(tmp_path, monkeypatch):
+    from contextlib import contextmanager
+
+    app, client, lifecycle = setup(tmp_path)
+    store = app.state.store
+    run = client.get("/api/datasets/demo/overview").json()["run"]
+    store.ingest("demo", [event(datetime.now(UTC), "old-run-only")])
+    connection = store.connection
+    reset = False
+
+    def reset_before_count(sql):
+        nonlocal reset
+        if not reset and sql.startswith("SELECT count(*) FROM events"):
+            reset = True
+            lifecycle.reset_demo(run)
+
+    @contextmanager
+    def interleaved_connection():
+        with connection() as db:
+            db.set_trace_callback(reset_before_count)
+            yield db
+
+    monkeypatch.setattr(store, "connection", interleaved_connection)
+    response = client.get("/api/datasets/demo/events", params={"run": run})
+    assert reset
+    assert response.status_code == 200
+    assert response.json()["total"] == 3601
+    assert response.json()["events"][0]["event_id"] == "old-run-only"
+    # A read begun after reset rejects the same URL instead of mixing snapshots.
+    assert client.get("/api/datasets/demo/events", params={"run": run}).status_code == 410
+    assert store.browse("demo")["total"] == 3600

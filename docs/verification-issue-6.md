@@ -106,3 +106,35 @@ Browser availability was rechecked through the supported setup: `getForUrl('http
 **Browser unavailable; rendered desktop, narrow-screen, and keyboard verification require a later manual check.**
 
 Runtime rerun: `.venv/bin/python scripts/validate_runtime.py` completed successfully with actual loopback HTTP, temporary synthetic SQLite data and process restarts. Confirmed reset/reseed, stale API rejection, Demo/Live/Historical isolation, five-step spike/retry/recovery, 503 → restart → 200 delivery, 40 evaluated/41 broader evidence, and the real-clock worker. Python 3.14.5/macOS 15.6 arm64: 100k events in 1.510 s; first/deep/filtered browse medians 3.44/5.82/10.18 ms (maxima 3.96/6.08/30.10 ms); 100 writes at target 20/s in 4.962 s, median 4.47 ms, max 7.41 ms. These synthetic measurements retain the existing performance limits and are not browser-navigation evidence.
+
+## General Logs review fix R1 (2026-09-20)
+
+A saved general Demo Logs URL now validates its run UUID in the same SQLite snapshot as the count and event page. After reset it returns HTTP 410 without replacement events. Logs shows the reset explanation and **Return to current demo** without requiring an incident selection; that action returns to general current-Demo browsing. Reset errors clear cached results; existing same-query network-failure retention remains covered. No schema, dependency, visual-token or material architectural change; extends ADR-024/027's existing snapshot/identity semantics.
+
+- **Before:** `.venv/bin/pytest -q tests/test_lifecycle.py -k general_logs` failed because the stale URL returned 200 rather than 410. `npm --prefix frontend test -- src/App.test.tsx -t 'withholds stale general'` failed because the explanation/link were absent and old results remained.
+- **After:** both commands passed. API coverage includes two resets, replacement-only data, restart, legacy untagged URLs, Live/Historical isolation and deterministic reset between run validation and count. Mocked-fetch component coverage includes refresh after another-tab reset, remount/reload, actual jsdom History Back, suppressed results, and current-Demo recovery. Existing incident-evidence tests still pass.
+- `npm --prefix frontend run build` — passed, 35 modules.
+- `npm --prefix frontend run typecheck` — passed.
+- `npm --prefix frontend run lint` — passed.
+- `npm --prefix frontend run format:check` — passed.
+- `npm --prefix frontend test` — 74 passed. Available axe DOM rules pass; axe emits jsdom's unsupported canvas diagnostic, so this is not rendered contrast evidence. No checks disabled.
+- `.venv/bin/ruff check log_watchdog tests scripts` — passed after correcting an initially misplaced runtime assertion caught as undefined `run`/`new_run`.
+- `.venv/bin/ruff format --check log_watchdog tests scripts` — passed, 18 files.
+- `.venv/bin/mypy` — passed, 10 source files.
+- `.venv/bin/python scripts/check_contrast.py` — passed, minimum reported 5.19:1 (static palette only).
+- `.venv/bin/pytest -q` — 98 passed, two existing Starlette/httpx/AnyIO deprecation warnings.
+- `.venv/bin/python scripts/validate_runtime.py` — passed with a temporary synthetic database and actual loopback HTTP/process restarts. Includes new general-Logs stale-run 410/no-event checks and current-run 3,600-event browsing, plus reset/reseed/isolation, five-step spike/retry/recovery, pending delivery restart, evaluated/late evidence and real-clock worker.
+- Runtime measurements: Python 3.14.5/macOS 15.6 arm64; 100k events in 1.450 s; first/deep/filtered browse medians 3.14/5.12/9.36 ms; 100 paced writes at target 20/s in 4.967 s, median 6.02 ms, maximum 8.71 ms. One synthetic run, not production guarantees.
+- `/Users/junaidahamad/.agents/skills/impeccable/scripts/impeccable detect --json frontend/src/App.tsx` — `[]`.
+- `git diff --check` — passed.
+
+### Manual UI verification pending — general Logs
+
+Supported Browser setup `getForUrl('http://127.0.0.1:8000')` reported **No browser is available**. Supported recovery documentation was read; `browsers.list()` returned `[]`. No rendered verification claimed.
+
+- [ ] Desktop: reset Demo, open Logs without selecting an incident, save the URL, reset in another tab, then refresh the saved URL; inspect explanation/link and absence of event rows.
+- [ ] Narrow screen/200% zoom: inspect Logs reset notice, recovery link and controls for wrapping/overflow.
+- [ ] Keyboard/focus: activate Return to current demo, verify restored browsing/focus, then browser Back and repeat recovery.
+- [ ] Browser loading/empty/error/changed interactions: slow response and failed refresh, stale URL reload, current-Demo link and current-run empty/filter states.
+
+**Browser unavailable; rendered desktop, narrow-screen, and keyboard verification require a later manual check.**

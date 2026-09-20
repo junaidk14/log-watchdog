@@ -245,3 +245,11 @@ Project-specific AFK policy now authorizes #4–#7 and requires implementation/f
 - Impeccable context, harden guidance and detector — Used for the scoped stale-state fix with existing error/control styles; no new visual tokens or dependencies.
 - Browser skill/runtime — Used for supported discovery and recovery; no browser available, recovery list empty.
 - Existing frontend/backend build, lint, format, type, contrast, test and runtime tools — Reused for verification; `pr` skill and GitHub CLI used to update the existing PR.
+
+## PR #13 general Logs review fix R1
+
+- Existing FastAPI/SQLite and React/TypeScript — Used to guard general Demo event reads in one snapshot and show the existing reset error/recovery pattern without an incident selection. No new dependency, schema or material architectural decision.
+- `diagnosing-bugs`, pytest/TestClient and Vitest/Testing Library/axe — Used for red/green API and component regressions, a deterministic reset/read interleaving, reload/refresh/Back and recovery. Supplied findings localized the cause, so regression reproduction replaced speculative hypotheses and instrumentation.
+- Impeccable context/harden/craft-floor/detector — Used for the scoped error state within existing styles; detector returned `[]`. Browser skill setup/recovery returned no browser and `[]`; rendered verification remains deferred.
+- Existing Ruff/mypy/ESLint/Prettier/TypeScript/Vite, static contrast and real HTTP runtime validator — Used for verification. jsdom's axe canvas/contrast diagnostic is an environment limit, not rendered contrast evidence; no checks were disabled.
+- `pr` skill, Git/GitHub CLI and clock — Used for existing PR evidence, dependency/metadata checks and handoff.
