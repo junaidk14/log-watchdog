@@ -9,7 +9,7 @@ The MVP implements all seven approved issues: ingestion and browsing, statistica
 - **Inspectable:** exact webhook payloads, attempt outcomes and restart recovery.
 - **Optional AI:** local summary always available; external analysis requires a preview and explicit send.
 
-[Presentation](docs/presentation.md) · [Final validation and limitations](docs/final-validation.md) · [Rendered UX checks](docs/verification-ux.md) · [Architecture decisions](docs/adr/decisions.md) · [Prompt audit](prompts.md) · [Tooling](docs/tooling.md)
+[Documentation index](docs/README.md) · [Presentation](docs/presentation.md) · [Final validation and limitations](docs/final-validation.md) · [Rendered UX checks](docs/verification-ux.md) · [Architecture decisions](docs/adr/decisions.md) · [Prompt audit](prompts.md) · [Tooling](docs/tooling.md)
 
 ## Start locally
 
@@ -31,7 +31,7 @@ For frontend development, keep the API running and use `npm --prefix frontend ru
 
 ## Five-minute walkthrough
 
-1. Open **Demo Overview**. The simulation is paused; normal history is already seeded. Use **Reset Demo** and confirm only if you want to discard the existing Demo investigation. Live and Historical remain intact.
+1. Open **Demo Overview** and follow **Try the Demo**, the compact four-step guide. The simulation is paused; normal history is already seeded. Use **Reset Demo** and confirm only if you want to discard the existing Demo investigation. Live and Historical remain intact.
 2. For the retry scenario, open **Deliveries**, choose **Fail first, then succeed** in the receiver controls and save before advancing. Return to Overview. Webhooks run in real time, independently of simulation time.
 3. Choose **Advance one minute**. Checkout produces 16 ERROR logs among 40 events (40.00%) and opens an incident. Select **Investigate checkout incident**.
 4. Inspect the recorded baseline, threshold and local summary. Open **View evaluated logs**, expand a message, then use Back. **Include later arrivals** explicitly broadens the evidence without changing the recorded measurement.
@@ -41,7 +41,13 @@ For frontend development, keep the API running and use `npm --prefix frontend ru
 
 The detector compares ERROR/FATAL events divided by **all logs**, not failed requests. It uses a configurable, sample-size-aware statistical heuristic with smoothed history and a minimum increase guard. [Formula, defaults and limitations](docs/detection.md).
 
-Overview shows recent incidents and current service trends. **Incidents** opens the focused queue/evidence workbench without the service-trend section. Overview never displays the full evidence pane. The investigation action row leads to evaluated logs, delivery history and optional Gemini; expand **Incident timeline and baseline** for lifecycle detail. Each incident row labels its latest abnormal measurement window separately from the full incident interval; a recovered incident can therefore retain a 40% abnormal measurement while the latest evaluated service window is 0%.
+Overview shows recent incidents and current service trends. **Incidents** opens the focused queue/evidence workbench without the service-trend section. Overview never displays the full evidence pane. The investigation action row leads to evaluated logs, delivery history and optional Gemini; expand **Incident timeline and baseline** for lifecycle detail. Overview rows distinguish the latest abnormal measurement window from the full incident interval. Incidents queue rows show a compact last-spike rate; exact measurements and lifecycle detail stay in the selected pane; a recovered incident can therefore retain a 40% abnormal measurement while the latest evaluated service window is 0%.
+
+## Appearance and infrastructure
+
+The moon/sun button beside Dataset switches light/dark mode. First load follows the system theme; an explicit choice persists in browser localStorage (`log-watchdog-theme`). Clearing that preference restores system behavior on reload. If storage is blocked, switching still works for the current mounted page. Theme storage never contains Gemini credentials. Reduced-motion disables theme and disclosure transitions.
+
+No cloud compute, hosted database, cloud storage or deployment resources were used for this MVP. Development used GitHub and AI tools; optional Gemini can make an external API call only after explicit consent. No live Gemini call has been verified.
 
 ## Architecture
 
@@ -50,7 +56,7 @@ flowchart LR
     Sources[JSON API / simulator / historical upload] --> API[FastAPI]
     UI[React dashboard] --> API
     API --> DB[(SQLite)]
-    Loop[Single background loop] --> Detector[Per-service detector]
+    Loop[One process: background tasks] --> Detector[Per-service detector]
     Detector --> DB
     Loop --> Delivery[Durable delivery worker]
     Delivery -->|Actual loopback HTTP| Receiver[Built-in test receiver]
@@ -107,7 +113,7 @@ npm --prefix frontend test
 
 Backend tests cover schema failures, complete-batch rollback, ID generation/deduplication/conflicts, normalization, literal filters, paging, dataset isolation, seed idempotence, and SQLite restart. Frontend tests cover query/Back restoration (including response timing), same-query actions, dataset races, expansion/focus, loading/empty/error/retry, literal rendering of untrusted messages, and available axe DOM accessibility rules. jsdom cannot establish rendered layout, contrast, or real-browser keyboard behavior. ESLint explicitly permits focusable named `region` elements to make the overflowing table keyboard-scrollable; other accessibility rules remain active.
 
-See [issue #1 evidence](docs/verification-issue-1.md), [issue #2 evidence](docs/verification-issue-2.md), [issue #3 evidence](docs/verification-issue-3.md), [issue #4 evidence](docs/verification-issue-4.md), [issue #5 evidence](docs/verification-issue-5.md), [issue #6 evidence](docs/verification-issue-6.md), and [issue #7 evidence](docs/verification-issue-7.md) for measured results and pending manual UI checks.
+See [issue #1 evidence](docs/verification-issue-1.md), [issue #2 evidence](docs/verification-issue-2.md), [issue #3 evidence](docs/verification-issue-3.md), [issue #4 evidence](docs/verification-issue-4.md), [issue #5 evidence](docs/verification-issue-5.md), [issue #6 evidence](docs/verification-issue-6.md), and [issue #7 evidence](docs/verification-issue-7.md) for historical issue evidence. [Current validation](docs/final-validation.md) records later browser coverage and remaining limitations.
 
 ## Investigate evaluated evidence
 
@@ -136,5 +142,3 @@ See [the synthetic upload walkthrough and verification](docs/verification-issue-
 ## Reset Demo
 
 In Demo Overview, choose **Reset demo**, then **Confirm reset Demo only**. This clears Demo investigation and delivery history, restores normal seeded history and receiver defaults, and leaves Live/Historical untouched. Cancellation, progress, outcome and stale-run errors are explicit. See [the reset walkthrough and retention limits](docs/lifecycle.md).
-
-Demo Overview includes **Try the Demo**, a four-step walkthrough linking to the existing reset, receiver settings, advance, and investigation controls. Reset first, then save the receiver behavior before advancing. The walkthrough never runs actions automatically.

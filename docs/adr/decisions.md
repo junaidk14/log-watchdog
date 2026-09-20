@@ -1,5 +1,7 @@
 # Architectural decisions
 
+Current implementation status reviewed 20 September 2026. Original decisions remain below; later refinements are linked rather than rewriting the original choice. The [documentation index](../README.md) and [validation record](../final-validation.md) describe current behavior and evidence.
+
 Record material architectural decisions here once made. Each entry states the decision, rationale, and status. Accepted means decided, not necessarily implemented. When a decision changes, mark the earlier entry superseded and link to its replacement.
 
 ## ADR-001 — Python application language
@@ -24,7 +26,7 @@ Record material architectural decisions here once made. Each entry states the de
 
 - **Decision:** Ingest structured JSON through the API and a built-in simulator for a few services. Include simple JSON file upload if it remains lightweight; defer arbitrary text parsing and external platform connectors.
 - **Rationale:** Support a usable ingestion path while keeping integration and parsing work bounded.
-- **Status:** Accepted; file upload is conditional on a lightweight implementation.
+- **Status:** Accepted and implemented in issue #5; the lightweight upload condition was met.
 
 ## ADR-005 — Local anomaly detection, optional LLM explanation
 
@@ -78,13 +80,13 @@ Record material architectural decisions here once made. Each entry states the de
 
 - **Decision:** Use FastAPI and SQLite for the backend and a lightweight React dashboard, running as one local application with a single worker and background evaluation/delivery loop.
 - **Rationale:** Keep local operation simple while supporting a richer investigation experience in React.
-- **Status:** Accepted; frontend build tooling remains an implementation choice.
+- **Status:** Accepted and implemented with React/TypeScript and Vite.
 
 ## ADR-014 — Configurable statistical detector
 
 - **Decision:** Evaluate completed one-minute windows against recent per-service normal history with a sample-size-aware proportion threshold, smoothing, and a minimum increase guard. Keep thresholds and minimum sample sizes configurable. Default to 30 prior normal windows, at least 10 baseline windows, and 20 events per evaluated window. Freeze baseline updates during incidents; recover after three consecutive eligible normal windows. Missing traffic is insufficient evidence, not recovery.
 - **Rationale:** Provide simple, explainable statistical detection that handles sparse traffic and zero-error history without presenting its result as a probability of failure.
-- **Status:** Accepted; exact smoothing and increase parameters will be documented and validated during implementation.
+- **Status:** Accepted and implemented; exact formula/configuration in [detection](../detection.md) and ADR-025.
 
 ## ADR-015 — Event identity and evaluation boundary
 
@@ -120,20 +122,20 @@ Record material architectural decisions here once made. Each entry states the de
 
 - **Decision:** Include one LLM integration if lightweight, configured only through environment variables. Send evidence only after preview and an explicit "Send for analysis" action. Provide a clearly labeled local evidence summary without credentials; lack of credentials must not block MVP operation. Delegate provider choice to the implementing agent based on simplicity and free/low-cost availability.
 - **Rationale:** Add useful assisted investigation without making external AI a dependency of the core product.
-- **Status:** Accepted; provider selected in ADR-021.
+- **Status:** Accepted; provider selected in ADR-021. Environment-only key source superseded by [ADR-032](#adr-032--session-only-gemini-key-entry).
 
 ## ADR-021 — Gemini for optional evidence analysis
 
 - **Decision:** Use the Gemini API through a small server-side REST adapter, with `GEMINI_API_KEY` and optional `GEMINI_MODEL` environment configuration; default to `gemini-3.5-flash-lite`. Restrict unpaid access to synthetic demo evidence; require appropriate paid-service configuration before enabling external analysis of live/imported evidence.
 - **Rationale:** The documented stable model offers free-tier and low-cost paid access without an orchestration framework. Unpaid-service data-use terms make synthetic demo evidence the suitable default; basic redaction does not establish that real logs are suitable for unpaid processing.
-- **Status:** Accepted under delegated provider selection; implemented in issue #7 and refined by ADR-031. No live provider call or account quota verified.
+- **Status:** Accepted under delegated provider selection; implemented in issue #7 and refined by ADR-031; environment-only key source superseded by [ADR-032](#adr-032--session-only-gemini-key-entry). Historical evidence has no incident-analysis endpoint under ADR-031. No live provider call or account quota verified.
 - **Sources:** [Models](https://ai.google.dev/gemini-api/docs/models), [pricing](https://ai.google.dev/gemini-api/docs/pricing), [terms](https://ai.google.dev/gemini-api/terms), [REST API](https://ai.google.dev/api/generate-content). Checked 2026-09-20 IST.
 
 ## ADR-022 — Evaluated evidence as the incident log default
 
 - **Decision:** Incident log links initially show events included in detection, with an explicit option to include later arrivals. Preserve the distinction between evaluated evidence and broader matching logs; later arrivals do not alter recorded incident measurements.
 - **Rationale:** Keep the investigation consistent with the detector's recorded numerator and denominator while allowing users to inspect additional context.
-- **Status:** Accepted by the user after the UI critique; implementation must retain enough evaluation provenance to distinguish these scopes.
+- **Status:** Accepted and implemented; ADR-025/027 record the watermark and pinned-window provenance.
 
 ## ADR-023 — Atomic dataset-scoped ingestion
 
@@ -163,7 +165,7 @@ Record material architectural decisions here once made. Each entry states the de
 
 - **Decision:** Incident evidence URLs carry the evaluation ID and, for Demo, a persisted run UUID. Read evidence using the recorded dataset/service/half-open interval/watermark in one SQLite snapshot; query refinements and later-arrival inclusion never change recorded measurements. Keep a window pinned while the incident progresses. Persist the demo UUID in the existing settings table, including on upgrades; the reset slice must rotate it atomically with reset.
 - **Rationale:** An incident's latest abnormal window can change during investigation, and numeric IDs can be reused after reset. Explicit window/run identity prevents links from silently changing meaning. Retained unfiltered evidence counts are compared with recorded totals to distinguish missing evidence from an empty refinement. This reuses ADR-025 provenance without copying log content.
-- **Status:** Accepted and implemented in issue #3. Demo reset/retention execution remains issue #6; tests simulate their unavailable-data boundaries. Retention must continue protecting provenance and avoid reusing event sequences beneath retained watermarks.
+- **Status:** Accepted and implemented in issue #3. Demo reset/retention is implemented in ADR-029/030 and tested against unavailable-data boundaries. Retention must continue protecting provenance and avoid reusing event sequences beneath retained watermarks.
 
 ## ADR-028 — Transactional outbox and bounded crash accounting
 

@@ -1,3 +1,4 @@
+import { ThemeToggle } from "./ThemeToggle";
 import { useEffect, useRef, useState } from "react";
 import {
   useDocumentTitle,
@@ -144,24 +145,27 @@ export function Deliveries() {
             </h1>
             <p>Track notifications and delivery attempts.</p>
           </div>
-          <label className="dataset-select">
-            Dataset
-            <select
-              value={dataset}
-              onChange={(event) => {
-                window.history.pushState(
-                  { focus: "deliveries-heading" },
-                  "",
-                  `?view=deliveries&dataset=${event.target.value}`,
-                );
-                window.dispatchEvent(new PopStateEvent("popstate"));
-              }}
-            >
-              <option value="demo">Demo</option>
-              <option value="live">Live</option>
-              <option value="historical">Historical</option>
-            </select>
-          </label>
+          <div className="header-controls">
+            <label className="dataset-select">
+              Dataset
+              <select
+                value={dataset}
+                onChange={(event) => {
+                  window.history.pushState(
+                    { focus: "deliveries-heading" },
+                    "",
+                    `?view=deliveries&dataset=${event.target.value}`,
+                  );
+                  window.dispatchEvent(new PopStateEvent("popstate"));
+                }}
+              >
+                <option value="demo">Demo</option>
+                <option value="live">Live</option>
+                <option value="historical">Historical</option>
+              </select>
+            </label>
+            <ThemeToggle />
+          </div>
         </header>
         <section className="dataset-context" aria-label="Delivery context">
           <strong>

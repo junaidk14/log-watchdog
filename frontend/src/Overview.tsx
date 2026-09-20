@@ -1,3 +1,4 @@
+import { ThemeToggle } from "./ThemeToggle";
 import { EvidencePane } from "./EvidencePane";
 import {
   useDocumentTitle,
@@ -531,19 +532,22 @@ export function Overview() {
                 : "Check recent incidents and service trends."}
             </p>
           </div>
-          <label className="dataset-select">
-            Dataset
-            <select
-              value={dataset}
-              onChange={(event) => {
-                window.location.href = `?view=${event.target.value === "historical" ? "logs" : destination}&dataset=${event.target.value}`;
-              }}
-            >
-              <option value="demo">Demo</option>
-              <option value="live">Live</option>
-              <option value="historical">Historical</option>
-            </select>
-          </label>
+          <div className="header-controls">
+            <label className="dataset-select">
+              Dataset
+              <select
+                value={dataset}
+                onChange={(event) => {
+                  window.location.href = `?view=${event.target.value === "historical" ? "logs" : destination}&dataset=${event.target.value}`;
+                }}
+              >
+                <option value="demo">Demo</option>
+                <option value="live">Live</option>
+                <option value="historical">Historical</option>
+              </select>
+            </label>
+            <ThemeToggle />
+          </div>
         </header>
         {reset && (
           <div className="error" role="alert">

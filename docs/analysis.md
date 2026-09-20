@@ -14,7 +14,7 @@ For Live or unverified Demo evidence, configure a key linked to a project with a
 ## User path
 
 1. Open Demo Overview, advance once, and Investigate checkout.
-2. After the local summary and supporting sample, choose **Preview evidence for analysis**. This makes no external call. Missing credentials or an unpaid privacy restriction appears inline.
+2. Use the Gemini action to jump below the local summary (before sample logs), then choose **Preview evidence for analysis**. This makes no external call. Missing credentials or an unpaid privacy restriction appears inline.
 3. Read the exact evidence packet and disclosure. It contains a redacted service name, fixed evaluated counts/rates/window, and at most five evaluated messages with synthetic reference IDs. Metadata and original event IDs are omitted. Common credential assignments, authorization strings, emails and URLs receive basic redaction before messages are capped at 800 characters. Arbitrary text can still contain secrets; review every value.
 4. Choose **Send for analysis** to disclose that packet to Google. No later events or refreshed measurements are added. Gemini receives that exact string plus fixed system instructions and a structured output schema, not the rest of your investigation.
 5. Review the generated summary, possible causes and next checks as hypotheses. Each claim links only to validated supplied evidence. Links preserve dataset, incident, window and Demo run. Model text is rendered as plain text, without executable markup, external links or actions. References establish membership, not truth or proof of causation.
@@ -35,14 +35,10 @@ There is one active analysis request at a time, outside SQLite transactions, to 
 
 The default model is listed in the [official model catalog](https://ai.google.dev/gemini-api/docs/models), checked 2026-09-20 UTC. The adapter follows [generateContent REST documentation](https://ai.google.dev/api/generate-content). The privacy gate follows the distinction described in [Gemini API terms](https://ai.google.dev/gemini-api/terms). Catalog availability does not prove a particular account's access, billing status or quota.
 
-Controlled-response tests verify request content, headers, endpoint, bounds, errors and reference validation. **No live Gemini call was made**; real account access and provider output quality remain unverified. No real user logs were transmitted for testing. See [issue #7 verification](verification-issue-7.md) for executed commands and deferred browser checks.
+Controlled-response tests verify request content, headers, endpoint, bounds, errors and reference validation. **No live Gemini call was made**; real account access and provider output quality remain unverified. No real user logs were transmitted for testing. See [issue #7 verification](verification-issue-7.md) for the original report and [current validation](final-validation.md) for later rendered setup/preview checks and their limits.
 
 
-## Session-key save regression fix
-
-The original local validator rejected dots and the password input truncated at 256 characters. That rejected authorization-key shapes emitted by AI Studio before they reached memory storage. The frontend/backend now share a 2,048-character bound without assuming a provider-specific alphabet. The 4 KiB request cap, same-origin/custom-header checks, memory-only override and environment fallback remain in place. Configured means a key is present, not that Google has authenticated it.
-
-Setup requests disable preview/send until complete. Successful save/clear invalidates the previous preview/result and errors; successful status refresh clears setup/analysis errors without discarding a valid preview. Regression tests cover no-environment save → configured status → immediate local preview using synthetic dotted/long keys, header/payload correctness, pending-save interlock, stale-error clearing and the existing clear/fallback/no-disclosure protections. No real key or provider call was used.
+Successful save/clear invalidates prior preview/result/errors. Successful status refresh clears stale setup/analysis errors; preview/send stays disabled while setup is pending. Key-shape and stale-error regressions are recorded in [UX verification](verification-ux.md).
 
 ## Older Demo evidence and configured keys
 

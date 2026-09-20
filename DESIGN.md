@@ -14,7 +14,7 @@ colors:
   error-bg: "#fff0f0"
   warning: "#805000"
   warning-bg: "#fff3d6"
-  control-border: "#8395a1"
+  control-border: "#798d9a"
   pressed: "#d0e4ec"
   disabled-bg: "#edf0f2"
   disabled-ink: "#64737e"
@@ -110,7 +110,7 @@ A precise, restrained operations workspace. Compact ruled rows, clear labels, an
 - Compact ruled rows with explicit severity labels.
 - Inline evidence, UTC labels, and visible dataset context.
 
-This document describes the completed MVP and final code-first refinement. Sources are `frontend/src/styles.css`, `Overview.tsx`, `EvidencePane.tsx`, `App.tsx`, `Deliveries.tsx`, `Historical.tsx`, and `AnalysisPane.tsx`. No raster assets, external fonts, or chart library are used. The focused UX pass was inspected before and after in Playwriter local headless Chrome at 1440px and 390px, including keyboard and Back/Forward checks. Extension-mode Chrome did not attach; this is not a physical-device or cross-browser claim. See `docs/verification-ux.md` for current evidence.
+This document describes the completed MVP and final code-first refinement. Sources are `frontend/src/ThemeToggle.tsx`, `frontend/src/styles.css`, `Overview.tsx`, `EvidencePane.tsx`, `App.tsx`, `Deliveries.tsx`, `Historical.tsx`, and `AnalysisPane.tsx`. No raster assets, external fonts, or chart library are used. The focused UX pass was inspected before and after in Playwriter local headless Chrome at 1440px and 390px, including keyboard and Back/Forward checks. Extension-mode Chrome did not attach; this is not a physical-device or cross-browser claim. See `docs/verification-ux.md` for current evidence.
 
 ## Colors
 
@@ -120,7 +120,7 @@ Workbench blue identifies actions and links; the deeper accent marks primary hov
 
 ### Neutral
 
-Cool ground backs the workspace and table headings; panel white contains evidence. Slate ink carries primary text, muted ink supporting context. Fine rules divide regions without shadows. Detail fill connects expanded log rows to their source.
+Cool ground backs the workspace and table headings; a distinct surface contains evidence in both palettes. Slate ink carries primary text, muted ink supporting context. Fine rules divide regions without shadows. Detail fill connects expanded log rows to their source.
 
 ### Semantic states
 
@@ -134,17 +134,17 @@ System sans-serif carries interface text; monospace is reserved for metadata and
 
 ## Layout
 
-Desktop uses a 188px navigation rail and a flexible main region with 32px padding. Main content is capped at 1480px and centered within the flexible region. Main padding becomes 24px at 1100px and 24px 16px at 700px. The narrow rail wraps navigation links. Headers separate page identity from a 164px dataset selector, which fills the narrow width.
+Desktop uses a 188px navigation rail and a flexible main region with 32px padding. Main content is capped at 1320px and centered within the flexible region. Main padding becomes 24px at 1100px and 24px 16px at 700px. The narrow rail wraps navigation links. Headers separate page identity from a 164px dataset selector and a 40px moon/sun theme button. On narrow screens the group fills the width, the selector flexes and the button is 44px.
 
-Incidents uses `minmax(240px, 1fr) minmax(0, 2fr)` columns; Overview is a single summary column and never mounts the investigation pane. Queue and pane each have 20px padding and a fine divider. With no incidents and no selected URL, a single compact guidance region replaces empty table headings and the unusable selection pane. Invalid selected URLs retain their recovery path. Below 900px, selection displays the pane with Back to incidents; otherwise the queue is shown.
+Incidents uses `minmax(240px, 0.8fr) minmax(0, 2fr)` columns; Overview is a single summary column and never mounts the investigation pane. Queue and pane each have 20px padding and a fine divider. With no incidents and no selected URL, a single compact guidance region replaces empty table headings and the unusable selection pane. Invalid selected URLs retain their recovery path. Below 900px, selection displays the pane with Back to incidents; otherwise the queue is shown.
 
 Filters use four columns, two below 1100px and one below 700px. Results scroll within named focusable regions; log/trend tables retain their deliberate minimum widths. Evidence and delivery definition lists stack on narrow screens. Controls and action links share a 40px desktop minimum height and 14px type; inputs use regular weight. Controls, inputs, selects, action links and disclosures have a 44px narrow minimum height, with 16px input type. Narrow panels share 16px padding. Checkboxes retain their native compact control and surrounding label.
 
-Service trends follow the investigation with 24px separation; each ruled service region starts 16px below the prior region. Paired charts use two columns and a 24px gap, stacking below 700px. Chart margins are 12px. Empty log states use 28px vertical and 20px horizontal padding with left-aligned explanation/actions. Retention guidance follows the workflow rather than competing above the incident queue.
+Service trends follow recent incidents on Overview with 24px separation; each ruled service region starts 16px below the prior region. Paired charts use two columns and a 24px gap, stacking below 700px. Chart margins are 12px. Empty log states use 28px vertical and 20px horizontal padding with left-aligned explanation/actions. Retention guidance follows the workflow rather than competing above the incident queue.
 
 ## Elevation & Depth
 
-Flat ruled regions and restrained fills establish grouping. No shadows, gradients, decorative imagery, entrances, or chart animation are used. Immediate feedback is appropriate for this operations console: button labels, disabled states, timestamps, and polite status announcements communicate work without motion. Reduced-motion users therefore receive the same complete information.
+Flat ruled regions and restrained fills establish grouping. No shadows, gradients, decorative imagery or chart animation are used. Button labels, disabled states, timestamps and announcements provide immediate feedback. Limited opacity entry and theme color transitions are described below; reduced-motion users receive all information immediately.
 
 ## Shapes
 
@@ -158,7 +158,7 @@ Explicit text actions and native inputs retain existing hover, press, disabled a
 
 ### Workbench and evidence
 
-Overview presents recent incident rows and latest evaluated service trends; its queue always fills the content width. Investigate moves to Incidents with the incident selected. Queue rows are a semantic list rather than a cramped two-column table. Incidents omits service trends and prioritizes a queue/evidence grid with a one-third/two-thirds desktop split. The queue presents service, Open/Recovered state, latest abnormal-window observed versus expected error-log rate, that measurement’s UTC window, and a separately labeled full incident interval. Selection focuses the pane heading. The pane retains latest abnormal measurement and recovery progress; evaluated-window selection chooses the evidence beneath it. Refresh preserves selection and announces transitions without stealing focus. Insufficient traffic never advances recovery.
+Overview presents recent incident rows and latest evaluated service trends; its queue always fills the content width. Investigate moves to Incidents with the incident selected. Queue rows are a semantic list rather than a cramped two-column table. Incidents omits service trends and prioritizes a queue/evidence grid with a compact queue and wider evidence pane. Incidents queue rows show service, Open/Recovered state and last-spike error-log rate. Overview rows additionally separate observed/expected measurements, the abnormal UTC window and lifecycle interval. Exact investigation detail stays in the selected pane. Selection focuses the pane heading. The pane retains latest abnormal measurement and recovery progress; evaluated-window selection chooses the evidence beneath it. Refresh preserves selection and announces transitions without stealing focus. Insufficient traffic never advances recovery.
 
 A single recorded window uses a compact, wrapping observed/baseline/threshold comparison rather than a full time-series frame. A shared action row leads evaluated evidence: View evaluated logs is primary, followed by View delivery history and a focusable jump to Gemini analysis. Full incident timeline/baseline details use a native disclosure; the selected window’s comparison remains visible. Counts are not repeated in a second measurement paragraph. Optional Gemini analysis follows the local summary and precedes the representative sample. Sample links stay mounted to preserve return focus. Basic evidence remains usable without credentials. Error, stale-run, unavailable, loading and retained-results states offer their existing recovery actions.
 
@@ -170,7 +170,7 @@ Multi-window charts use a responsive `540 × 180` SVG. Error-log rate retains a 
 
 Logs expand inline to full messages, identifiers, ingestion times and metadata. Evaluated scope is explicit; including later arrivals does not alter the recorded measurement. Clear refinements preserves incident scope; leaving it is a distinct action. Loading, empty and failed-refresh states preserve context.
 
-Delivery history exposes payloads, attempts and real-time retry state before the secondary Demo receiver settings. Exhaustion explains the bounded ending and Demo reset/configure/advance path. Logs exposes an explicit Import JSON into Historical link as well as the Dataset selector. Switching to Historical immediately reveals its import form. Historical uploads have native labeled file input, bounded validation, atomic failure feedback, and a browse-results path. Reset uses a Demo-only confirmation and restores context with a new run identity.
+Delivery history exposes payloads, attempts and real-time retry state. At widths above 1100px receiver settings sit alongside history; below that they stack after it. Exhaustion explains the bounded ending and Demo reset/configure/advance path. Logs exposes an explicit Import JSON into Historical link as well as the Dataset selector. Switching to Historical immediately reveals its import form. Historical uploads have native labeled file input, bounded validation, atomic failure feedback, and a browse-results path. Reset uses a Demo-only confirmation and restores context with a new run identity.
 
 ### External analysis
 
@@ -191,17 +191,17 @@ Gemini setup is an inline disclosure with a password input, session-key save and
 - Don't treat source or DOM checks as rendered layout or real-browser keyboard verification.
 
 
-### Focused readability refinement
+## Product copy and controls
 
-Incident queue rows prioritize service, lifecycle state and last-spike error-log rate. Full abnormal-window measurements and lifecycle intervals belong to the selected investigation, with timeline/baseline detail under its existing disclosure. Window choices use minute-resolution UTC labels; recorded bounds remain precise in the measurement panel. Avoid repeating event totals in the local summary.
+Use “Last refreshed”, “Latest window” and “Demo · Simulated data”. Keep error-log rate, evaluated scope, UTC boundaries and recovery meaning precise. File-format/retry disclosures and technical docs retain exact limits. Logs pairs native service selection with an exact-name text field; both edit the same draft and Apply filters commits it. Choices are dataset-scoped, capped at 200 with a truncation hint. Incident scope locks service/time.
 
-Logs exposes a native service dropdown alongside the existing exact-name text field. Both edit the same draft filter; Apply filters commits it. Choices cover the current dataset independently of other filters, capped at 200 with a truncation hint. Incident-scoped service controls remain locked to their evidence provenance.
+Native selects use flat input styling and an SVG chevron with reserved padding, existing focus treatment and disabled colors. Forced-colors mode restores the system indicator. Helper prose is bounded to 70ch and control/panel spacing follows the existing grid.
 
-### Final copy and control polish
+## Themes
 
-Use concise product labels: “Last refreshed”, “Latest window”, and “Demo · Simulated data”. Keep error-log rate, evaluated-evidence scope, UTC bounds and recovery meaning precise. Upload guidance leads with event count and MB; exact byte limits remain in documentation and validation. Memory-only key handling and explicit send consent stay visible.
+A moon icon switches to dark; a sun switches to light. The header button has an action label and matching tooltip, remains keyboard-operable and does not navigate. On first load, system preference selects the palette before content paints. Explicit choice persists under `log-watchdog-theme`; system changes are followed until a choice is made. Storage failure never blocks the current switch. Cross-tab changes synchronize. Gemini keys never use this storage.
 
-All pages share a 1,320px maximum content area. Investigation allocates more width to evidence; desktop Deliveries places receiver settings beside history and stacks them below at 1,100px. Helper prose is constrained to 70ch. Native selects use flat input styling and a small SVG chevron with reserved right padding, existing focus treatment and disabled colors. Forced-colors mode restores the system indicator. No custom combobox, font, palette, navigation or behavior change.
+Both palettes use semantic CSS tokens for surfaces, rules, text, controls, SVG charts, severity, errors and focus. The light colors in frontmatter and dark values in `styles.css` are authoritative. Dark ground is `#131b22`, surface `#1b2731`, ink `#e4edf2`, accent `#86c6df`; primary button text is separately tokenized for contrast. The contrast script checks both palettes. Theme transition affects root background/text colors for 120ms and is disabled for reduced-motion. Layout, typography and navigation are shared.
 
 ### Demo walkthrough
 

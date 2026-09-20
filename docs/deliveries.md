@@ -2,7 +2,7 @@
 
 New incident opening and recovery transitions create one notification each, atomically with the transition and evaluated measurement. Repeated abnormal windows do not notify again. Existing incidents from before this feature are not backfilled; an existing open incident can still produce its future recovery notification.
 
-The background worker posts actual HTTP to `http://127.0.0.1:8000/api/receiver`. Use the documented single-worker launcher on port 8000. The destination cannot be edited; proxies and redirects are not used. Three total attempts are allowed, with a two-second socket timeout and real-time delays of two then five seconds after failed attempts. These constants are not environment-configurable in this slice. Advancing Demo changes event/evaluation time only.
+The background worker posts actual HTTP to `http://127.0.0.1:8000/api/receiver`. Use the documented single-worker launcher on port 8000. The destination cannot be edited; proxies and redirects are not used. Three total attempts are allowed, with a two-second socket timeout and real-time delays of two then five seconds after failed attempts. These constants are not environment-configurable in the MVP. Advancing Demo changes event/evaluation time only.
 
 A delivery stores its UUID, dataset, Demo run identity, incident ID, kind, real creation time and frozen payload (incident transition plus bounded evaluated counts/rate/baseline/threshold/provenance). It moves through pending, sending, retry scheduled, delivered or exhausted. Each attempt stores start/finish UTC, HTTP status or network error, duration and duplicate acknowledgment. The UI distinguishes incident state from notification state.
 
@@ -28,4 +28,6 @@ Seven-day retention and Demo-only reset are implemented. Retention preserves act
 - `POST /api/receiver`: built-in receiver validates an existing stable `X-Delivery-ID` and exact frozen payload bytes, bounded to 64 KiB. Repeated accepted deliveries return `X-Delivery-Duplicate: true`.
 - Incident evidence includes current opening/recovery notification statuses, while measurements stay pinned.
 
-See [issue #4 verification](verification-issue-4.md) for completed automated and real-HTTP evidence and the pending browser checklist.
+The **Try the Demo** guide on Overview links to receiver settings. Deliveries repeats the reset → choose behavior → advance sequence; it does not run those actions automatically. Desktop places settings beside history; narrow screens place them below.
+
+See [issue #4 verification](verification-issue-4.md) for historical HTTP evidence and [current validation](final-validation.md) for later browser coverage and limits.

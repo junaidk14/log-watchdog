@@ -1551,3 +1551,68 @@ At the end, report where motion was added and why.
 ```
 
 Applied the installed Emil design-engineering skill. Inspected Gemini preview/setup and delivery details before editing. Added a 140ms opacity-only entry transition from 0.85 to 1 for setup, evidence packet, result and delivery detail content. Exits remain immediate; no timing/handler/route/backend change. Reduced-motion disables it; visible keyboard focus suppresses transitions. Existing frontend checks passed before the targeted after-check. Gemini response verification used a browser-intercepted mock, with no external provider request.
+
+## 2026-09-20 — Documentation cleanup and refresh
+
+```text
+We’re close to finalizing the project. Please do a documentation cleanup and refresh.
+
+First, inspect the repo and organize the Markdown docs so they’re easier to navigate. Prefer creating/updating docs/README.md as a clear documentation index instead of moving lots of files around.
+
+Then review the main docs and update anything stale so they match the current implementation, especially:
+- README.md
+- PRODUCT.md
+- DESIGN.md
+- CONTEXT.md
+- docs/mvp-spec.md
+- docs/ui-flow.md
+- docs/detection.md
+- docs/deliveries.md
+- docs/analysis.md
+- docs/lifecycle.md
+- docs/tooling.md
+- docs/final-validation.md
+- docs/presentation.md
+- docs/adr/decisions.md
+
+Make sure they reflect the current UX, Demo flow, Historical import, Gemini setup, delivery behavior, browser validation, test status, limitations, and that no cloud resources were used.
+
+Keep the docs concise, avoid duplication, preserve prompts.md history, and fix any broken relative links.
+
+Do not change application behavior.
+
+At the end, report which docs changed and any stale items you intentionally left alone.
+```
+
+Created the documentation index and refreshed all requested current references against source, validation records and rendered UI. Consolidated repeated UI/tooling notes. Preserved ticket drafts, original verification snapshots and superseded ADR decisions as historical records. Relative links in current documentation resolve; copied skill-relative links in earlier prompts remain verbatim audit history. Clarified that no cloud application infrastructure was provisioned, while GitHub and AI development tools were used and optional Gemini remains external.
+
+## 2026-09-20 — Light/dark theme
+
+```text
+Please add a light/dark theme toggle to the app.
+
+Place a small moon/sun icon button in the top-right header area near the dataset selector.
+
+Requirements:
+- default to the user’s system theme on first load
+- persist the selected theme locally
+- use a moon icon for switching to dark mode and a sun icon for switching back
+- add an accessible label/tooltip
+- keep the existing visual language, spacing, and layout
+- make sure charts, tables, inputs, borders, status colors, error states, and focus indicators remain readable in both themes
+- use a subtle theme transition only; no decorative animation
+- respect prefers-reduced-motion
+- do not change application behavior
+
+After implementation, verify the main pages in both themes and at narrow width. also add this
+```
+
+Added the shared header toggle, first-paint system/saved preference, local theme persistence, dark tokens and reduced-motion-aware color transition. Only the theme preference uses localStorage; Gemini credentials remain server-memory-only. Added preference, storage-failure and keyboard regression coverage, and checked contrast for both palettes. Documentation refresh includes this authorized UI addition. Backend behavior remains unchanged.
+
+## 2026-09-20 — Continue
+
+```text
+go
+```
+
+Continued the documentation refresh, theme validation and audit updates without expanding scope.

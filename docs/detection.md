@@ -1,10 +1,10 @@
 # Error-log rate detection
 
-Issue #2 adds per-service, dataset-isolated detection. It is a heuristic for unusual log severity proportions, not a probability of failure or a failed-request metric. ERROR and FATAL are the numerator; every severity contributes to the denominator.
+Detection is per-service and dataset-isolated. It is a heuristic for unusual log severity proportions, not a probability of failure or a failed-request metric. ERROR and FATAL are the numerator; every severity contributes to the denominator.
 
 ## Run the scenario
 
-Start the application as documented in the README. Overview opens by default. Demo starts paused at simulation time `2026-01-01 12:00:10Z` with 30 normal minutes for three services. Select **Advance one minute**:
+Start the application as documented in the README. Overview opens by default. Demo starts paused at simulation time `2026-01-01 12:00:10Z` with 30 normal minutes for three services. The Demo-only **Try the Demo** guide links to reset, receiver setup and the existing controls. With a fresh run, select **Advance one minute**:
 
 1. `checkout` has 16 ERROR events out of 40 (40.00%) and opens an incident. Investigate shows the recorded baseline and threshold.
 2. The second advance produces another 40.00% window and updates the same incident.
@@ -63,7 +63,7 @@ Window length stays one minute. Demo's fixed 30-minute seed demonstrates the spi
 
 ## Persistence, time, and evidence
 
-Each evaluation persists start/end, observed counts/rate, baseline counts/size, expected rate, threshold, status, baseline membership, incident identity, parameters, and a maximum event insertion sequence. Included events are precisely those matching the recorded dataset, service, `[start,end)` and `sequence <= watermark`. Counts and watermark are read in the same SQLite write transaction; later ingestion cannot interleave with that decision. Existing event rows are immutable. Late arrivals remain searchable but cannot change recorded evaluations or incidents. Future retention/reset work must preserve this provenance and must not reuse retained sequence identities.
+Each evaluation persists start/end, observed counts/rate, baseline counts/size, expected rate, threshold, status, baseline membership, incident identity, parameters, and a maximum event insertion sequence. Included events are precisely those matching the recorded dataset, service, `[start,end)` and `sequence <= watermark`. Counts and watermark are read in the same SQLite write transaction; later ingestion cannot interleave with that decision. Existing event rows are immutable. Late arrivals remain searchable but cannot change recorded evaluations or incidents. Implemented retention/reset preserves protected provenance and does not reuse retained sequence identities; see [lifecycle](lifecycle.md).
 
 Live detection starts at the current UTC minute on its first installation. Previously stored live events before that cursor remain browsable and do not retroactively alert or train history. New services learn only from windows evaluated after the dataset cursor; sending old timestamps does not rewind it. On restart, a persisted cursor catches up chronologically, including empty gaps that break recovery. Each transaction processes at most 240 minutes; subsequent worker ticks continue until current. The worker runs in a thread through the FastAPI lifespan, so the event loop remains responsive; failed evaluation rolls back and logs an error before retrying. Overview's cursor exposes lag.
 
@@ -74,4 +74,4 @@ API:
 - `GET /api/datasets/{demo|live}/overview`: progress, current config, latest per-service evaluations, recent 30-minute trends, incidents with their latest abnormal measurement, real server time and delayed flag.
 - `POST /api/demo/advance`: commits one synthetic minute and returns the demo overview.
 
-Schema additions are additive to the issue #1 database. Incident delivery, richer evidence navigation/local summaries, historical file upload, and retention/reset remain separate issues. This slice does not create notification work or send outbound requests.
+Opening/recovery transitions enqueue notification work atomically with detection; the separate [delivery worker](deliveries.md) performs HTTP outside the transaction. [Lifecycle](lifecycle.md) governs retention/reset and [UI flow](ui-flow.md) describes evaluated-evidence navigation.

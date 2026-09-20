@@ -1,3 +1,4 @@
+import { ThemeToggle } from "./ThemeToggle";
 import { HistoricalUpload, HistoricalTrends } from "./Historical";
 import {
   useDocumentTitle,
@@ -347,30 +348,33 @@ export function App() {
             </h1>
             <p>Find logs by service, time, or message.</p>
           </div>
-          <label className="dataset-select">
-            Dataset
-            <select
-              value={draft.dataset}
-              onChange={(e) =>
-                navigate({
-                  ...filters,
-                  dataset: e.target.value,
-                  page: 1,
-                  incident: "",
-                  evaluation: "",
-                  run: "",
-                  event_id: "",
-                })
-              }
-            >
-              {!datasets.includes(draft.dataset) && (
-                <option value={draft.dataset}>Unknown dataset</option>
-              )}
-              <option value="demo">Demo</option>
-              <option value="live">Live</option>
-              <option value="historical">Historical</option>
-            </select>
-          </label>
+          <div className="header-controls">
+            <label className="dataset-select">
+              Dataset
+              <select
+                value={draft.dataset}
+                onChange={(e) =>
+                  navigate({
+                    ...filters,
+                    dataset: e.target.value,
+                    page: 1,
+                    incident: "",
+                    evaluation: "",
+                    run: "",
+                    event_id: "",
+                  })
+                }
+              >
+                {!datasets.includes(draft.dataset) && (
+                  <option value={draft.dataset}>Unknown dataset</option>
+                )}
+                <option value="demo">Demo</option>
+                <option value="live">Live</option>
+                <option value="historical">Historical</option>
+              </select>
+            </label>
+            <ThemeToggle />
+          </div>
         </header>
         {filters.dataset !== "historical" && (
           <p className="import-entry">
