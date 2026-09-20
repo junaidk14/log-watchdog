@@ -1834,3 +1834,11 @@ commit and push
 ```
 
 Verified the working tree was clean at bffef30 on cleanup-main-flows. Recorded this prompt and the Git verification in the audit/tooling docs, then committed and pushed the documentation update. No application changes.
+
+## 2026-09-20 — Merge completed cleanup into main
+
+```text
+merge with main
+```
+
+Verified the clean cleanup-main-flows branch and its accumulated UI, Gemini setup, theme, documentation and media scope. No existing PR for this branch. User authorized creating/merging its PR into main and synchronizing local main; use GitHub mergeability/check results without bypassing branch protection. Validation remains the documented 103 frontend tests and frontend checks, targeted rendered navigation checks, and earlier scoped backend evidence. No new application edits for this merge.
