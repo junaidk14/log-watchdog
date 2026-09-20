@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { PageLink, viewUrl } from "./navigation";
+import { GeminiSetup } from "./GeminiSetup";
 
 type Reference = Record<string, string | null>;
 type Preview = {
@@ -119,6 +120,15 @@ export function AnalysisPane({
         Preview a small evidence sample before choosing whether to send it. The
         local summary above works without Gemini credentials.
       </p>
+      <GeminiSetup
+        disabled={busy !== null}
+        onChanged={() => {
+          setPreview(null);
+          setResult(null);
+          setAttempted(false);
+          setError("");
+        }}
+      />
       <button disabled={busy !== null} onClick={() => void request(false)}>
         {preview ? "Create new preview" : "Preview evidence for analysis"}
       </button>

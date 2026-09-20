@@ -408,14 +408,14 @@ it.each([false, true])(
     expect(window.location.search).toContain("incident=1");
     expect(window.location.search).toContain("evaluation=91");
     expect(screen.getByLabelText("Evaluated window")).toHaveValue("91");
-    await user.click(screen.getByRole("button", { name: "Refresh overview" }));
+    await user.click(screen.getByRole("button", { name: "Refresh incidents" }));
     await waitFor(() =>
       expect(
-        screen.getByRole("button", { name: "Refresh overview" }),
+        screen.getByRole("button", { name: "Refresh incidents" }),
       ).toBeEnabled(),
     );
     expect(
-      screen.getByRole("button", { name: "Refresh overview" }),
+      screen.getByRole("button", { name: "Refresh incidents" }),
     ).toHaveFocus();
   },
 );
@@ -485,7 +485,7 @@ it.each([
       await user.click(screen.getByRole("link", { name: "Back to incident" }));
     }
     if (delayedFailure) {
-      await screen.findByText("Loading overview…");
+      await screen.findByText("Loading incidents…");
       expect(
         screen.getByRole("heading", { name: "Incidents", level: 1 }),
       ).not.toHaveFocus();
@@ -512,7 +512,7 @@ it.each([
     expect(window.location.search).toContain("incident=1");
     expect(window.location.search).toContain("evaluation=91");
     // Subsequent updates must not replay the completed return restoration.
-    const refresh = screen.getByRole("button", { name: "Refresh overview" });
+    const refresh = screen.getByRole("button", { name: "Refresh incidents" });
     fetchMock.mockClear();
     await user.click(refresh);
     await waitFor(() =>
@@ -569,10 +569,10 @@ it.each([true, false])(
     // Completion must not steal focus again when the user chooses another control.
     const back = screen.getByRole("button", { name: "Back to incidents" });
     back.focus();
-    await user.click(screen.getByRole("button", { name: "Refresh overview" }));
+    await user.click(screen.getByRole("button", { name: "Refresh incidents" }));
     await waitFor(() =>
       expect(
-        screen.getByRole("button", { name: "Refresh overview" }),
+        screen.getByRole("button", { name: "Refresh incidents" }),
       ).toHaveFocus(),
     );
   },
@@ -582,7 +582,7 @@ it.each([
   "evidence",
   "heading",
   "Back to incidents",
-  "Refresh overview",
+  "Refresh incidents",
   "missing",
   "empty",
   "unidentified",
@@ -607,7 +607,7 @@ it.each([
     const restoredControl = () => {
       if (target === "evidence")
         return screen.getByRole("link", { name: "View evaluated logs" });
-      if (target === "Back to incidents" || target === "Refresh overview")
+      if (target === "Back to incidents" || target === "Refresh incidents")
         return screen.getByRole("button", { name: target });
       return screen.getByRole("heading", { name: "checkout · open" });
     };
@@ -807,4 +807,53 @@ it("preserves the preview, local summary and evidence navigation after invalid G
       /40 evaluated events · 40 matching current filters/,
     ),
   ).toBeInTheDocument();
+});
+
+it("distinguishes Incidents from Overview, scopes measurements, and restores destination titles", async () => {
+  const user = userEvent.setup();
+  const recovered = structuredClone(overview);
+  recovered.incidents[0].state = "recovered";
+  recovered.incidents[0].end = "2026-01-01T12:05:00Z";
+  recovered.services[0] = {
+    ...measurement,
+    rate: 0,
+    errors: 0,
+    status: "no spike detected",
+    start: "2026-01-01T12:04:00Z",
+    end: "2026-01-01T12:05:00Z",
+  };
+  fetchMock.mockImplementation(async (url: string) => ({
+    ok: true,
+    json: async () => (url.includes("overview") ? recovered : evidence),
+  }));
+  render(<Router />);
+  await screen.findByText("Service trends");
+  expect(document.title).toBe("Overview · Log Watchdog");
+  expect(
+    screen.getByText(/Latest evaluated window: no spike detected/),
+  ).toBeInTheDocument();
+  expect(
+    screen.getByText(/Latest abnormal window: 40.00% observed/),
+  ).toBeInTheDocument();
+  expect(screen.getByText(/Measurement \(UTC\):/)).toHaveTextContent(
+    "12:01:00Z",
+  );
+  expect(screen.getByText(/Incident interval \(UTC\):/)).toHaveTextContent(
+    "12:05:00Z",
+  );
+  await user.click(screen.getByRole("link", { name: "Incidents" }));
+  await screen.findByRole("heading", { name: "Incident queue" });
+  expect(document.title).toBe("Incidents · Log Watchdog");
+  expect(screen.queryByText("Service trends")).not.toBeInTheDocument();
+  expect(
+    screen.getByRole("button", { name: "Refresh incidents" }),
+  ).toBeInTheDocument();
+  expect(
+    screen.getByRole("link", { name: "Skip to incidents" }),
+  ).toBeInTheDocument();
+  await user.click(screen.getByRole("link", { name: "Logs" }));
+  await screen.findByRole("heading", { name: "Logs" });
+  expect(document.title).toBe("Logs · Log Watchdog");
+  await act(async () => window.history.back());
+  await waitFor(() => expect(document.title).toBe("Incidents · Log Watchdog"));
 });

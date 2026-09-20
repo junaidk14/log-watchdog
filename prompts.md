@@ -1128,3 +1128,80 @@ Allow GitHub push and merge; no external submission
 ```
 
 The user explicitly authorizes GitHub push and merge for PR #15. External submission and deployment remain prohibited. The coordinator rechecked the unchanged main base, expected branch/head, clean checkout, no closing issues, and no conflicting PR metadata before proceeding. Only approval/audit documentation changes follow the independently reviewed implementation.
+
+## Bounded product/UI cleanup — 2026-09-20T01:36:03Z
+
+```text
+I opened the app and manually browsed through the main flows after the latest merge. I found a few remaining product/UI issues that I want fixed in one bounded cleanup pass.
+
+Please inspect the current implementation against README.md, PRODUCT.md, DESIGN.md, and the MVP spec, then fix the genuine issues below without redesigning the product.
+
+1. Incidents still feels too similar to Overview.
+   When I navigate from Overview to Incidents, the experience does not feel meaningfully different enough. Please make sure Incidents works as the intended incident workbench, with incident queue + investigation/evidence context clearly taking priority.
+
+2. Recovered incident measurements are ambiguous.
+   A recovered incident row can show something like “40.00% observed” beside the full incident lifecycle interval, while the latest service trend shows 0.00%.
+   Make it explicit that the 40.00% belongs to the relevant abnormal/evaluated window, and keep that separate from the overall incident interval.
+
+3. Historical JSON upload is not obvious.
+   README says Logs -> Historical should expose a JSON file chooser and “Import into Historical”.
+   Verify that this is actually reachable and discoverable in the rendered UI. If it exists but is hidden or unclear, improve the entry point.
+
+4. Improve the Gemini setup UX.
+   I want users to be able to enter a Gemini API key directly from the UI for this local single-user MVP so the AI analysis feature can be tried without restarting the backend or configuring the shell.
+
+   Please implement this safely:
+   - send the key only to the backend
+   - keep it in server memory only
+   - do not persist it to SQLite, localStorage, sessionStorage, files, logs, prompts, or telemetry
+   - never return or display the full key after submission
+   - show only configured / not configured state
+   - provide a Clear key action
+   - continue supporting GEMINI_API_KEY from the server environment as a fallback
+   - preserve the existing preview -> explicit “Send for analysis” flow
+   - do not expose the key in errors or API responses
+
+   Keep this lightweight and local-MVP appropriate, not a general secrets-management system.
+
+5. Browser tab titles are incorrect.
+   Overview, Incidents, and Deliveries all still show “Logs · Log Watchdog”.
+   Make the document title reflect the current destination.
+
+6. Incidents still uses Overview-specific labels.
+   I noticed labels such as:
+   - “Skip to overview”
+   - “Refresh overview”
+   - “Loading overview…”
+   Update these so the Incidents page consistently refers to Incidents.
+
+7. Current-window wording can be confusing after a historical spike.
+   If the chart shows an earlier abnormal spike but the current state is normal/recovered, avoid generic wording like “no spike detected” if it can be read as contradicting the chart.
+   Make it clear when the status refers to the current evaluated window versus historical incident state.
+
+8. /favicon.ico returns 404.
+   Add/fix the favicon so it resolves cleanly and does not create console noise.
+
+Keep this focused:
+- no architecture changes
+- no broad redesign
+- preserve the current incident-workbench direction
+- preserve navigation and focus-restoration behavior unless a real defect requires changing it
+
+After the fixes:
+- run the relevant frontend/backend tests and checks
+- verify the affected flows again
+- update documentation where behavior changed
+- report exactly what changed and whether any item could not be reproduced
+```
+
+The initial observation that the Logs dataset selector only changed draft state was corrected after tracing `navigate`: it already switches immediately and renders HistoricalUpload. The cleanup adds a discoverable direct import link rather than replacing the working upload path. Supported browser selection found no browser; recovery returned `[]`, so no rendered reproduction is claimed. No real Gemini key was supplied or used; credential checks use synthetic fixtures only. Existing focus IDs and restoration logic remain intact. Full HTTP verification initially encountered a separately launched app on port 8000, left untouched pending the user's response.
+
+## Verification port freed — 2026-09-20T01:46:49Z
+
+```text
+> The app is running again on port 8000 (PID 17944), so four real-HTTP tests cannot bind their test server. Please stop the app while I finish the full HTTP verification; I’ll continue the source review and documentation meanwhile.
+
+Server stopped
+```
+
+The user stopped their app; the coordinator resumed full backend and real-HTTP verification using temporary databases.

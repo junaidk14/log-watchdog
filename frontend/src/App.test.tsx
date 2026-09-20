@@ -363,3 +363,23 @@ it("withholds stale general Demo Logs on load, refresh and Back, and restores cu
   );
   await screen.findByText("Replacement run event");
 });
+
+it("exposes the file chooser immediately through Historical and the Import JSON entry", async () => {
+  const user = userEvent.setup();
+  render(<App />);
+  await screen.findByText("101 matching events · Page 1 of 3");
+  await user.selectOptions(screen.getByLabelText("Dataset"), "historical");
+  expect(await screen.findByLabelText("JSON log file")).toHaveAttribute(
+    "type",
+    "file",
+  );
+  expect(
+    screen.getByRole("button", { name: "Import into Historical" }),
+  ).toBeVisible();
+  await user.selectOptions(screen.getByLabelText("Dataset"), "demo");
+  await user.click(
+    screen.getByRole("link", { name: "Import JSON into Historical" }),
+  );
+  expect(await screen.findByLabelText("JSON log file")).toBeVisible();
+  expect(window.location.search).toContain("dataset=historical");
+});

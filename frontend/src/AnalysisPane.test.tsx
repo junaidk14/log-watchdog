@@ -171,3 +171,33 @@ it("announces sending, disables duplicate submissions and aborts a departing con
     screen.queryByText("Gemini hypotheses — verify with evidence"),
   ).not.toBeInTheDocument();
 });
+
+it("invalidates the visible preview after a session key change without sending evidence", async () => {
+  fetchMock
+    .mockResolvedValueOnce(reply(preview))
+    .mockResolvedValueOnce(reply({ configured: false }))
+    .mockResolvedValueOnce(reply({ configured: true }));
+  const user = userEvent.setup();
+  mount();
+  await user.click(
+    screen.getByRole("button", { name: "Preview evidence for analysis" }),
+  );
+  await screen.findByText(preview.packet);
+  await user.click(screen.getByRole("button", { name: "Gemini setup" }));
+  await screen.findByText("Not configured");
+  await user.type(
+    screen.getByLabelText("Gemini API key"),
+    "synthetic-only-key",
+  );
+  await user.click(
+    screen.getByRole("button", { name: "Use key for this session" }),
+  );
+  await screen.findByText("Configured");
+  expect(screen.queryByText(preview.packet)).not.toBeInTheDocument();
+  expect(
+    screen.queryByRole("button", { name: "Send for analysis" }),
+  ).not.toBeInTheDocument();
+  expect(
+    fetchMock.mock.calls.some(([url]) => url === "/api/analysis/send"),
+  ).toBe(false);
+});

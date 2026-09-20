@@ -102,7 +102,7 @@ it("selects with keyboard, preserves selection through recovery and returns focu
   recovered.incidents[0].state = "recovered";
   recovered.incidents[0].recovered_at = "2026-01-01T12:05:00Z";
   fetchMock.mockImplementation(() => respond(recovered));
-  await user.click(screen.getByRole("button", { name: "Refresh overview" }));
+  await user.click(screen.getByRole("button", { name: "Refresh incidents" }));
   expect(
     await screen.findByRole("heading", { name: "checkout · recovered" }),
   ).toBeInTheDocument();
@@ -499,7 +499,7 @@ it("binds confirmation to its original run even if a refresh discovers another r
     }),
   );
   expect(await screen.findByRole("alert")).toHaveTextContent(
-    "Cancel, refresh overview",
+    "Cancel, refresh this page",
   );
 });
 

@@ -79,6 +79,7 @@ beforeEach(() => {
 it("expands payload and attempts with keyboard, retains focus through status updates, and preserves return context", async () => {
   const user = userEvent.setup();
   render(<Router />);
+  expect(document.title).toBe("Deliveries · Log Watchdog");
   const button = await screen.findByRole("button", {
     name: /View payload and attempts/,
   });

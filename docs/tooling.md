@@ -287,3 +287,8 @@ Project-specific AFK policy now authorizes #4–#7 and requires implementation/f
 - Existing React, inline SVG, CSS, Vitest/axe, Ruff, mypy, pytest and real-HTTP validation tooling are reused. No runtime dependency or architecture was added for polish.
 
 - **pr skill — Used.** Structured final refinement PR description with concrete change, evidence and rollback scope.
+
+
+## Bounded product cleanup
+
+Existing FastAPI/React infrastructure now supports session-only Gemini key entry without a new service, dependency or storage system. Impeccable refinement guidance and domain-modeling decision documentation were used; the code-review skill provides independent Standards/Spec checks. Browser setup was attempted again and recovery returned no browsers, so rendered checks remain unverified. The favicon is an original code-generated ICO using Python’s standard `struct` module, served by FastAPI and copied by Vite. Credential tests use visibly synthetic values only; no user key is recorded in tools, artifacts or telemetry.

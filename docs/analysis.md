@@ -1,6 +1,11 @@
 # Optional Gemini evidence analysis
 
-Incident investigation and the **Local evidence summary** work without credentials. To enable optional analysis, set `GEMINI_API_KEY` in the server environment and restart. Never place it in frontend configuration, source, or a URL. `GEMINI_MODEL` defaults to `gemini-3.5-flash-lite`; set it to another available text model ID if your account requires it. No provider SDK or new runtime dependency is needed.
+Incident investigation and the **Local evidence summary** work without credentials. In an incident, open **Optional Gemini analysis → Gemini setup** to enter a key in the password field, then choose **Use key for this session**. The input clears as the request begins. A same-origin JSON request sends it to the backend; only `configured: true/false` comes back, never a key or partial key. Saving only changes configuration: it neither checks provider access nor sends evidence.
+
+The application holds that key only in server memory until **Clear key** or server shutdown. It is not written to SQLite, files, browser storage, logs, prompt records or telemetry. The browser necessarily holds the typed value while entering/submitting it, and the backend uses it in Gemini's authentication header only on an explicitly authorized send. No key retrieval API exists. Clear removes the UI-supplied override; an existing `GEMINI_API_KEY` environment value remains the fallback, so status can remain Configured. Restart loses the override.
+
+`GEMINI_MODEL` (default `gemini-3.5-flash-lite`) and `GEMINI_PAID_SERVICE` remain server environment settings. No provider SDK or secrets-management system is added. Key changes are rejected while an analysis request is sending; wait for completion and retry. Saving or clearing a key invalidates stored previews and visible analysis, requiring a fresh preview and a new explicit Send action. Other open tabs learn about an invalidated preview when they try to send and can refresh key status.
+
 
 The default path permits only verified simulator/seed evidence. Demo is also a writable ingestion dataset, so its name and `metadata.synthetic` do not establish trust. Publicly ingested events and rows created before this feature are unverified. Reset Demo through its existing confirmation to generate a new trusted scenario; this removes only Demo data. Core ingestion, deduplication and detection are unchanged.
 
@@ -19,6 +24,9 @@ Previews last ten minutes and are capped at 32 per process (oldest evicted first
 There is one active analysis request at a time, outside SQLite transactions, to the fixed TLS host `generativelanguage.googleapis.com`, with a 20-second socket timeout, no proxies or redirects, maximum 2,048 output tokens and 32,768 response bytes. Incomplete/blocked responses, malformed output, excessive claims/text and unknown references are rejected. Rate limits, timeouts and other provider errors have separate explanations without echoing provider response bodies or credentials. Navigating away or resetting cannot recall a packet already sent; stale results are discarded/rejected.
 
 ## API
+
+- `GET /api/analysis/key` returns only `{ "configured": true|false }` with `Cache-Control: no-store`.
+- `PUT /api/analysis/key` accepts only `{ "key": "..." }`; `DELETE /api/analysis/key` clears the session override. Both require the dashboard's `X-Log-Watchdog-Settings: 1` header and reject cross-origin requests. PUT requires JSON, limits the body to 4 KiB and validates a 1–256-character key without echoing invalid input. Responses contain only configured state; errors use fixed, credential-free text. Neither endpoint contacts Gemini.
 
 - `POST /api/datasets/{demo|live}/incidents/{id}/analysis/preview` accepts `{ "evaluation": <id>, "run": "<Demo UUID>" }`. Demo requires a run; Live can omit it. Returns an opaque preview ID, exact packet string, provider/model and local reference map. No external call occurs.
 - `POST /api/analysis/send` accepts only `{ "preview_id": "<UUID>", "confirm_send": true }`. Arbitrary packets, model changes and paid overrides are rejected.

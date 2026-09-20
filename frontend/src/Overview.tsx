@@ -179,6 +179,8 @@ export function Overview() {
   const [location, setLocation] = useState(window.location.search);
   const params = new URLSearchParams(location);
   const dataset = params.get("dataset") ?? "demo";
+  const isIncidents = params.get("view") === "incidents";
+  const destination = isIncidents ? "incidents" : "overview";
   const [selected, setSelected] = useState(params.get("incident"));
   const [data, setData] = useState<OverviewData | null>(null);
   const reset =
@@ -246,7 +248,7 @@ export function Overview() {
         });
         if (!response.ok)
           throw new Error(
-            `Could not refresh overview (HTTP ${response.status}). Check the local server.`,
+            `Could not refresh ${destination} (HTTP ${response.status}). Check the local server.`,
           );
         const next: OverviewData = await response.json();
         if (!controller.signal.aborted && number === requestNumber.current) {
@@ -258,7 +260,7 @@ export function Overview() {
           setError(
             problem instanceof Error
               ? problem.message
-              : "Could not refresh overview. Check the local server.",
+              : `Could not refresh ${destination}. Check the local server.`,
           );
       }
     }
@@ -274,7 +276,7 @@ export function Overview() {
       controller.abort();
       window.clearInterval(timer);
     };
-  }, [dataset, revision, acceptResults]);
+  }, [dataset, revision, acceptResults, destination]);
   usePageRestoration(
     data !== null || error !== null,
     // A failed initial load has no workbench headings or evidence controls.
@@ -344,8 +346,8 @@ export function Overview() {
       if (!response.ok)
         throw new Error(
           response.status === 409
-            ? "This demo run was already reset. Cancel, refresh overview, then open Reset demo again."
-            : `Reset result unknown (HTTP ${response.status}). Refresh overview to check the current run before retrying.`,
+            ? "This demo run was already reset. Cancel, refresh this page, then open Reset demo again."
+            : `Reset result unknown (HTTP ${response.status}). Refresh this page to check the current run before retrying.`,
         );
       const next: OverviewData = await response.json();
       if (!mounted.current) return;
@@ -369,7 +371,7 @@ export function Overview() {
         setResetError(
           problem instanceof Error
             ? problem.message
-            : "Reset result unknown. Refresh overview before retrying.",
+            : "Reset result unknown. Refresh this page before retrying.",
         );
     } finally {
       advancing.current = false;
@@ -449,7 +451,7 @@ export function Overview() {
   return (
     <div className="workbench">
       <a href="#overview" className="skip-link">
-        Skip to overview
+        Skip to {destination}
       </a>
       <aside className="rail" aria-label="Workspace">
         <a className="brand" href="?view=overview&dataset=demo">
@@ -511,14 +513,18 @@ export function Overview() {
             <h1 id="overview-heading" tabIndex={-1}>
               {params.get("view") === "incidents" ? "Incidents" : "Overview"}
             </h1>
-            <p>Investigate unusual error-log rates.</p>
+            <p>
+              {isIncidents
+                ? "Select an incident, inspect its evaluated windows, and follow the supporting evidence."
+                : "Review current service windows and recent incidents."}
+            </p>
           </div>
           <label className="dataset-select">
             Dataset
             <select
               value={dataset}
               onChange={(event) => {
-                window.location.href = `?view=${event.target.value === "historical" ? "logs" : "overview"}&dataset=${event.target.value}`;
+                window.location.href = `?view=${event.target.value === "historical" ? "logs" : destination}&dataset=${event.target.value}`;
               }}
             >
               <option value="demo">Demo</option>
@@ -595,7 +601,7 @@ export function Overview() {
                 setRevision((v) => v + 1);
               }}
             >
-              Refresh overview
+              Refresh {destination}
             </button>
           </div>
         </div>
@@ -649,7 +655,7 @@ export function Overview() {
         )}
         {!data && !error && (
           <div className="loading" role="status">
-            Loading overview…
+            Loading {destination}…
           </div>
         )}
         {data && !reset && (
@@ -666,14 +672,14 @@ export function Overview() {
               </p>
             )}
             <div
-              className={`incident-workbench ${selected ? "has-selection" : ""} ${!selected && data.incidents.length === 0 ? "is-empty" : ""}`}
+              className={`incident-workbench ${isIncidents ? "investigation-view" : ""} ${selected ? "has-selection" : ""} ${!selected && data.incidents.length === 0 ? "is-empty" : ""}`}
             >
               <section
                 className="incident-queue"
                 aria-labelledby="queue-heading"
               >
                 <h2 id="queue-heading" ref={queue} tabIndex={-1}>
-                  Incidents
+                  {isIncidents ? "Incident queue" : "Recent incidents"}
                 </h2>
                 {!data.incidents.some((i) => i.state === "open") && (
                   <p className="no-active">
@@ -723,12 +729,17 @@ export function Overview() {
                               {selected === String(i.id) && " · Selected"}
                             </p>
                             <p>
-                              {pct(i.measurement.rate)} observed /{" "}
-                              {pct(i.measurement.expected)} expected error-log
-                              rate
+                              Latest abnormal window: {pct(i.measurement.rate)}{" "}
+                              observed / {pct(i.measurement.expected)} expected
+                              error-log rate
                             </p>
                             <p className="hint">
-                              {time(i.start)} → {time(i.end)}
+                              Measurement (UTC): {time(i.measurement.start)} →{" "}
+                              {time(i.measurement.end)}
+                            </p>
+                            <p className="hint">
+                              Incident interval (UTC): {time(i.start)} →{" "}
+                              {time(i.end)}
                             </p>
                           </td>
                           <td>
@@ -851,89 +862,101 @@ export function Overview() {
                 )}
               </section>
             </div>
-            <section
-              className="service-trends"
-              aria-labelledby="trends-heading"
-            >
-              <h2 id="trends-heading">Service trends</h2>
-              <p>
-                {dataset === "demo"
-                  ? "Simulation time (UTC)"
-                  : "Event time (UTC)"}{" "}
-                · Last 30 evaluated minutes. Volume is not an anomaly detector.
-              </p>
-              {data.services.length === 0 && (
-                <p className="no-active">
-                  Learning baseline. Send live events and wait for a completed
-                  minute plus {data.config.grace_seconds}s grace. At least{" "}
-                  {data.config.minimum_events} events per window and{" "}
-                  {data.config.minimum_baseline_windows} baseline windows are
-                  required.
+            {!isIncidents && (
+              <section
+                className="service-trends"
+                aria-labelledby="trends-heading"
+              >
+                <h2 id="trends-heading">Service trends</h2>
+                <p>
+                  {dataset === "demo"
+                    ? "Simulation time (UTC)"
+                    : "Event time (UTC)"}{" "}
+                  · Last 30 evaluated minutes. Volume is not an anomaly
+                  detector.
                 </p>
-              )}
-              {data.services.map((service) => {
-                const rows = data.trends.filter(
-                  (row) => row.service === service.service,
-                );
-                return (
-                  <section
-                    key={service.service}
-                    className="service-trend"
-                    aria-label={`${service.service} trends`}
-                  >
-                    <h3>{service.service}</h3>
-                    <p>
-                      <strong>{service.status}</strong> · {service.errors}{" "}
-                      ERROR/FATAL / {service.total} events · {pct(service.rate)}
-                    </p>
-                    <div className="trend-pair">
-                      <Trend rows={rows} />
-                      <Trend rows={rows} volume />
-                    </div>
-                    <details>
-                      <summary>Evaluated windows for {service.service}</summary>
-                      <div
-                        className="table-scroll"
-                        role="region"
-                        aria-label={`${service.service} evaluated values`}
-                        tabIndex={0}
-                      >
-                        <table className="trend-table">
-                          <caption>
-                            Exact chart values · UTC minute starts (end
-                            exclusive)
-                          </caption>
-                          <thead>
-                            <tr>
-                              <th>Window start</th>
-                              <th>Error-log rate</th>
-                              <th>ERROR/FATAL / total</th>
-                              <th>Baseline</th>
-                              <th>Threshold</th>
-                              <th>State</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {rows.map((row) => (
-                              <tr key={row.id}>
-                                <td>{time(row.start)}</td>
-                                <td>{pct(row.rate)}</td>
-                                <td>
-                                  {row.errors} / {row.total}
-                                </td>
-                                <td>{pct(row.expected)}</td>
-                                <td>{pct(row.threshold)}</td>
-                                <td>{row.status}</td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
+                {data.services.length === 0 && (
+                  <p className="no-active">
+                    Learning baseline. Send live events and wait for a completed
+                    minute plus {data.config.grace_seconds}s grace. At least{" "}
+                    {data.config.minimum_events} events per window and{" "}
+                    {data.config.minimum_baseline_windows} baseline windows are
+                    required.
+                  </p>
+                )}
+                {data.services.map((service) => {
+                  const rows = data.trends.filter(
+                    (row) => row.service === service.service,
+                  );
+                  return (
+                    <section
+                      key={service.service}
+                      className="service-trend"
+                      aria-label={`${service.service} trends`}
+                    >
+                      <h3>{service.service}</h3>
+                      <p>
+                        <strong>
+                          Latest evaluated window: {service.status}
+                        </strong>{" "}
+                        · {service.errors} ERROR/FATAL / {service.total} events
+                        · {pct(service.rate)}
+                      </p>
+                      <p className="hint">
+                        {time(service.start)} → {time(service.end)} (UTC).
+                        Earlier spikes remain in the history below.
+                      </p>
+                      <div className="trend-pair">
+                        <Trend rows={rows} />
+                        <Trend rows={rows} volume />
                       </div>
-                    </details>
-                  </section>
-                );
-              })}
-            </section>
+                      <details>
+                        <summary>
+                          Evaluated windows for {service.service}
+                        </summary>
+                        <div
+                          className="table-scroll"
+                          role="region"
+                          aria-label={`${service.service} evaluated values`}
+                          tabIndex={0}
+                        >
+                          <table className="trend-table">
+                            <caption>
+                              Exact chart values · UTC minute starts (end
+                              exclusive)
+                            </caption>
+                            <thead>
+                              <tr>
+                                <th>Window start</th>
+                                <th>Error-log rate</th>
+                                <th>ERROR/FATAL / total</th>
+                                <th>Baseline</th>
+                                <th>Threshold</th>
+                                <th>State</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {rows.map((row) => (
+                                <tr key={row.id}>
+                                  <td>{time(row.start)}</td>
+                                  <td>{pct(row.rate)}</td>
+                                  <td>
+                                    {row.errors} / {row.total}
+                                  </td>
+                                  <td>{pct(row.expected)}</td>
+                                  <td>{pct(row.threshold)}</td>
+                                  <td>{row.status}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </details>
+                    </section>
+                  );
+                })}
+              </section>
+            )}
           </>
         )}
         <p className="workspace-footnote">

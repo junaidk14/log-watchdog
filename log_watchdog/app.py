@@ -1,8 +1,10 @@
 """API plus compiled dashboard, served by a single loopback worker."""
 
 import asyncio
+import json
 import logging
 import os
+import re
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime
@@ -100,6 +102,54 @@ def create_app(db_path: Path | None = None, frontend: Path | None = None) -> Fas
     app.state.detector = detector
 
     app.state.analysis = analysis
+
+    @app.get("/api/analysis/key")
+    def key_configuration() -> JSONResponse:
+        return JSONResponse(analysis.configuration(), headers={"Cache-Control": "no-store"})
+
+    @app.api_route("/api/analysis/key", methods=["PUT", "DELETE"])
+    async def configure_analysis_key(request: Request) -> JSONResponse:
+        # Require a same-origin JSON fetch, never a form/query-string credential.
+        origin = request.headers.get("origin")
+        if (
+            request.headers.get("x-log-watchdog-settings") != "1"
+            or (
+                origin is not None
+                and origin != f"{request.url.scheme}://{request.headers.get('host')}"
+            )
+            or request.url.query
+        ):
+            raise HTTPException(403, "Use Gemini setup in the local dashboard.")
+        key = None
+        if request.method == "PUT":
+            if (
+                request.headers.get("content-type", "").split(";", 1)[0].strip().lower()
+                != "application/json"
+            ):
+                raise HTTPException(415, "Gemini setup requires application/json.")
+            payload = bytearray()
+            async for chunk in request.stream():
+                if len(payload) + len(chunk) > 4096:
+                    raise HTTPException(413, "Gemini setup request exceeds its size limit.")
+                payload.extend(chunk)
+            try:
+                value = json.loads(payload)
+                if not isinstance(value, dict) or set(value) != {"key"}:
+                    raise ValueError
+                key = value["key"]
+                if not isinstance(key, str) or not re.fullmatch(r"[A-Za-z0-9_-]{1,256}", key):
+                    raise ValueError
+            except (ValueError, TypeError, RecursionError):
+                # Do not return validator locations, body values or parsing details.
+                raise HTTPException(
+                    422,
+                    "Enter a valid Gemini API key (1–256 letters, digits, underscores or hyphens).",
+                ) from None
+        try:
+            status = analysis.configure_key(key)
+        except AnalysisError as exc:
+            raise HTTPException(exc.status, exc.message) from None
+        return JSONResponse(status, headers={"Cache-Control": "no-store"})
 
     @app.post("/api/datasets/{dataset}/incidents/{incident_id}/analysis/preview")
     def preview_analysis(
@@ -286,6 +336,10 @@ def create_app(db_path: Path | None = None, frontend: Path | None = None) -> Fas
     build = frontend or ROOT / "frontend" / "dist"
     if (build / "assets").is_dir():
         app.mount("/assets", StaticFiles(directory=build / "assets"), name="assets")
+
+    @app.get("/favicon.ico", include_in_schema=False)
+    def favicon() -> FileResponse:
+        return FileResponse(ROOT / "frontend" / "public" / "favicon.ico", media_type="image/x-icon")
 
     @app.get("/", include_in_schema=False)
     def dashboard() -> FileResponse:

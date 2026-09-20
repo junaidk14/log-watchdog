@@ -228,3 +228,11 @@ def test_offset_filter_normalization(client):
     response = get(client, start="2026-01-01T17:30:00+05:30", end="2026-01-01T11:00:00-01:00")
     assert response.status_code == 200
     assert response.json()["total"] == 1
+
+
+def test_favicon_is_a_real_icon_and_declared_in_dashboard(client):
+    icon = client.get("/favicon.ico")
+    assert icon.status_code == 200
+    assert icon.headers["content-type"] == "image/x-icon"
+    assert icon.content[:4] == b"\x00\x00\x01\x00"
+    assert 'href="/favicon.ico"' in client.get("/").text

@@ -834,3 +834,43 @@ dd {
     margin-bottom: 12px;
   }
 }
+
+.incident-workbench.investigation-view {
+  grid-template-columns: minmax(240px, 1fr) minmax(0, 2fr);
+}
+.incident-workbench:not(.investigation-view):not(.has-selection) {
+  grid-template-columns: minmax(0, 1fr);
+}
+.incident-workbench:not(.investigation-view):not(.has-selection)
+  .incident-pane {
+  display: none;
+}
+.incident-workbench.investigation-view.is-empty {
+  grid-template-columns: minmax(0, 1fr);
+}
+.import-entry {
+  font-size: 13px;
+  margin-bottom: 12px;
+}
+.gemini-setup {
+  margin: 12px 0;
+}
+.gemini-setup form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 8px;
+  margin-top: 12px;
+}
+.gemini-setup label {
+  flex: 1 1 220px;
+  min-width: 0;
+}
+.gemini-setup button {
+  white-space: normal;
+}
+@media (max-width: 900px) {
+  .incident-workbench.investigation-view {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

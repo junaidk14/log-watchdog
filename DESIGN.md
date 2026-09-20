@@ -154,11 +154,11 @@ Controls and navigation retain the small control radius; severity badges use the
 
 ### Controls and navigation
 
-Explicit text actions and native inputs retain existing hover, press, disabled and focus states. Primary styling excludes disabled controls so pending actions remain visibly disabled. Navigation exposes Overview, Incidents, Logs, and Deliveries as appropriate to dataset and context. Current destinations and selected incidents have semantics as well as fill. URL state preserves dataset, incident, evaluation, filters and Demo run. Browser Back restoration includes initial-load failures and fallback heading focus.
+Explicit text actions and native inputs retain existing hover, press, disabled and focus states. Primary styling excludes disabled controls so pending actions remain visibly disabled. Document titles follow the active destination, and the Incidents skip/refresh/loading labels refer to Incidents while stable internal focus IDs preserve restoration. Navigation exposes Overview, Incidents, Logs, and Deliveries as appropriate to dataset and context. Current destinations and selected incidents have semantics as well as fill. URL state preserves dataset, incident, evaluation, filters and Demo run. Browser Back restoration includes initial-load failures and fallback heading focus.
 
 ### Workbench and evidence
 
-The queue presents service, Open/Recovered state, observed versus expected error-log rate and interval. Selection focuses the pane heading. The pane retains latest abnormal measurement and recovery progress; evaluated-window selection chooses the evidence beneath it. Refresh preserves selection and announces transitions without stealing focus. Insufficient traffic never advances recovery.
+Overview presents recent incident rows and latest evaluated service trends; its unselected queue fills the content width. Incidents omits service trends and prioritizes a queue/evidence grid with a one-third/two-thirds desktop split. The queue presents service, Open/Recovered state, latest abnormal-window observed versus expected error-log rate, that measurement’s UTC window, and a separately labeled full incident interval. Selection focuses the pane heading. The pane retains latest abnormal measurement and recovery progress; evaluated-window selection chooses the evidence beneath it. Refresh preserves selection and announces transitions without stealing focus. Insufficient traffic never advances recovery.
 
 A single recorded window uses a compact, wrapping observed/baseline/threshold comparison rather than a full time-series frame. The evaluated-log action precedes notifications, repeated error patterns, local evidence summary and representative sample. Optional Gemini analysis follows the core evidence. Basic evidence remains usable without credentials. Error, stale-run, unavailable, loading and retained-results states offer their existing recovery actions.
 
@@ -170,11 +170,11 @@ Multi-window charts use a responsive `540 × 180` SVG. Error-log rate retains a 
 
 Logs expand inline to full messages, identifiers, ingestion times and metadata. Evaluated scope is explicit; including later arrivals does not alter the recorded measurement. Clear refinements preserves incident scope; leaving it is a distinct action. Loading, empty and failed-refresh states preserve context.
 
-Delivery history exposes payloads, attempts and real-time retry state. Exhaustion explains the bounded ending and Demo reset/configure/advance path. Historical uploads have native labeled file input, bounded validation, atomic failure feedback, and a browse-results path. Reset uses a Demo-only confirmation and restores context with a new run identity.
+Delivery history exposes payloads, attempts and real-time retry state. Exhaustion explains the bounded ending and Demo reset/configure/advance path. Logs exposes an explicit Import JSON into Historical link as well as the Dataset selector. Switching to Historical immediately reveals its import form. Historical uploads have native labeled file input, bounded validation, atomic failure feedback, and a browse-results path. Reset uses a Demo-only confirmation and restores context with a new run identity.
 
 ### External analysis
 
-Preview is distinct from send. The exact bounded redacted packet appears in a scrollable region before the explicit Send for analysis action. Provider errors retain the preview and local summary; output remains plain text with validated internal evidence links. No chat surface or external actions are present.
+Gemini setup is an inline disclosure with a password input, session-key save and clear actions, and configured/not-configured state. It never displays a saved key. Configuration remains secondary to the evidence path. Preview is distinct from send. The exact bounded redacted packet appears in a scrollable region before the explicit Send for analysis action. Provider errors retain the preview and local summary; output remains plain text with validated internal evidence links. No chat surface or external actions are present.
 
 ## Do's and Don'ts
 

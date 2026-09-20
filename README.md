@@ -37,9 +37,11 @@ For frontend development, keep the API running and use `npm --prefix frontend ru
 4. Inspect the recorded baseline, threshold and local summary. Open **View evaluated logs**, expand a message, then use Back. **Include later arrivals** explicitly broadens the evidence without changing the recorded measurement.
 5. Open **View delivery history**. Inspect the exact opening payload and the real HTTP 503 → 200 attempts. Wait for the real-time retry; advancing simulation does not accelerate it.
 6. Advance four more times from Overview. The second abnormal minute updates the same incident; three eligible normal minutes then mark it recovered. Inspect the separate recovery notification.
-7. Optionally use **Logs → Historical** to upload a JSON array (5 MB / 5,000 events max). Browse its trends; imported events do not train live baselines or trigger alerts.
+7. Optionally use **Logs → Import JSON into Historical** (or the Dataset selector → Historical) to upload a JSON array (5 MB / 5,000 events max). Browse its trends; imported events do not train live baselines or trigger alerts.
 
 The detector compares ERROR/FATAL events divided by **all logs**, not failed requests. It uses a configurable, sample-size-aware statistical heuristic with smoothed history and a minimum increase guard. [Formula, defaults and limitations](docs/detection.md).
+
+Overview shows recent incidents and current service trends. **Incidents** opens the focused queue/evidence workbench without the service-trend section. Each incident row labels its latest abnormal measurement window separately from the full incident interval; a recovered incident can therefore retain a 40% abnormal measurement while the latest evaluated service window is 0%.
 
 ## Architecture
 
@@ -58,7 +60,7 @@ flowchart LR
 
 Demo, Live and Historical are isolated datasets. Evaluation watermarks preserve recorded evidence despite late logs. SQLite stores incidents, delivery work and attempt history; the single process resumes pending work after restart. Retention protects open investigations and pending notifications. No external webhook destinations, hosting, authentication, chat or agent orchestration are included.
 
-For optional analysis, set `GEMINI_API_KEY` in the **server environment** and restart. `GEMINI_MODEL` is configurable. Verified synthetic Demo evidence is the default eligibility boundary; enabling real-log analysis additionally requires appropriate paid-service configuration and `GEMINI_PAID_SERVICE=true`. Preview the bounded redacted packet, then explicitly **Send for analysis**. Redaction cannot guarantee removal of every secret. No live Gemini call has been verified. [Configuration, privacy and error behavior](docs/analysis.md).
+For optional analysis, open an incident → **Optional Gemini analysis → Gemini setup**, enter a key, and choose **Use key for this session**. The password field clears immediately; only configured/not-configured state is shown. The backend keeps the key in memory until **Clear key** or server shutdown. `GEMINI_API_KEY` in the server environment remains the fallback; clearing the session key does not remove that environment value. No backend restart is needed for a UI-supplied key. `GEMINI_MODEL` is configurable. Verified synthetic Demo evidence is the default eligibility boundary; enabling real-log analysis additionally requires appropriate paid-service configuration and `GEMINI_PAID_SERVICE=true`. Preview the bounded redacted packet, then explicitly **Send for analysis**. Redaction cannot guarantee removal of every secret. No live Gemini call has been verified. [Configuration, privacy and error behavior](docs/analysis.md).
 
 ## Ingest and browse
 

@@ -1,6 +1,6 @@
 # Intelligent Observability & Event Watchdog MVP
 
-Status: Draft for final shared-understanding confirmation. Accepted architectural decisions are recorded in [decisions.md](adr/decisions.md). Implementation has not started.
+Status: Implemented MVP with the user-authorized bounded product cleanup. Accepted decisions are recorded in [decisions.md](adr/decisions.md).
 
 ## Outcome
 
@@ -58,7 +58,7 @@ A developer can run one local application, see an error-log rate spike, inspect 
 - Provide a receiver mode that deliberately fails the first attempt. Persist receiver/delivery identifiers to make retries inspectable.
 - Always provide a labeled local evidence summary. Optional LLM analysis adds evidence-linked summaries, possible causes, and next checks.
 - Preview the actual redacted payload before explicit send; bind the send to that preview so new logs are not silently added afterward.
-- Configure the LLM only through environment variables. Never expose the API key to the browser. Provider failure leaves investigation and local summaries usable.
+- Permit a password-field Gemini key submission to the local backend without restart. Keep the submitted key only in server memory; never persist it, log it, or return it in API responses/errors. Show only configured/not-configured state and provide Clear key. GEMINI_API_KEY remains the environment fallback; model/paid-service settings remain environment-controlled. Preserve preview followed by explicit Send for analysis. Provider failure leaves investigation and local summaries usable.
 - Selected provider: Gemini REST API, default model `gemini-3.5-flash-lite`, with `GEMINI_API_KEY` and optional `GEMINI_MODEL`. Restrict unpaid processing to synthetic demo evidence; live/imported evidence needs appropriate paid-service configuration. Document the distinction in the preview and setup guidance; see ADR-021 for official sources.
 - Treat log content as untrusted data, validate evidence references in generated analysis, and never present generated causes as proven.
 - Explain that basic redaction may miss secrets embedded in arbitrary messages.

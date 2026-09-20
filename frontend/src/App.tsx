@@ -364,6 +364,14 @@ export function App() {
             </select>
           </label>
         </header>
+        {filters.dataset !== "historical" && (
+          <p className="import-entry">
+            <PageLink href="?view=logs&dataset=historical" focus="logs-heading">
+              Import JSON into Historical
+            </PageLink>{" "}
+            · Browse uploaded logs without triggering alerts.
+          </p>
+        )}
         <div className="dataset-context">
           <strong>
             {filters.dataset === "demo"

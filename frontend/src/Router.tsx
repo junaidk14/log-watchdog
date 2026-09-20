@@ -22,6 +22,18 @@ export function Router() {
     params.get("dataset") === "historical" ||
     legacyLogQuery;
 
+  const destination =
+    params.get("view") === "deliveries"
+      ? "Deliveries"
+      : showLogs
+        ? "Logs"
+        : params.get("view") === "incidents"
+          ? "Incidents"
+          : "Overview";
+  useEffect(() => {
+    document.title = `${destination} · Log Watchdog`;
+  }, [destination]);
+
   if (params.get("view") === "deliveries")
     return (
       <Deliveries
