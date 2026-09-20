@@ -705,3 +705,43 @@ it.each(["explicit", "browser"])(
     expect(window.location.search).toContain("incident=1");
   },
 );
+
+it("keeps the local summary and pinned investigation usable when optional Gemini is unavailable", async () => {
+  const base = fetchMock.getMockImplementation()!;
+  fetchMock.mockImplementation((url: string, options?: RequestInit) => {
+    if (url.includes("/analysis/preview"))
+      return Promise.resolve({
+        ok: false,
+        json: async () => ({
+          detail:
+            "Gemini is not configured. The local summary remains available.",
+        }),
+      });
+    return base(url, options);
+  });
+  const user = userEvent.setup();
+  render(<Router />);
+  await user.click(
+    await screen.findByRole("link", {
+      name: "Investigate checkout incident #1",
+    }),
+  );
+  await user.click(
+    await screen.findByRole("button", {
+      name: "Preview evidence for analysis",
+    }),
+  );
+  expect(await screen.findByRole("alert")).toHaveTextContent(
+    "Gemini is not configured",
+  );
+  expect(
+    screen.getByRole("heading", { name: "Local evidence summary" }),
+  ).toBeInTheDocument();
+  expect(window.location.search).toContain("incident=1");
+  await user.click(screen.getByRole("link", { name: "View evaluated logs" }));
+  expect(
+    await screen.findByText(
+      /40 evaluated events · 40 matching current filters/,
+    ),
+  ).toBeInTheDocument();
+});

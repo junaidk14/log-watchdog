@@ -261,3 +261,10 @@ Project-specific AFK policy now authorizes #4–#7 and requires implementation/f
 - Existing Vitest/Testing Library/axe, pytest/TestClient, TypeScript/Vite, ESLint/Prettier, Ruff/mypy, static contrast and runtime validator — Used for verification. Temporary-database API walkthrough verifies reset restores Success before configuring each new scenario.
 - Browser skill/runtime — Used for supported setup and recovery; no browser available and recovery list `[]`. Rendered checks remain pending.
 - Git/GitHub CLI, Python standard library and clock — Used for state/dependency checks, audit/evidence updates and elapsed-time handoff.
+
+## Issue #7 optional analysis
+
+- Existing Python/FastAPI/Pydantic/SQLite and standard-library `http.client`, bounded in-memory cache and locks — Used for trusted simulator provenance, immutable expiring previews, explicit fixed-host TLS Gemini REST calls and validated bounded output. No dependency added. `GEMINI_API_KEY`, `GEMINI_MODEL`, `GEMINI_PAID_SERVICE` are server-only environment configuration; default model catalog checked, live provider/account access unverified.
+- Existing React/TypeScript/CSS, Vitest/Testing Library/axe and pytest/HTTPX — Used for explicit disclosure/send, preserved local summaries, scoped state and controlled provider tests. Existing build, lint, type, format, contrast and actual loopback runtime validation reused.
+- Impeccable context/surface brief/craft floor/mechanical detector and separate finish reviewer/documenter — Used for the established incident-pane extension; detector returned `[]`. Browser skill supported setup failed; recovery discovery returned `[]`, so rendered checks remain deferred. No new design tokens or raster assets.
+- `domain-modeling` and `pr` skills; Git/GitHub CLI, official Google documentation via web tools and clock — Used for decisions, eligibility/dependency checks, provider contract, PR evidence and metadata handoff.

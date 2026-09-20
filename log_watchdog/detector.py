@@ -268,7 +268,7 @@ class Detector:
                 for service in ("api-gateway", "checkout", "worker")
                 for index in range(40)
             ]
-            self.store._ingest(db, "demo", events)
+            self.store._ingest(db, "demo", events, trusted_synthetic=True)
             clock = start + MINUTE + timedelta(seconds=self.config.grace_seconds)
             db.execute(
                 "UPDATE evaluation_progress SET clock=?,steps=? WHERE dataset='demo'",

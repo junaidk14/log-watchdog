@@ -16,6 +16,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import AfterValidator, AwareDatetime, BaseModel, ConfigDict, Field
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
+from .analysis import Analysis, AnalysisError, PreviewRequest, SendRequest
 from .delivery import Delivery, ReceiverSettings
 from .detector import DetectionDataset, Detector, DetectorConfig
 from .evidence import Evidence, EvidenceUnavailable
@@ -40,6 +41,7 @@ def create_app(db_path: Path | None = None, frontend: Path | None = None) -> Fas
 
     delivery = Delivery(store)
     lifecycle = Lifecycle(detector)
+    analysis = Analysis(store)
 
     async def deliver_pending() -> None:
         await asyncio.to_thread(delivery.recover_interrupted)
@@ -96,6 +98,24 @@ def create_app(db_path: Path | None = None, frontend: Path | None = None) -> Fas
 
     app = FastAPI(title="Log Watchdog", version="0.1.0", lifespan=lifespan)
     app.state.detector = detector
+
+    app.state.analysis = analysis
+
+    @app.post("/api/datasets/{dataset}/incidents/{incident_id}/analysis/preview")
+    def preview_analysis(
+        dataset: DetectionDataset, incident_id: int, body: PreviewRequest
+    ) -> dict[str, Any]:
+        try:
+            return analysis.preview(dataset, incident_id, body)
+        except (AnalysisError, EvidenceUnavailable) as exc:
+            raise HTTPException(exc.status, exc.message) from exc
+
+    @app.post("/api/analysis/send")
+    def send_analysis(body: SendRequest) -> dict[str, Any]:
+        try:
+            return analysis.send(body)
+        except (AnalysisError, EvidenceUnavailable) as exc:
+            raise HTTPException(exc.status, exc.message) from exc
 
     @app.get("/api/datasets/{dataset}/deliveries")
     def deliveries(

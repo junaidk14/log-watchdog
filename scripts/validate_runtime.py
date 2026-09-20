@@ -24,7 +24,12 @@ def main() -> None:
         probe.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         probe.bind(("127.0.0.1", 8000))  # Refuse to run against an existing application.
     with tempfile.TemporaryDirectory(prefix="watchdog-validation-") as temporary:
-        env = os.environ | {"LOG_WATCHDOG_DB": str(Path(temporary) / "validation.sqlite3")}
+        env = os.environ | {
+            "LOG_WATCHDOG_DB": str(Path(temporary) / "validation.sqlite3"),
+            "GEMINI_API_KEY": "synthetic-validation-placeholder-not-a-real-key",
+            "GEMINI_MODEL": "gemini-3.5-flash-lite",
+            "GEMINI_PAID_SERVICE": "false",
+        }
         log = Path(temporary) / "server.log"
         process = None
         with (
@@ -275,6 +280,17 @@ def main() -> None:
                 evaluated = client.get(evidence_url, params=evidence_params).json()
                 assert evaluated["total"] == evaluated["evaluated_total"] == 40
                 assert evaluated["measurement"] == recorded
+                preview = client.post(
+                    evidence_url.replace("/evidence", "/analysis/preview"),
+                    json={"evaluation": recorded["id"], "run": evaluated["run"]},
+                )
+                assert preview.status_code == 200
+                assert preview.json()["synthetic_only"] is True
+                packet = json.loads(preview.json()["packet"])
+                assert packet["measurement"]["total"] == 40
+                assert len(packet["sample"]) == 5
+                assert "late-http-evidence" not in preview.json()["packet"]
+                # No send: this validator never contacts Gemini or inherits real credentials.
                 assert evaluated["patterns"] == [{"message": "Downstream timeout", "count": 16}]
                 broader = client.get(evidence_url, params=evidence_params | {"scope": "all"}).json()
                 assert broader["total"] == 41
@@ -390,6 +406,7 @@ def main() -> None:
                             ),
                             "demo_transitions": states,
                             "late_evidence_unchanged": True,
+                            "analysis_preview_http": "bounded synthetic packet; no provider call",
                             "evidence_navigation_http": (
                                 "40 evaluated / 41 broader; filters, sample, restart passed"
                             ),

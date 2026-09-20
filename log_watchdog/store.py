@@ -51,6 +51,13 @@ class Store:
                 CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT NOT NULL);
             """)
 
+            if "trusted_synthetic" not in {
+                row["name"] for row in db.execute("PRAGMA table_info(events)")
+            }:
+                db.execute(
+                    "ALTER TABLE events ADD COLUMN trusted_synthetic INTEGER NOT NULL DEFAULT 0"
+                )
+
     @contextmanager
     def connection(self) -> Iterator[sqlite3.Connection]:
         db = sqlite3.connect(self.path, timeout=10)
@@ -75,7 +82,12 @@ class Store:
         return int(maximum + 1)
 
     def _ingest(
-        self, db: sqlite3.Connection, dataset: Dataset, events: list[EventInput]
+        self,
+        db: sqlite3.Connection,
+        dataset: Dataset,
+        events: list[EventInput],
+        *,
+        trusted_synthetic: bool = False,
     ) -> dict[str, Any]:
         sequence = self.reserve_ids(db, "events", "sequence", len(events))
         ids = []
@@ -102,8 +114,15 @@ class Store:
                 db.execute(
                     "INSERT INTO events(sequence,dataset,event_id,timestamp,service,severity,"
                     "message,metadata,"
-                    "ingested_at) VALUES (?,?,?,?,?,?,?,?,?)",
-                    (sequence + event_index, dataset, event_id, *content, now),
+                    "ingested_at,trusted_synthetic) VALUES (?,?,?,?,?,?,?,?,?,?)",
+                    (
+                        sequence + event_index,
+                        dataset,
+                        event_id,
+                        *content,
+                        now,
+                        int(trusted_synthetic),
+                    ),
                 )
                 inserted += 1
             ids.append(event_id)
@@ -140,7 +159,7 @@ class Store:
                             event_id=f"seed-{minute}-{service}-{index}",
                         )
                     )
-        self._ingest(db, "demo", events)
+        self._ingest(db, "demo", events, trusted_synthetic=True)
         db.execute("INSERT INTO settings VALUES ('demo_seeded', ?)", (utc_text(end),))
 
     def browse(
