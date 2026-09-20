@@ -100,3 +100,23 @@ No P0/P1 issue found in these checks. Previously documented P3 timestamp density
 The original Playwriter reproduction moved Reset from scrollY 330 to 0; tracing focus identified the unqualified reset-button focus call. Updated reset/cancel and selection focus regression assertions failed before the fix. All 97 frontend tests, typecheck, ESLint, build and Prettier pass afterward (`/tmp/watchdog-scroll-tests.log`). Backend behavior is unchanged.
 
 Targeted headless Chrome verification: desktop Reset retains 330; narrow Reset and Advance retain 668. Keyboard Investigate focuses the incident heading and only reveals it as needed. Immediate Back restores incident-link focus at 778 and Forward restores heading focus at 237. The final destination position is recorded synchronously so a later browser scroll event is not required for correct history. Advance showed no independent defect in desktop/narrow reproduction and was not changed. Testing used a disposable port-8001 dataset with background workers disabled, not the user's server.
+
+## Demo focus follow-up — 2026-09-20
+
+Reproduced pointer Reset forcing focus back to Reset; narrow Investigate also scrolled as the layout changed before its animation-frame focus. Overview now preserves the viewport across Demo UI updates and applies investigation focus/reveal before paint. Reset/Cancel and Advance restore controls only for keyboard activation; asynchronous completion does not steal focus from another control.
+
+Regression coverage includes pointer reset/cancel, keyboard reset/advance, focus moved during a pending advance, and same-commit investigation focus. All **101 frontend tests in eight files**, TypeScript, ESLint, build and Prettier passed. Existing history/evidence restoration tests remain green.
+
+Playwriter local headless Chrome, 1440×900 and 390×844, isolated synthetic database and disabled workers: pointer reset retained y=200 without Reset focus; narrow keyboard Reset and Advance retained y=583; Investigate focused the heading with one settled destination; Back restored incident-link focus at y=583 and Forward restored the workspace at y=93. Evaluated Logs → Back restored its originating link. No console errors observed. These are targeted Chrome checks, not cross-browser or physical-device claims. No backend changes or tests in this pass.
+
+### Walkthrough anchor correction
+
+The user's screenshot identified a separate entry point missed above: Try the Demo's native `#reset-demo` link aligned Reset to the viewport top (y=268), focused it and added a hash-history entry, without opening confirmation. The three walkthrough anchors now use nearest target visibility and keyboard-only target focus; they retain their role as links to the existing controls/queue. Modified clicks retain native behavior. Actual Reset/Advance/Investigate actions are unchanged.
+
+The new regression failed before the fix. All **102 frontend tests**, typecheck, lint, build and formatting passed. Playwriter on the served build at 1534×895 and 390×895 verified pointer Reset retained y=0, unchanged history length and no hash/focus redirection; the other guide links avoid hash history, and keyboard Reset focuses its target. No console errors or user-data mutations. Reload an already-open tab to load the new frontend bundle.
+
+### Final walkthrough sweep
+
+All four Try the Demo links verified with mouse/keyboard at 1534×895 and 390×895. Reset/Advance/Investigate kept visible targets in place without hash-history entries. The receiver link had focused an off-screen heading on narrow screens; it now explicitly reveals receiver setup on first navigation, while saved Back/Forward scroll takes priority. A stable walkthrough-link ID restores its origin focus on Back. Narrow receiver navigation settled at y=321, Back at y=0 and Forward at y=321; no console errors or data mutations.
+
+**103 frontend tests** plus typecheck, ESLint, production build and Prettier passed. Regression coverage checks all three in-page links for pointer/keyboard behavior and receiver reveal versus saved history position. Backend behavior remains unchanged.

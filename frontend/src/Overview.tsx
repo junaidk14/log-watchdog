@@ -6,7 +6,14 @@ import {
   viewUrl,
   usePageRestoration,
 } from "./navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type MouseEvent,
+} from "react";
 
 export type Measurement = {
   id: number;
@@ -181,6 +188,24 @@ export function Trend({
   );
 }
 
+function followDemoGuide(event: MouseEvent<HTMLAnchorElement>) {
+  if (
+    event.button ||
+    event.metaKey ||
+    event.ctrlKey ||
+    event.shiftKey ||
+    event.altKey
+  )
+    return;
+  const target = document.getElementById(event.currentTarget.hash.slice(1));
+  if (!target) return;
+  event.preventDefault();
+  // These links point to existing controls, not a new history destination.
+  // Native fragment navigation aligns the target to the top even when visible.
+  if (event.detail === 0) target.focus({ preventScroll: true });
+  target.scrollIntoView?.({ block: "nearest", behavior: "instant" });
+}
+
 export function Overview() {
   const [location, setLocation] = useState(window.location.search);
   const params = new URLSearchParams(location);
@@ -204,6 +229,55 @@ export function Overview() {
   const [resetMessage, setResetMessage] = useState("");
   const [resetError, setResetError] = useState("");
   const resetButton = useRef<HTMLButtonElement>(null);
+  const viewport = useRef<{ x: number; y: number } | null>(null);
+  const restoreResetFocus = useRef(false);
+  const advanceButton = useRef<HTMLButtonElement>(null);
+  const restoreAdvanceFocus = useRef(false);
+  const selection = useRef<{
+    url: string;
+    origin: Element | null;
+    target: string;
+  } | null>(null);
+  function preserveViewport() {
+    viewport.current = { x: window.scrollX, y: window.scrollY };
+  }
+  useLayoutEffect(() => {
+    // Apply focus and scroll in the DOM commit, before layout changes can paint
+    // an intermediate position. Pointer actions never redirect focus to Reset.
+    if (restoreAdvanceFocus.current) {
+      restoreAdvanceFocus.current = false;
+      advanceButton.current?.focus({ preventScroll: true });
+    }
+    const position = viewport.current;
+    viewport.current = null;
+    if (restoreResetFocus.current) {
+      restoreResetFocus.current = false;
+      resetButton.current?.focus({ preventScroll: true });
+    }
+    if (
+      position &&
+      (window.scrollX !== position.x || window.scrollY !== position.y)
+    ) {
+      window.scrollTo(position.x, position.y);
+    }
+    const pending = selection.current;
+    selection.current = null;
+    if (
+      pending &&
+      window.location.search === pending.url &&
+      (document.activeElement === pending.origin ||
+        document.activeElement === document.body)
+    ) {
+      const target = document.getElementById(pending.target) ?? queue.current;
+      target?.focus({ preventScroll: true });
+      target?.scrollIntoView?.({ block: "nearest", behavior: "instant" });
+      window.history.replaceState(
+        { ...window.history.state, scrollY: window.scrollY },
+        "",
+        window.location.href,
+      );
+    }
+  });
   const [revision, setRevision] = useState(0);
   const heading = useRef<HTMLHeadingElement>(null);
   const queue = useRef<HTMLHeadingElement>(null);
@@ -302,12 +376,15 @@ export function Overview() {
     window.addEventListener("popstate", back);
     return () => window.removeEventListener("popstate", back);
   }, []);
-  async function advance() {
+  async function advance(keyboard: boolean) {
     if (reset || advancing.current) return;
+    preserveViewport();
     advancing.current = true;
     ++requestNumber.current;
     setBusy(true);
     setError(null);
+    const origin = document.activeElement;
+    const advanceUrl = window.location.search;
     try {
       const response = await fetch(
         `/api/demo/advance${data?.run ? `?run=${encodeURIComponent(data.run)}` : ""}`,
@@ -319,6 +396,7 @@ export function Overview() {
         );
       const next: OverviewData = await response.json();
       if (mounted.current) {
+        preserveViewport();
         acceptResults(next, true);
       }
     } catch (problem) {
@@ -330,17 +408,28 @@ export function Overview() {
         );
     } finally {
       advancing.current = false;
-      if (mounted.current) setBusy(false);
+      if (mounted.current) {
+        preserveViewport();
+        restoreAdvanceFocus.current =
+          keyboard &&
+          window.location.search === advanceUrl &&
+          (document.activeElement === origin ||
+            document.activeElement === document.body);
+        setBusy(false);
+      }
     }
   }
-  async function resetDemo() {
+  async function resetDemo(keyboard: boolean) {
     if (reset || advancing.current || !resetRun.current) return;
+    preserveViewport();
     advancing.current = true;
     ++requestNumber.current;
     setBusy(true);
     setResetting(true);
     setResetError("");
     setResetMessage("");
+    const origin = document.activeElement;
+    const resetUrl = window.location.search;
     try {
       const response = await fetch("/api/demo/reset", {
         method: "POST",
@@ -358,12 +447,21 @@ export function Overview() {
         );
       const next: OverviewData = await response.json();
       if (!mounted.current) return;
+      preserveViewport();
+      restoreResetFocus.current =
+        keyboard &&
+        window.location.search === resetUrl &&
+        (document.activeElement === origin ||
+          document.activeElement === document.body);
       previousIncidents.current = null;
       acceptResults(next);
       setError(null);
       setSelected(null);
       window.history.pushState(
-        { focus: "reset-demo" },
+        {
+          focus: keyboard ? "reset-demo" : "overview-heading",
+          scrollY: window.scrollY,
+        },
         "",
         `?view=overview&dataset=demo&run=${encodeURIComponent(next.run!)}`,
       );
@@ -371,9 +469,6 @@ export function Overview() {
       setConfirmReset(false);
       setResetMessage(
         "Demo reset. Normal history restored; Live and Historical are unchanged.",
-      );
-      window.requestAnimationFrame(() =>
-        resetButton.current?.focus({ preventScroll: true }),
       );
     } catch (problem) {
       if (mounted.current)
@@ -423,30 +518,11 @@ export function Overview() {
     );
     setLocation(window.location.search);
     setSelected(id);
-    const selectionUrl = window.location.search;
-    const selectionFocus = document.activeElement;
-    window.requestAnimationFrame(() => {
-      if (
-        window.location.search !== selectionUrl ||
-        (document.activeElement !== selectionFocus &&
-          document.activeElement !== document.body)
-      )
-        return;
-      const target = id
-        ? heading.current
-        : (document.getElementById(`incident-${selected}`) ?? queue.current);
-      // Keep visible destinations in place; reveal off-screen headings without
-      // the browser's default focus centering or a second restoration jump.
-      target?.focus({ preventScroll: true });
-      target?.scrollIntoView?.({ block: "nearest", behavior: "instant" });
-      // Capture the destination now, even if Back happens before the browser
-      // emits its scroll event; the outgoing entry keeps its original position.
-      window.history.replaceState(
-        { ...window.history.state, scrollY: window.scrollY },
-        "",
-        window.location.href,
-      );
-    });
+    selection.current = {
+      url: window.location.search,
+      origin: document.activeElement,
+      target: id ? "incident-heading" : `incident-${selected}`,
+    };
   }
   const incident = reset
     ? undefined
@@ -579,25 +655,35 @@ export function Overview() {
             <h2 id="demo-walkthrough-heading">Try the Demo</h2>
             <ol>
               <li>
-                <a href="#reset-demo">Reset Demo</a> and confirm to start fresh.
-                This clears Demo history only.
+                <a href="#reset-demo" onClick={followDemoGuide}>
+                  Reset Demo
+                </a>{" "}
+                and confirm to start fresh. This clears Demo history only.
               </li>
               <li>
                 <PageLink
+                  id="demo-receiver-guide"
                   href="?view=deliveries&dataset=demo"
                   focus="receiver-heading"
+                  revealFocus
                 >
                   Choose receiver behavior in Deliveries
                 </PageLink>
                 , then save it.
               </li>
               <li>
-                Return here and <a href="#advance-demo">advance one minute</a>{" "}
+                Return here and{" "}
+                <a href="#advance-demo" onClick={followDemoGuide}>
+                  advance one minute
+                </a>{" "}
                 to generate a checkout incident.
               </li>
               <li>
-                <a href="#queue-heading">Investigate the incident</a>, then open
-                its delivery history to inspect the result and attempts.
+                <a href="#queue-heading" onClick={followDemoGuide}>
+                  Investigate the incident
+                </a>
+                , then open its delivery history to inspect the result and
+                attempts.
               </li>
             </ol>
           </section>
@@ -631,7 +717,8 @@ export function Overview() {
                 id={isIncidents ? undefined : "advance-demo"}
                 className="primary"
                 disabled={busy || reset || confirmReset || !data}
-                onClick={() => void advance()}
+                ref={advanceButton}
+                onClick={(event) => void advance(event.detail === 0)}
               >
                 {busy && !resetting ? "Advancing…" : "Advance one minute"}
               </button>
@@ -644,6 +731,7 @@ export function Overview() {
                 aria-expanded={confirmReset}
                 aria-controls="reset-confirmation"
                 onClick={() => {
+                  preserveViewport();
                   resetRun.current = data?.run ?? null;
                   setConfirmReset(true);
                   setResetError("");
@@ -681,16 +769,17 @@ export function Overview() {
               <button
                 className="destructive"
                 disabled={busy || reset}
-                onClick={() => void resetDemo()}
+                onClick={(event) => void resetDemo(event.detail === 0)}
               >
                 {resetting ? "Resetting Demo…" : "Confirm reset Demo only"}
               </button>
               <button
                 disabled={busy}
-                onClick={() => {
+                onClick={(event) => {
+                  preserveViewport();
+                  restoreResetFocus.current = event.detail === 0;
                   setConfirmReset(false);
                   setResetError("");
-                  resetButton.current?.focus({ preventScroll: true });
                 }}
               >
                 Cancel reset

@@ -9,3 +9,9 @@ Quiet bundled music plus two subdued SFX; no narration. NumPy extraction succeed
 Local preview: http://localhost:3017/#project/composition (left running for review). Nothing was published, uploaded or submitted as feedback. No cloud rendering or Gemini request.
 
 Before public distribution, confirm the bundled ende.app music license: the skill's music README identifies the source but does not document exact redistribution terms. The local deliverable uses the skill-provided track as requested; public publication was not performed.
+
+## User-supplied screenshot revision
+
+Replaced only the closing Gemini source with the supplied response capture; inspected the encoded frame at 16 seconds. The verification warning, hypotheses and evidence links remain visible. No key appears and no new Gemini call was made. Deliveries video asset is byte-for-byte unchanged; only the presentation screenshot was replaced.
+
+Fresh full Hyperframes check passed: zero errors, 90/90 contrast checks, no layout/runtime/motion issues, same six reviewed structural advisories. Local render completed in 11.7 seconds with hardware GPU. Final poster-baked MP4 remains 18.000 seconds, 1920×1080, 30fps, 540 frames, H.264/AAC. Retained the original Overview poster. Checked 132 current documentation links/anchors. Source images preserve the supplied pixels, including the response’s imprecise rate wording documented in the handoff.

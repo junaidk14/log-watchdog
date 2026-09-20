@@ -2,7 +2,7 @@
 
 Deliver brag-output/brag.mp4 and brag.jpg, 1920×1080 landscape, exactly 18 seconds at 30fps, polished and professional. Source: frontend/index.html, frontend/src/styles.css, Overview.tsx, navigation.tsx, README.md, docs/presentation-handoff.md and five real PNG captures in docs/screenshots. Storyboard: brag-plan.md, authoritative for copy and product sequence.
 
-Show Overview → incident investigation → evaluated logs → recorded delivery history → optional Gemini setup. Keep actual screenshot pixels; crop and frame for reading. No fabricated alert counts, provider output, keys, cloud deployment, benchmarks or root-cause claims. UI shows recovered incident and historical spike; delivery success is the opening notification's recorded single HTTP 200. Gemini remains visibly optional and not configured.
+Show Overview → incident investigation → evaluated logs → recorded delivery history → optional Gemini analysis. Keep actual screenshot pixels; crop and frame for reading. No fabricated alert counts, provider output, keys, cloud deployment, benchmarks or root-cause claims. UI shows recovered incident and historical spike; delivery success is the opening notification's recorded single HTTP 200. Gemini remains visibly optional; the user-provided response is not independently validated.
 
 Visual palette: #131b22 ground, #1b2731 panel, #e4edf2 text, #afc0cd secondary, #86c6df accent. Adopt the current dark variant from source CSS rather than the light-default design frontmatter. Flat field is intentional: this restrained SRE film uses real product surfaces and a journey rail for hierarchy, no decorative particles/glows or extra cards. System sans like the app, larger 64px headlines and 28px supporting copy. Intentional screenshot cropping is allowed; captions must fit unmasked.
 
@@ -15,3 +15,5 @@ Run full hyperframes check, inspect settled snapshots, start preview, render loc
 Audio-reactive extraction attempted with the official helper; unavailable because the project Python environment has no NumPy. Omitted reactive motion rather than modifying application dependencies. Normal music and SFX remain.
 
 Update: user authorized NumPy installation. Official extraction succeeded with NumPy in uv tooling cache; 540 bass samples now modulate only the structural top rule at opacity 0.84–0.96. uv initially synchronized the project environment; pinned development requirements were restored immediately and the generated uv.lock removed. No app manifests or source changed.
+
+Revision: user supplied the Gemini response capture and requested it in the existing video. Replace only the closing screenshot and its crop/label; keep timing, audio, other scenes and poster unchanged. Preserve response pixels and its verification warning. The new Deliveries presentation screenshot must not replace the video asset.

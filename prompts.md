@@ -1763,3 +1763,66 @@ Finally commit and push.
 Grouped the seven issue verification reports plus cleanup and UX reports under docs/verification/. Updated current documentation links, relocated-report links, and the index. Kept root entry points, presentation assets and runner documentation in place. Prior prompt history, including historical path references, remains unchanged. Validation checks current documentation links and heading anchors; no application code changed. Commit and push requested for the current cleanup-main-flows branch.
 
 Validation: all 131 checked relative links and heading anchors in current Markdown documentation resolve; historical prompts excluded from link rewriting/checking to preserve their exact text. Prior audit content is byte-for-byte unchanged. Git whitespace check passed. Application tests were not rerun for this documentation-only change.
+
+## 2026-09-20 — Supplied Gemini and Deliveries screenshots
+
+```text
+[Image #1]In the brag video for Gemini, can we use this?
+
+[Image #2] And this for the deliveries screenshot not for brag'/Users/junaidahamad/github/log_watchdog/docs/screenshots'Please, Gemini, with the image as well, here too.
+```
+
+Saved the supplied Gemini capture as docs/screenshots/gemini-response.png and replaced docs/screenshots/deliveries.png with the supplied Deliveries capture. Updated only the video's Gemini scene; its Deliveries asset stays unchanged. Preserved supplied image pixels and documented the response's imprecise rate wording. No application change or Gemini request.
+
+Validation: supplied files copied byte-for-byte; video Deliveries asset unchanged. Full Hyperframes check passed with zero errors and 90/90 contrast checks. Inspected the final encoded Gemini scene; final video is 18 seconds, 1080p/30fps, 540 frames. Current documentation links resolve. No application tests rerun for this media-only update.
+
+## 2026-09-20 — Update the timestamped video render
+
+```text
+'/Users/junaidahamad/github/log_watchdog/brag-output/composition/renders/composition_2026-09-20_09-29-34.mp4' Replace frame 4 with the Gemini image we shared, or add a frame 5 which shows what Gemini insight would look like. [Image #1] Add this to the video. As frame 5
+```
+
+Updated that timestamped MP4 to the verified revised video: the fifth scene (14–18 seconds) shows the supplied Gemini response. Delivery remains scene four. Continuing the already-active Demo scroll/focus task.
+
+## 2026-09-20 — Demo pointer and keyboard focus correction
+
+```text
+The Demo actions still have an awkward scroll/focus issue.
+
+When I click actions like:
+- Reset demo
+- Advance one minute
+- Investigate incident
+
+the page shifts vertically and sometimes focuses the Reset button, which feels jumpy and unnatural.
+
+Please inspect the current focus-restoration and history behavior and fix this without breaking keyboard accessibility.
+
+Expected behavior:
+- mouse clicks should not cause unnecessary scroll jumps
+- after Reset or Advance, keep the user at roughly the same scroll position
+- do not force focus onto Reset unless it is actually needed for keyboard flow
+- Investigate should move to the incident workspace cleanly, without an extra scroll jump
+- keyboard users should still get logical focus
+- Back/Forward behavior should remain intact
+
+Please make the smallest coherent fix and add/update regression coverage for the affected interactions.
+```
+
+Reproduced forced Reset focus after pointer cancellation/completion. Narrow browser tracing also showed layout scrolling before the deferred investigation focus. Kept the fix in Overview: preserve viewport around Demo updates, restore controls only after keyboard activation when focus has not moved elsewhere, and focus/reveal the investigation during the layout commit rather than a later animation frame. Added regression coverage; updated keyboard reset coverage. 101 frontend tests, typecheck, lint, build and formatting passed. Playwriter verified pointer/keyboard actions, desktop/narrow layouts, Back/Forward and evaluated Logs return using a separate synthetic port-8001 database with workers disabled. User app/database untouched; no backend behavior change.
+
+## 2026-09-20 — Screenshot identifies walkthrough anchor jump
+
+```text
+[Image #1]This is what happens when I click reset.
+```
+
+Reproduced the exact screenshot through Try the Demo → Reset Demo: native fragment navigation set #reset-demo, scrolled to y=268 and focused Reset without opening confirmation. The previous action-button checks missed this separate entry point. All three walkthrough anchors now prevent native fragment navigation, reveal only off-screen targets with nearest scrolling, and focus targets only for keyboard activation. Existing action buttons and confirmation behavior are unchanged. Playwriter verified desktop/narrow Reset links retain y=0, history length and empty hash, with no forced mouse focus; keyboard focus still works. No user-data mutations occurred. All 102 frontend tests, typecheck, lint, build and formatting passed.
+
+## 2026-09-20 — Finish walkthrough verification and push
+
+```text
+Do this: check this for other try-the-demo links as well. The advanced one-minute gave similar issues to me, so fix those, and we'll wrap development up. Once done, commit and push.
+```
+
+Verified all four walkthrough links with mouse and keyboard at desktop/narrow widths. Reset, Advance and Investigate guide links avoid native hash navigation and unwanted focus/scroll. Fixed the remaining narrow-screen receiver link: explicitly reveal its destination on first navigation and retain saved scroll on history restoration. Added a stable origin ID so Back restores the receiver walkthrough link. Expanded keyboard coverage across all three in-page links and added receiver/history regression coverage. All 103 frontend tests, typecheck, lint, build and formatting passed; Playwriter confirmed receiver visibility and Back/Forward. Committing and pushing the accumulated user-requested UI, screenshot and video revisions on cleanup-main-flows. No backend changes or external submission.

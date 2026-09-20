@@ -42,20 +42,21 @@ Local single-user, localhost-only, no authentication or external platform connec
 
 ## Screenshot manifest
 
-Playwriter local headless Chrome, dark mode, consistent **1600 × 1200 CSS-pixel desktop viewport**, without browser chrome. Full-page images retain content below the fold; Gemini uses a focused section capture from the same viewport. No screenshot contains a real key or Gemini analysis output.
+Playwriter local headless Chrome, dark mode, consistent **1600 × 1200 CSS-pixel desktop viewport**, without browser chrome. Full-page images retain content below the fold; Gemini uses a focused section capture from the same viewport. No screenshot shows a real key. The user subsequently supplied the Gemini response and replacement Deliveries captures below; these have their original dimensions, separate from the consistent-viewport capture set.
 
 | Asset | Content / suggested caption |
 | --- | --- |
 | [overview.png](screenshots/overview.png) | Try the Demo, recovered checkout incident and all three service trends; full page |
 | [incidents.png](screenshots/incidents.png) | Selected recovered incident with its abnormal window, baseline, patterns and local summary |
 | [evaluated-logs.png](screenshots/evaluated-logs.png) | Opened through View evaluated logs, then filtered to ERROR: 16 matching logs from 40 evaluated events |
-| [deliveries.png](screenshots/deliveries.png) | Opening notification delivered with recorded HTTP 200 attempt expanded; recovery notification separately exhausted after three attempts; full page |
+| [deliveries.png](screenshots/deliveries.png) | User-provided replacement: recovered notification delivered, one of three attempts used, payload expanded; attempt details below the visible crop |
 | [historical.png](screenshots/historical.png) | Real UI import of 60 synthetic events; four ERROR rows shown, trends use all 60; full page |
+| [gemini-response.png](screenshots/gemini-response.png) | User-provided Gemini hypotheses, evidence links and next checks; synthetic Demo evidence, no key visible |
 | [gemini-setup.png](screenshots/gemini-setup.png) | Not configured, empty key field, memory-only guidance, Clear key and Preview controls; setup section only |
 
-Capture provenance: a separate copy of the earlier synthetic browser-verification database supplied the recovered incident and genuine recorded delivery outcomes. Workers were disabled during capture; no new delivery or Gemini call occurred. Historical events were generated solely for this package and imported into that copy. The running user app/data was untouched. No screenshots were skipped. Delivery images do **not** show a 503→200 retry success sequence; do not caption them as one.
+Original capture provenance: a separate copy of the earlier synthetic browser-verification database supplied the recovered incident and genuine recorded delivery outcomes. Workers were disabled during capture; no new delivery or Gemini call occurred. Historical events were generated solely for this package and imported into that copy. The running user app/data was untouched. No screenshots were skipped. Neither delivery capture shows a 503→200 retry success sequence; do not caption them as one.
 
-Before assembling the final deck: review crops/text size at slide scale, add the user's separate Gemini response screenshot and confirm its provenance/privacy before claiming live-provider success, and confirm any Tagle result. Verify branch/merge status before describing the cleanup as released.
+Before assembling the final deck, review crops/text size at slide scale. The supplied Gemini response is available above; provider access was not independently retested. Its “0.4 errors per window” wording is imprecise: the evidence shows an error-log rate of 0.4 (40%). Treat generated hypotheses as unverified, and confirm any Tagle result. Verify branch/merge status before describing the cleanup as released.
 
 ## Repository references
 

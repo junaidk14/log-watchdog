@@ -10,7 +10,7 @@ All seven MVP issues completed the implementation → independent review → fix
 
 | Scope | Recorded result | Evidence |
 | --- | --- | --- |
-| Current frontend/scroll fix | 97 tests in 8 files; build/TypeScript, ESLint, Prettier passed | `/tmp/watchdog-scroll-tests.log`; [UX record](verification/ux.md) |
+| Current frontend/scroll fix | 103 tests in 8 files; build/TypeScript, ESLint, Prettier passed | `/tmp/watchdog-wrap-tests.log`; [UX record](verification/ux.md) |
 | Light/dark palette | 23 text/control/focus pairs per theme pass their 4.5:1 text or 3:1 control/focus thresholds | `scripts/check_contrast.py`; source ratios, not WCAG certification |
 | Latest backend changes | 78 API/analysis tests passed after key-shape and service-choice fixes; Ruff lint/format, mypy passed | `/tmp/watchdog-readability-backend.log`; [UX record](verification/ux.md) |
 | Latest full backend/runtime pass | 132 backend tests and real-HTTP runtime validator passed at rendered UX cleanup, before the later key/filter additions | `/tmp/watchdog-rendered-ux-backend.log`, `/tmp/watchdog-rendered-ux-runtime.log` |

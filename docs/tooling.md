@@ -32,12 +32,12 @@ The installed stack versions were recorded during implementation (Python 3.14.5,
 | Ruff / mypy / TypeScript / ESLint / Prettier | Used | Lint, types and formatting |
 | `scripts/check_contrast.py` | Used | Text/control/focus ratios for both palettes; not a rendered accessibility audit |
 | `scripts/validate_runtime.py` | Used | Temporary-database real loopback HTTP, restart, lifecycle, 100k-event/20-events-per-second exercises |
-| Playwriter CLI / local headless Chrome | Used | Rendered desktop/narrow inspection, keyboard/Back/Forward, Demo scroll regression reproduction, targeted motion and theme checks, and synthetic presentation screenshots under `docs/screenshots/`; extension mode failed to attach |
+| Playwriter CLI / local headless Chrome | Used | Rendered desktop/narrow inspection, keyboard/Back/Forward, Demo pointer/keyboard and walkthrough-anchor scroll regression reproduction and verification, including receiver setup and Back/Forward, targeted motion and theme checks, and synthetic presentation screenshots under `docs/screenshots/`; extension mode failed to attach |
 | In-app browser runtime | Used for discovery | Initial discovery/recovery found no browser; this historical limitation was later overcome through Playwriter headless mode |
 | Chrome DevTools MCP | Not used | Reserved for diagnosis when needed |
 | Codex execution/patch, clock, question and collaboration tools | Used | Local edits, timing, clarification and explicitly scoped independent agents |
 | Web tool / official provider docs | Used | Architecture, statistical and provider-contract research; no account/key provisioning |
-| Hyperframes 0.8.53 / GSAP 3.14.2 / FFmpeg 8.1.2 | Used | Local 18-second launch-video composition, browser checks, encoding and poster frame; no hosted rendering or publication |
+| Hyperframes 0.8.53 / GSAP 3.14.2 / FFmpeg 8.1.2 | Used | Local 18-second launch-video composition, browser checks, encoding, poster frame and user-supplied Gemini screenshot revision; no hosted rendering or publication |
 | NumPy / uv isolated tooling cache | Used | Official Hyperframes audio-band extraction for a restrained music-responsive accent; app requirements unchanged |
 | Markdown / Mermaid | Used | Product/architecture docs and local AI-generated presentation; documentation index and grouped verification reports; no slide publication |
 | Python standard library / ripgrep / Git | Used | Documentation path updates, relative-link and heading-anchor checks, preserved audit-history check, commit and push |
