@@ -1842,3 +1842,19 @@ merge with main
 ```
 
 Verified the clean cleanup-main-flows branch and its accumulated UI, Gemini setup, theme, documentation and media scope. No existing PR for this branch. User authorized creating/merging its PR into main and synchronizing local main; use GitHub mergeability/check results without bypassing branch protection. Validation remains the documented 103 frontend tests and frontend checks, targeted rendered navigation checks, and earlier scoped backend evidence. No new application edits for this merge.
+
+## 2026-09-20 — Refresh stale final validation
+
+```text
+Fix the stale final-validation.md.
+```
+
+Updated the validation snapshot to the merged PR #16/main baseline, final 103-test frontend pass and targeted Demo navigation evidence. Distinguished earlier backend/runtime runs and independent reviews from later local checks and the unreviewed whole-branch merge. Corrected presentation provenance for the replaced Deliveries image, supplied Gemini response and revised video, retaining provider/output-quality and music-license limitations. No application behavior changed or tests rerun for this documentation-only correction.
+
+## 2026-09-20 — Publish validation documentation correction
+
+```text
+commit and push
+```
+
+Commit and push the final-validation correction and accompanying audit/tooling updates to main. Documentation only; relative-link and whitespace checks passed. Verify remote synchronization after pushing.

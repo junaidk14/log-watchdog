@@ -39,7 +39,7 @@ The installed stack versions were recorded during implementation (Python 3.14.5,
 | Web tool / official provider docs | Used | Architecture, statistical and provider-contract research; no account/key provisioning |
 | Hyperframes 0.8.53 / GSAP 3.14.2 / FFmpeg 8.1.2 | Used | Local 18-second launch-video composition, browser checks, encoding, poster frame and user-supplied Gemini screenshot revision; no hosted rendering or publication |
 | NumPy / uv isolated tooling cache | Used | Official Hyperframes audio-band extraction for a restrained music-responsive accent; app requirements unchanged |
-| Markdown / Mermaid | Used | Product/architecture docs and local AI-generated presentation; documentation index and grouped verification reports; no slide publication |
+| Markdown / Mermaid | Used | Product/architecture docs and local AI-generated presentation; documentation index, grouped verification reports and evidence-based final-validation refresh and publication to main; no slide publication |
 | Python standard library / ripgrep / Git | Used | Documentation path updates, relative-link and heading-anchor checks, preserved audit-history check, commit/push, GitHub PR merge and branch synchronization verification |
 | macOS `open` / Impeccable CLI | Used | Initial local design choices and context/critique/audit/refinement workflows |
 
