@@ -10,22 +10,16 @@ Each claim commits before network I/O. On restart, unfinished claims retain thei
 
 ## Walk through retry and recovery
 
-1. Start with a fresh temporary database using the regular launcher:
-
-   ```sh
-   demo_directory=$(mktemp -d)
-   LOG_WATCHDOG_DB="$demo_directory/watchdog.sqlite3" .venv/bin/python -m log_watchdog
-   ```
-
-2. Open Deliveries → Demo receiver behavior, choose **Fail first, then succeed**, and **Save behavior**.
+1. Start the application with the [regular launcher](../README.md#start-locally). Open **Demo Overview** → **Reset demo** → **Confirm reset Demo only**. This clears Demo investigation and delivery history and restores seeded normal history; Live and Historical remain unchanged.
+2. Reset restores receiver behavior to **Success**. After resetting, open **Deliveries → Demo receiver behavior**, choose **Fail first, then succeed**, and **Save behavior** before advancing.
 3. Open Overview → **Advance one minute** → **Investigate checkout incident** → **View delivery history**.
 4. Expand **View payload and attempts**. The first actual response is HTTP 503, a real-time retry is scheduled, and the second response is HTTP 200. The exact payload and stable ID remain unchanged. **Back to incident** restores the originating action and evaluated window.
 5. Advance four more times to observe incident recovery and a separate recovery notification. Both notifications capture the selected behavior when created; changing the setting later never changes pending work.
-6. To demonstrate exhaustion, start another fresh temporary database, save **Always fail**, then repeat. After three HTTP 503 responses, the delivery shows no further retry and the final error. No resend is offered. **Success** accepts on the first request.
+6. To demonstrate exhaustion, return to **Demo Overview** → **Reset demo** → **Confirm reset Demo only**. After reset completes, open Demo Deliveries, choose **Always fail**, and **Save behavior**, then return to Overview and **Advance one minute**. After three HTTP 503 responses, the delivery shows no further retry and the final error. No resend is offered. To repeat, use the same reset → configure and save receiver behavior → advance sequence. **Success** accepts on the first request.
 
 Receiver settings affect new synthetic Demo notifications only; Live always captures success. Actual network problems can still fail a Live attempt. Historical data never creates notifications. Settings and receipt recognition survive restart. The receiver behavior label is a simulation control; attempt outcomes are actual HTTP results.
 
-The database path above is isolated from your regular data. Demo reset and retention remain separate issue #6 work. This feature does not delete data or introduce a reset control.
+Seven-day retention and Demo-only reset are implemented. Retention preserves active investigations and pending deliveries and is not a hard storage cap. See [retention exceptions and the reset walkthrough](lifecycle.md) for clocks, scope, and stale-run behavior.
 
 ## APIs and evidence
 

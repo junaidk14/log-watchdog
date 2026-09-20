@@ -253,3 +253,11 @@ Project-specific AFK policy now authorizes #4–#7 and requires implementation/f
 - Impeccable context/harden/craft-floor/detector — Used for the scoped error state within existing styles; detector returned `[]`. Browser skill setup/recovery returned no browser and `[]`; rendered verification remains deferred.
 - Existing Ruff/mypy/ESLint/Prettier/TypeScript/Vite, static contrast and real HTTP runtime validator — Used for verification. jsdom's axe canvas/contrast diagnostic is an environment limit, not rendered contrast evidence; no checks were disabled.
 - `pr` skill, Git/GitHub CLI and clock — Used for existing PR evidence, dependency/metadata checks and handoff.
+
+## PR #13 delivery guidance review fix R1
+
+- Existing React/TypeScript and Markdown — Used for the exhausted-delivery reset instructions and matching retry/exhaustion walkthrough; no new dependency or architectural decision.
+- Impeccable context/clarify/craft-floor/detector and `pr` skill — Used for scoped recovery copy and existing PR evidence. Detector returned `[]`; existing design tokens retained.
+- Existing Vitest/Testing Library/axe, pytest/TestClient, TypeScript/Vite, ESLint/Prettier, Ruff/mypy, static contrast and runtime validator — Used for verification. Temporary-database API walkthrough verifies reset restores Success before configuring each new scenario.
+- Browser skill/runtime — Used for supported setup and recovery; no browser available and recovery list `[]`. Rendered checks remain pending.
+- Git/GitHub CLI, Python standard library and clock — Used for state/dependency checks, audit/evidence updates and elapsed-time handoff.

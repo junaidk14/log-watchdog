@@ -138,3 +138,59 @@ Supported Browser setup `getForUrl('http://127.0.0.1:8000')` reported **No brows
 - [ ] Browser loading/empty/error/changed interactions: slow response and failed refresh, stale URL reload, current-Demo link and current-run empty/filter states.
 
 **Browser unavailable; rendered desktop, narrow-screen, and keyboard verification require a later manual check.**
+
+## Delivery guidance review fix R1 (2026-09-20)
+
+**Before:** exhausted delivery instructed users to create a temporary database and claimed Demo reset was unavailable; the delivery walkthrough also called retention/reset unimplemented.
+**After:** the message links to Demo Overview and names Reset demo → Confirm reset Demo only. It explains Demo history deletion, dataset isolation and the Success default. Both the UI and walkthrough require reset → configure and Save behavior → Advance one minute. Existing confirmation, routes and receiver implementation are reused; no new architectural decision or dependency.
+
+Completed verification for this correction:
+
+- `npm --prefix frontend run build` — passed, 35 modules.
+- `npm --prefix frontend run typecheck` — passed.
+- `npm --prefix frontend run lint` — passed.
+- `npm --prefix frontend run format:check` — passed. Formatting applied with `./node_modules/.bin/prettier --write src/Deliveries.tsx src/Deliveries.test.tsx` from `frontend/`.
+- `npm --prefix frontend test` — 74 passed. Existing exhaustion test now checks the Demo Overview destination and ordered confirmation/Success/receiver/advance instructions. Existing Overview confirmation and receiver-save tests pass. Available axe DOM checks pass; jsdom emits its existing unsupported canvas diagnostic and does not establish rendered contrast or layout. No checks weakened.
+- `.venv/bin/ruff check log_watchdog tests scripts` — passed.
+- `.venv/bin/ruff format --check log_watchdog tests scripts` — passed, 18 files.
+- `.venv/bin/mypy` — passed, 10 source files.
+- `.venv/bin/python scripts/check_contrast.py` — passed, minimum reported 5.19:1; static palette only.
+- `.venv/bin/pytest -q` — 98 passed, two existing Starlette/httpx/AnyIO deprecation warnings.
+- `.venv/bin/python scripts/validate_runtime.py` — passed using temporary synthetic data, actual loopback HTTP and process restarts. Covers opening/retry/recovery, pending restart, reset/reseed/stale URLs/isolation, evaluated and later-arrival evidence and real-clock worker. Measured 100k events in 1.394 s; first/deep/filtered browse medians 3.02/5.13/9.20 ms; 100 paced writes at target 20/s in 4.960 s, median 5.64 ms, max 8.47 ms (Python 3.14.5, macOS 15.6 arm64). One synthetic run, not production guarantees.
+- `/Users/junaidahamad/.agents/skills/impeccable/scripts/impeccable detect --json frontend/src/Deliveries.tsx` — `[]`.
+- `git diff --check` — passed.
+
+The following exact additional command passed both receiver scenarios. It uses in-process TestClient and real temporary SQLite storage, not actual network delivery (the runtime command above covers network delivery):
+
+```sh
+.venv/bin/python - <<'PYTHON'
+from tempfile import TemporaryDirectory
+from pathlib import Path
+from fastapi.testclient import TestClient
+from log_watchdog.app import create_app
+
+with TemporaryDirectory() as directory:
+    client = TestClient(create_app(Path(directory) / 'walkthrough.sqlite3'))
+    for behavior in ('fail-first-then-succeed', 'always-fail'):
+        run = client.get('/api/datasets/demo/overview').json()['run']
+        response = client.post('/api/demo/reset', json={'run': run, 'confirm_demo_only': True})
+        assert response.status_code == 200
+        assert client.get('/api/demo/receiver').json()['behavior'] == 'success'
+        assert client.put('/api/demo/receiver', json={'behavior': behavior}).status_code == 200
+        assert client.post('/api/demo/advance').status_code == 200
+        deliveries = client.get('/api/datasets/demo/deliveries').json()['deliveries']
+        assert len(deliveries) == 1 and deliveries[0]['behavior'] == behavior
+        print(f'reset -> Success -> save {behavior} -> advance -> notification captures {behavior}: PASS')
+PYTHON
+```
+
+### Manual UI verification pending — delivery guidance
+
+Supported Browser setup `getForUrl('http://127.0.0.1:8000')` reported **No browser is available**. Read supported recovery guidance; `browsers.list()` returned `[]` (serialized after correcting the output helper's string-only argument). No rendered pass claimed.
+
+- [ ] Desktop: exhaust Demo delivery → Demo Overview link → Reset demo → inspect Demo-only confirmation and recovery instructions.
+- [ ] Narrow screen/200% zoom: inspect exhausted-state copy and links for wrapping/overflow.
+- [ ] Keyboard/focus: follow Demo Overview, open/cancel/confirm reset, then follow receiver controls and Save behavior.
+- [ ] Browser loading/empty/error/changed interactions: slow/failed reset and refresh; successful reset → configure receiver → advance; verify empty history and new attempts.
+
+**Browser unavailable; rendered desktop, narrow-screen, and keyboard verification require a later manual check.**

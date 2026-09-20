@@ -380,12 +380,18 @@ function DeliveryRow({
           </p>
           <p>Final error: {final?.error ?? "Unknown outcome"}</p>
           <p>
+            To repeat the Demo opening scenario, open{" "}
+            <a href="?view=overview&dataset=demo">Demo Overview</a>, choose
+            Reset demo, then Confirm reset Demo only. Reset clears Demo history
+            and restores the receiver to Success; Live and Historical are
+            unchanged.
+          </p>
+          <p>
+            After resetting,{" "}
             <a href="?view=deliveries&dataset=demo#receiver-controls">
-              Review Demo receiver behavior
+              choose Demo receiver behavior
             </a>
-            . To repeat the opening scenario, start the documented launcher with
-            a fresh temporary database. This version does not yet offer Demo
-            reset.
+            , Save behavior, then return to Overview and Advance one minute.
           </p>
         </div>
       )}
