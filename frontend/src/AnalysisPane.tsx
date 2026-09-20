@@ -125,8 +125,8 @@ export function AnalysisPane({
         Optional Gemini analysis
       </h3>
       <p>
-        Preview a small evidence sample before choosing whether to send it. The
-        local summary above works without Gemini credentials.
+        Preview the evidence before sending it to Gemini. The local summary
+        needs no API key.
       </p>
       <GeminiSetup
         disabled={busy !== null}
@@ -175,10 +175,10 @@ export function AnalysisPane({
               {dataset === "demo" && (
                 <>
                   <p>
-                    Older Demo data may lack provenance. Reset Demo, then
-                    advance one minute to create a fresh synthetic incident.
-                    Reset deletes Demo logs, incidents and deliveries; Live and
-                    Historical stay intact.
+                    Older Demo logs may not be verified as simulated data. Reset
+                    Demo, then advance one minute to create a new simulated
+                    incident. Reset deletes Demo logs, incidents and deliveries;
+                    Live and Historical stay intact.
                   </p>
                   <PageLink
                     href="?view=overview&dataset=demo"
@@ -229,9 +229,9 @@ export function AnalysisPane({
             <pre>{preview.packet}</pre>
           </div>
           <p>
-            This frozen preview expires after 10 minutes or a server restart.
-            New arrivals are not added. Each retry after a failure may send the
-            same packet again.
+            This preview expires after 10 minutes or a server restart. It
+            excludes new arrivals. Retrying a failed send may send the same
+            evidence again.
           </p>
           <button
             disabled={busy !== null || setupBusy || result !== null}

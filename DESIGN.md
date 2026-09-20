@@ -196,3 +196,9 @@ Gemini setup is an inline disclosure with a password input, session-key save and
 Incident queue rows prioritize service, lifecycle state and last-spike error-log rate. Full abnormal-window measurements and lifecycle intervals belong to the selected investigation, with timeline/baseline detail under its existing disclosure. Window choices use minute-resolution UTC labels; recorded bounds remain precise in the measurement panel. Avoid repeating event totals in the local summary.
 
 Logs exposes a native service dropdown alongside the existing exact-name text field. Both edit the same draft filter; Apply filters commits it. Choices cover the current dataset independently of other filters, capped at 200 with a truncation hint. Incident-scoped service controls remain locked to their evidence provenance.
+
+### Final copy and control polish
+
+Use concise product labels: “Last refreshed”, “Latest window”, and “Demo · Simulated data”. Keep error-log rate, evaluated-evidence scope, UTC bounds and recovery meaning precise. Upload guidance leads with event count and MB; exact byte limits remain in documentation and validation. Memory-only key handling and explicit send consent stay visible.
+
+All pages share a 1,320px maximum content area. Investigation allocates more width to evidence; desktop Deliveries places receiver settings beside history and stacks them below at 1,100px. Helper prose is constrained to 70ch. Native selects use flat input styling and a small SVG chevron with reserved right padding, existing focus treatment and disabled colors. Forced-colors mode restores the system indicator. No custom combobox, font, palette, navigation or behavior change.

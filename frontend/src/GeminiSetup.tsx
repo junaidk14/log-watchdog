@@ -57,8 +57,8 @@ export function GeminiSetup({
         onChanged();
         setMessage(
           method === "PUT"
-            ? "Key accepted for this server session. Create a new preview before sending."
-            : "Session key cleared. An environment key, if present, remains the fallback. Create a new preview before sending.",
+            ? "Key set for this session. Create a new preview before sending."
+            : "Session key cleared. Any server environment key still applies. Create a new preview before sending.",
         );
       }
     } catch {
@@ -108,10 +108,9 @@ export function GeminiSetup({
       {open && (
         <div id="gemini-settings">
           <p className="hint">
-            Your key stays in server memory for this local session, until
-            cleared or the server stops. Clear key restores any server
-            environment key. Saving does not send evidence or verify provider
-            access.
+            Your key stays only in server memory until cleared or the server
+            stops. Clear key restores any environment key. Saving does not send
+            evidence or check Gemini access.
           </p>
           <form
             onSubmit={(event) => {

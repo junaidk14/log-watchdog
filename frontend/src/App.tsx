@@ -345,7 +345,7 @@ export function App() {
             <h1 id="logs-heading" ref={heading} tabIndex={-1}>
               Logs
             </h1>
-            <p>Explore events across a service, interval, or message.</p>
+            <p>Find logs by service, time, or message.</p>
           </div>
           <label className="dataset-select">
             Dataset
@@ -383,19 +383,19 @@ export function App() {
         <div className="dataset-context">
           <strong>
             {filters.dataset === "demo"
-              ? "Demo · Synthetic history"
+              ? "Demo · Simulated data"
               : filters.dataset === "live"
-                ? "Live · API events"
+                ? "Live · Incoming logs"
                 : filters.dataset === "historical"
-                  ? "Historical · Stored events"
+                  ? "Historical · Imported logs"
                   : "Unknown dataset"}
           </strong>
           <span>
             {filters.dataset === "demo"
-              ? "Simulation time (UTC). Seeded normal activity from three services."
+              ? "Simulated activity from three services."
               : filters.dataset === "live"
-                ? "Event time (UTC). Only events sent to the live dataset appear here."
-                : "Event time (UTC). Historical data is separate from live activity."}
+                ? "Logs received through the API."
+                : "Imported logs stay separate from live activity."}
           </span>
         </div>
         {filters.dataset === "historical" && (
@@ -575,7 +575,7 @@ export function App() {
             <p id="time-help" className="hint">
               {filters.incident
                 ? "Service and interval are pinned to the evaluated window. Leave incident scope to change them."
-                : "Use ISO UTC timestamps ending in Z. Both time boundaries are inclusive."}
+                : "Use UTC timestamps ending in Z. Both time boundaries are included."}
             </p>
           </form>
           <div className="result-toolbar">
@@ -721,7 +721,7 @@ export function App() {
                                 <dd>{log.event_id}</dd>
                                 <dt>Full message</dt>
                                 <dd>{log.message}</dd>
-                                <dt>Ingested at (real UTC)</dt>
+                                <dt>Received at (UTC)</dt>
                                 <dd>{log.ingested_at}</dd>
                                 <dt>Metadata</dt>
                                 <dd>
@@ -781,8 +781,7 @@ export function App() {
           />
         )}
         <p className="workspace-footnote">
-          Stored locally in SQLite. Dataset boundaries keep demo, live, and
-          historical events separate.
+          Stored on this device. Demo, Live, and Historical logs stay separate.
         </p>
       </main>
     </div>

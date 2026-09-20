@@ -83,6 +83,11 @@ it("expands payload and attempts with keyboard, retains focus through status upd
   const button = await screen.findByRole("button", {
     name: /View payload and attempts/,
   });
+  await waitFor(() =>
+    expect(
+      screen.getByRole("heading", { name: "Deliveries", level: 1 }),
+    ).toHaveFocus(),
+  );
   button.focus();
   await user.keyboard("{Enter}");
   expect(button).toHaveAttribute("aria-expanded", "true");
@@ -223,7 +228,7 @@ it.each(["Overview", "Open overview"])(
     expect(
       await screen.findByRole("heading", { name: "Overview" }),
     ).toBeVisible();
-    expect(screen.getByText("Live · API events")).toBeVisible();
+    expect(screen.getByText("Live · Incoming logs")).toBeVisible();
     expect(screen.getByRole("combobox", { name: "Dataset" })).toHaveValue(
       "live",
     );

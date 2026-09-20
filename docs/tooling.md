@@ -310,3 +310,10 @@ Existing FastAPI/React infrastructure now supports session-only Gemini key entry
 ## Evidence eligibility and readability follow-up
 
 Existing React/native HTML select and input controls, SQLite dataset-scoped service lookup, pytest and Vitest were reused without new dependencies. Playwriter session 3 inspected the rendered changes in local headless Chrome using a disposable database on port 8001, with background delivery disabled. A read-only SQLite aggregate confirmed mixed trusted/unverified Demo provenance in the user database; no log messages or credentials were inspected. No real Gemini request or automatic user-data reset occurred.
+
+## Final language/layout polish
+
+- **Impeccable polish guidance — Used.** Preserved the existing console direction while simplifying copy, aligning surfaces and styling native selects.
+- **Native HTML select and CSS — Used.** `appearance: none` with an inline SVG chevron; native keyboard semantics retained and forced-colors fallback restores system appearance. No library added.
+- **Playwriter — Used.** Before/after desktop/narrow inspection in headless Chrome, plus keyboard navigation, Back/Forward, delivery expansion and select type-ahead in a disposable local fixture. No provider call or user-database write.
+- Existing Vitest/axe, TypeScript, Vite, ESLint, Prettier and contrast script cover the frontend-only change.

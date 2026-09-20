@@ -68,7 +68,7 @@ export function HistoricalUpload({
     setError("");
     if (file.size > MAX_BYTES) {
       setError(
-        "File exceeds 5 MB (5,000,000 bytes). Split it into smaller JSON arrays and retry.",
+        "File exceeds 5 MB. Split it into smaller JSON files and retry.",
       );
       return;
     }
@@ -119,16 +119,16 @@ export function HistoricalUpload({
     <section className="historical-upload" aria-labelledby="upload-heading">
       <h2 id="upload-heading">Import historical logs</h2>
       <p id="upload-help">
-        UTF-8 JSON array · up to 5 MB (5,000,000 bytes) and 5,000 events.
-        Imports never train live baselines or trigger alerts.
+        Upload a JSON file with up to 5,000 events (5 MB). Imports do not affect
+        live baselines or trigger alerts.
       </p>
       <details>
-        <summary>Event format and retry behavior</summary>
+        <summary>File format and retry guidance</summary>
         <p>
-          Each event requires a timestamp with timezone, service, severity
-          (DEBUG, INFO, WARNING, ERROR, FATAL), and message. Optional: metadata
-          object and event_id. The whole file is rejected if any row is invalid
-          or an ID conflicts.
+          Use a UTF-8 JSON array. Each event requires a timestamp with timezone,
+          service, severity (DEBUG, INFO, WARNING, ERROR, FATAL), and message.
+          Optional: metadata object and event_id. The whole file is rejected if
+          any row is invalid or an ID conflicts.
         </p>
         <pre>
           {
@@ -316,10 +316,9 @@ export function HistoricalTrends({
     >
       <h2 id="historical-trends-heading">Historical trends</h2>
       <p>
-        {service || "All services combined"} · Uses applied service and UTC time
-        filters. Severity and message refinements affect the log table only,
-        keeping all events in the error-log rate denominator. No detector
-        baseline or incidents.
+        {service || "All services combined"} · Follows service and time filters.
+        Severity and message filters apply only to the log results, not these
+        trends. No baseline or incident detection.
       </p>
       {error ? (
         <div role="alert">

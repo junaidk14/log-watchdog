@@ -68,7 +68,7 @@ export function Trend({
     const row = rows[0];
     return (
       <figure className="window-comparison">
-        <figcaption>Error-log rate · recorded window</figcaption>
+        <figcaption>Error-log rate · evaluated window</figcaption>
         <dl>
           <div>
             <dt>Observed</dt>
@@ -527,8 +527,8 @@ export function Overview() {
             </h1>
             <p>
               {isIncidents
-                ? "Select an incident, inspect its evaluated windows, and follow the supporting evidence."
-                : "Review current service windows and recent incidents."}
+                ? "Select an incident to investigate its evidence."
+                : "Check recent incidents and service trends."}
             </p>
           </div>
           <label className="dataset-select">
@@ -560,13 +560,13 @@ export function Overview() {
           <div>
             <strong>
               {dataset === "demo"
-                ? "Demo · Synthetic scenario"
-                : "Live · API events"}
+                ? "Demo · Simulated data"
+                : "Live · Incoming logs"}
             </strong>
             <p>
               {dataset === "demo"
-                ? `Simulation paused · Simulation time (UTC): ${data ? time(data.progress.clock) : "Loading"}`
-                : "Event time (UTC) · Automatic real-time evaluation"}
+                ? `Paused · Simulation time (UTC): ${data ? time(data.progress.clock) : "Loading"}`
+                : "Live monitoring · Event time (UTC)"}
             </p>
             {dataset === "demo" && (
               <p className="hint">
@@ -575,7 +575,7 @@ export function Overview() {
                   : data.progress.steps < 2
                     ? "Next: continued spike"
                     : "Next: normal traffic / recovery"}
-                . Each advance completes one minute and its lateness grace.
+                . Advance to evaluate the next minute.
               </p>
             )}
           </div>
@@ -673,8 +673,8 @@ export function Overview() {
         {data && !reset && (
           <>
             <p className="refresh-time">
-              Last evaluated through {time(data.progress.next_start)} · Last
-              successful dashboard refresh {fetched && time(fetched)}
+              Evaluated through {time(data.progress.next_start)} · Last
+              refreshed {fetched && time(fetched)}
             </p>
             {data.delayed && (
               <p className="error" role="status">
@@ -695,14 +695,14 @@ export function Overview() {
                 </h2>
                 {!data.incidents.some((i) => i.state === "open") && (
                   <p className="no-active">
-                    No active incidents. This does not establish overall service
-                    health.
+                    No active incidents. This is not an overall health
+                    assessment.
                   </p>
                 )}
                 {data.incidents.length === 0 && !selected && (
                   <p className="empty-guidance">
                     {dataset === "demo" ? (
-                      "Use “Advance one minute” above to introduce the seeded downstream timeouts, then investigate the recorded spike."
+                      "Advance one minute to simulate downstream timeouts, then investigate the spike."
                     ) : (
                       <>
                         Send structured events through the{" "}
@@ -898,8 +898,7 @@ export function Overview() {
                   {dataset === "demo"
                     ? "Simulation time (UTC)"
                     : "Event time (UTC)"}{" "}
-                  · Last 30 evaluated minutes. Volume is not an anomaly
-                  detector.
+                  · Last 30 evaluated minutes. Volume is shown for context only.
                 </p>
                 {data.services.length === 0 && (
                   <p className="no-active">
@@ -923,14 +922,21 @@ export function Overview() {
                       <h3>{service.service}</h3>
                       <p>
                         <strong>
-                          Latest evaluated window: {service.status}
+                          Latest window:{" "}
+                          {service.status === "no spike detected"
+                            ? "No spike"
+                            : service.status === "spike detected"
+                              ? "Spike detected"
+                              : service.status === "learning baseline"
+                                ? "Learning baseline"
+                                : service.status}
                         </strong>{" "}
                         · {service.errors} ERROR/FATAL / {service.total} events
                         · {pct(service.rate)}
                       </p>
                       <p className="hint">
                         {time(service.start)} → {time(service.end)} (UTC).
-                        Earlier spikes remain in the history below.
+                        Earlier spikes remain in the chart.
                       </p>
                       <div className="trend-pair">
                         <Trend rows={rows} />
@@ -986,9 +992,9 @@ export function Overview() {
           </>
         )}
         <p className="workspace-footnote">
-          Routine data expires after seven days. Open investigations, their
-          evaluated evidence and pending deliveries are protected; this is not a
-          hard storage cap. Demo retention follows simulation time.
+          Logs and completed investigations are kept for seven days. Open
+          investigations, their evidence, and pending deliveries are preserved.
+          Demo uses simulation time.
         </p>
       </main>
     </div>

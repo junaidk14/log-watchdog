@@ -1385,3 +1385,95 @@ We can improve the readability further for the incidents tab, as it is still qui
 The attached screenshot showed a configured key with the existing real/unverified-evidence privacy gate. Read-only aggregate inspection found older unverified Demo events alongside trusted simulator events. Preserved that gate, clarified the message and linked to the existing explicit reset confirmation. Added dataset-scoped service choices alongside free text and reduced repeated incident queue measurements. User data and the running user server were left untouched; browser tests use a disposable fixture and no provider call.
 
 Verification: 91 frontend and 78 backend API/analysis tests; build/typecheck, lint/format, mypy and contrast passed. Playwriter desktop/narrow checks verified filtering, privacy guidance and successful fresh-synthetic preview without sending. Documentation updated; no architecture change.
+
+## 2026-09-20 — Final bounded language and layout polish
+
+```text
+Please do one final bounded polish pass focused on two things: simplifying the user-facing language and tightening the layout so the app feels more polished and production-like.
+
+Keep the meaning, behavior, navigation, validation, detector logic, evidence semantics, and backend behavior unchanged.
+
+1. Simplify the visible language
+
+Review all user-facing copy across Overview, Incidents, Logs, Deliveries, Historical import, and Gemini setup.
+
+Please:
+- remove unnecessary implementation-heavy wording
+- keep helper text short and useful
+- use consistent sentence case
+- keep terminology consistent across pages
+- simplify labels like “Last successful dashboard refresh” to something more natural such as “Last refreshed”
+- simplify wording such as “Latest evaluated window: no spike detected” where the same meaning can be conveyed more cleanly
+- review phrases like “Synthetic scenario”, “Synthetic history”, “recorded window”, “actual local HTTP attempts”, and similar copy that sounds like engineering documentation rather than product UI
+- keep UTC where it matters, but avoid repeating it unnecessarily
+- prefer user-facing limits like “Upload a JSON file with up to 5,000 events” instead of exposing byte-level implementation details
+- keep exact technical limits, detector details, retry semantics, and implementation details in the docs rather than primary UI copy
+- preserve exact technical wording only where simplifying it would make the meaning less precise or misleading
+
+The goal is for the visible language to feel natural, concise, and easy to scan.
+
+2. Tighten the layout and visual consistency
+
+Please do a light layout/UI polish pass across the full app.
+
+Improve:
+- consistent content width and horizontal alignment across pages
+- alignment of page titles, dataset selector, action buttons, panels, inputs, text boxes, and tables
+- spacing between page header, controls, sections, panels, and tables
+- overly wide text blocks so long explanations are easier to read
+- balance between the incident queue and investigation pane
+- unnecessary empty space on sparse pages like Deliveries
+- consistent button/input/select heights
+- consistent label/control alignment
+- panel padding and margins
+- use spacing and section headings instead of adding unnecessary borders
+- keep Logs compact without making it feel cramped
+
+3. Fix the native dropdown styling
+
+The current select/dropdown controls look visually inconsistent and “shiny” because they are using browser-native styling.
+
+Please restyle the select controls so they match the rest of the product:
+- flat, clean appearance
+- same border, radius, height, typography, and background treatment as other inputs
+- consistent focus and hover states
+- clear dropdown indicator
+- no gradients, glossy/shiny native appearance, or platform-specific chrome where avoidable
+- preserve keyboard accessibility and native behavior
+
+Apply this consistently to controls such as:
+- Dataset
+- Severity
+- Receiver behavior
+- Evaluated window
+- any other select control in the app
+
+Do not replace them with an unnecessarily complex custom component unless required. Prefer a lightweight accessible styling solution.
+
+4. Keep the existing product direction
+
+Do not redesign the visual system.
+
+Keep:
+- current color palette
+- typography family
+- left navigation
+- SRE-console direction
+- existing information architecture
+- accessibility and focus-restoration behavior
+
+The goal is simply to make the app feel more balanced, deliberate, smooth, and finished.
+
+Before changing anything, inspect the rendered pages and avoid changing things that already work well.
+
+After the changes:
+- verify Overview, Incidents, Logs, Deliveries, Historical import, and Gemini setup
+- check desktop and narrow layouts
+- verify keyboard/focus behavior
+- run the relevant frontend tests/build/type/lint/static checks
+- report what changed and any remaining UX issues
+
+Do not introduce new features in this pass.
+```
+
+Completed a copy/CSS-only product refinement with one layout wrapper. Backend, handlers, detector and navigation logic unchanged. Before/after Playwriter inspection used the isolated port-8001 fixture, 1440px/390px. All 91 frontend tests, production build/typecheck, ESLint, Prettier and contrast passed. Updated the existing delivery keyboard test to await initial heading-focus restoration before moving focus, preserving its assertions. No provider call, user-data change, or external publication. See docs/verification-ux.md for scope and remaining limitations.

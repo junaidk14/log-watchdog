@@ -830,9 +830,7 @@ it("distinguishes Incidents from Overview, scopes measurements, and restores des
   render(<Router />);
   await screen.findByText("Service trends");
   expect(document.title).toBe("Overview · Log Watchdog");
-  expect(
-    screen.getByText(/Latest evaluated window: no spike detected/),
-  ).toBeInTheDocument();
+  expect(screen.getByText(/Latest window: No spike/)).toBeInTheDocument();
   expect(
     screen.getByText(/Latest abnormal window: 40.00% observed/),
   ).toBeInTheDocument();

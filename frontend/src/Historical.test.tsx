@@ -76,7 +76,9 @@ it("uploads with keyboard submission, reports counts, browses the file interval 
   const user = userEvent.setup();
   const { container } = render(<Router />);
   await screen.findByText(/No historical events in this service/);
-  expect(screen.getByText(/up to 5 MB/)).toHaveTextContent("5,000 events");
+  expect(screen.getByText(/up to 5,000 events \(5 MB\)/)).toHaveTextContent(
+    "5,000 events",
+  );
   const file = new File([JSON.stringify([row])], "synthetic.json", {
     type: "application/json",
   });
@@ -243,7 +245,7 @@ it("retains input on connection failure and explains uncertain retries", async (
   expect(await screen.findByRole("alert")).toHaveTextContent(
     "inspect Historical before retrying",
   );
-  await userEvent.click(screen.getByText("Event format and retry behavior"));
+  await userEvent.click(screen.getByText("File format and retry guidance"));
   expect(screen.getByText(/Identical supplied IDs deduplicate/)).toBeVisible();
 });
 

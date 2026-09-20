@@ -204,7 +204,7 @@ export function EvidencePane({
             </p>
             <h3>Repeated error patterns</h3>
             <p className="hint">
-              Exact message matches in this evaluated window; up to 10 patterns.
+              Matching error messages in the selected window (up to 10).
             </p>
             {data.patterns.length ? (
               <ul>
@@ -226,12 +226,11 @@ export function EvidencePane({
             )}
             <h3>Local evidence summary</h3>
             <p>
-              Non-LLM analysis.{" "}
+              Local analysis — no AI.{" "}
               {data.measurement.status === "spike detected"
-                ? "The observed error-log rate exceeded its service-specific baseline threshold."
+                ? "The error-log rate exceeded this service’s baseline threshold."
                 : "This window did not establish a new spike."}{" "}
-              This is evidence of changed log behavior, not a definitive root
-              cause.
+              This shows a change in log behavior, not a confirmed root cause.
             </p>
             <p>
               Next checks:{" "}
@@ -264,8 +263,8 @@ export function EvidencePane({
             )}
             <h3>Sample of evaluated logs</h3>
             <p>
-              {data.sample.length} representative events, errors first; this
-              sample is not the complete denominator.
+              {data.sample.length} sample events, errors first. Counts above use
+              all evaluated events.
             </p>
             <ul>
               {data.sample.map((event, index) => (

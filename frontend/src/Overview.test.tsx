@@ -215,7 +215,7 @@ it("renders loading, initial failure, retry and honest empty live baseline", asy
 it("shows one recorded window as an honest comparison and keeps volume non-anomalous", () => {
   const { container, rerender } = render(<Trend rows={[measurement]} />);
   expect(
-    screen.getByText("Error-log rate · recorded window"),
+    screen.getByText("Error-log rate · evaluated window"),
   ).toBeInTheDocument();
   expect(screen.getByText("40.00%")).toBeInTheDocument();
   expect(screen.getByText("0.04%")).toBeInTheDocument();
