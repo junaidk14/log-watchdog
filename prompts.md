@@ -1128,3 +1128,717 @@ Allow GitHub push and merge; no external submission
 ```
 
 The user explicitly authorizes GitHub push and merge for PR #15. External submission and deployment remain prohibited. The coordinator rechecked the unchanged main base, expected branch/head, clean checkout, no closing issues, and no conflicting PR metadata before proceeding. Only approval/audit documentation changes follow the independently reviewed implementation.
+
+## Bounded product/UI cleanup — 2026-09-20T01:36:03Z
+
+```text
+I opened the app and manually browsed through the main flows after the latest merge. I found a few remaining product/UI issues that I want fixed in one bounded cleanup pass.
+
+Please inspect the current implementation against README.md, PRODUCT.md, DESIGN.md, and the MVP spec, then fix the genuine issues below without redesigning the product.
+
+1. Incidents still feels too similar to Overview.
+   When I navigate from Overview to Incidents, the experience does not feel meaningfully different enough. Please make sure Incidents works as the intended incident workbench, with incident queue + investigation/evidence context clearly taking priority.
+
+2. Recovered incident measurements are ambiguous.
+   A recovered incident row can show something like “40.00% observed” beside the full incident lifecycle interval, while the latest service trend shows 0.00%.
+   Make it explicit that the 40.00% belongs to the relevant abnormal/evaluated window, and keep that separate from the overall incident interval.
+
+3. Historical JSON upload is not obvious.
+   README says Logs -> Historical should expose a JSON file chooser and “Import into Historical”.
+   Verify that this is actually reachable and discoverable in the rendered UI. If it exists but is hidden or unclear, improve the entry point.
+
+4. Improve the Gemini setup UX.
+   I want users to be able to enter a Gemini API key directly from the UI for this local single-user MVP so the AI analysis feature can be tried without restarting the backend or configuring the shell.
+
+   Please implement this safely:
+   - send the key only to the backend
+   - keep it in server memory only
+   - do not persist it to SQLite, localStorage, sessionStorage, files, logs, prompts, or telemetry
+   - never return or display the full key after submission
+   - show only configured / not configured state
+   - provide a Clear key action
+   - continue supporting GEMINI_API_KEY from the server environment as a fallback
+   - preserve the existing preview -> explicit “Send for analysis” flow
+   - do not expose the key in errors or API responses
+
+   Keep this lightweight and local-MVP appropriate, not a general secrets-management system.
+
+5. Browser tab titles are incorrect.
+   Overview, Incidents, and Deliveries all still show “Logs · Log Watchdog”.
+   Make the document title reflect the current destination.
+
+6. Incidents still uses Overview-specific labels.
+   I noticed labels such as:
+   - “Skip to overview”
+   - “Refresh overview”
+   - “Loading overview…”
+   Update these so the Incidents page consistently refers to Incidents.
+
+7. Current-window wording can be confusing after a historical spike.
+   If the chart shows an earlier abnormal spike but the current state is normal/recovered, avoid generic wording like “no spike detected” if it can be read as contradicting the chart.
+   Make it clear when the status refers to the current evaluated window versus historical incident state.
+
+8. /favicon.ico returns 404.
+   Add/fix the favicon so it resolves cleanly and does not create console noise.
+
+Keep this focused:
+- no architecture changes
+- no broad redesign
+- preserve the current incident-workbench direction
+- preserve navigation and focus-restoration behavior unless a real defect requires changing it
+
+After the fixes:
+- run the relevant frontend/backend tests and checks
+- verify the affected flows again
+- update documentation where behavior changed
+- report exactly what changed and whether any item could not be reproduced
+```
+
+The initial observation that the Logs dataset selector only changed draft state was corrected after tracing `navigate`: it already switches immediately and renders HistoricalUpload. The cleanup adds a discoverable direct import link rather than replacing the working upload path. Supported browser selection found no browser; recovery returned `[]`, so no rendered reproduction is claimed. No real Gemini key was supplied or used; credential checks use synthetic fixtures only. Existing focus IDs and restoration logic remain intact. Full HTTP verification initially encountered a separately launched app on port 8000, left untouched pending the user's response.
+
+## Verification port freed — 2026-09-20T01:46:49Z
+
+```text
+> The app is running again on port 8000 (PID 17944), so four real-HTTP tests cannot bind their test server. Please stop the app while I finish the full HTTP verification; I’ll continue the source review and documentation meanwhile.
+
+Server stopped
+```
+
+The user stopped their app; the coordinator resumed full backend and real-HTTP verification using temporary databases.
+
+
+### Cleanup verification and review fixes
+
+The initial independent Standards/Spec reviews found two concrete edge cases: preview construction surviving a key change, and direct Investigate navigation leaving the previous title. Both were fixed within the bounded cleanup with regression coverage. Final verification passed 132 backend tests, 86 frontend tests, all configured checks and actual HTTP/runtime validation including synthetic key setup/clear and favicon delivery. User data was untouched; no real key or provider request was used. Rendered checks remain unverified because the supported browser connection is unavailable.
+
+## Rendered UX cleanup request — 2026-09-20
+
+```text
+I manually reviewed the rendered app and want one focused UX cleanup pass.
+
+Please use Playwriter to inspect the actual UI before and after changes. Use Chrome DevTools MCP only when diagnosis is needed.
+
+The main problem is that the app is functional but not intuitive enough. I often have to search for the next action, the hierarchy feels weak, and the layout feels clunky.
+
+Please improve these four areas:
+
+1. Flow and page responsibilities
+
+Keep the product flow clear:
+
+Overview
+-> notice an incident
+-> Investigate
+-> Incidents workspace
+-> inspect evidence/logs
+-> check delivery
+-> optionally use Gemini
+
+Overview should remain a summary page.
+
+Incidents should be the full investigation workspace.
+
+Clicking Investigate from Overview should take the user to Incidents with that incident selected.
+
+Do not duplicate the full investigation experience on Overview.
+
+2. Information hierarchy and discoverability
+
+Each page should make it obvious:
+- where I am
+- what matters most
+- what I should do next
+
+Important actions should be easy to find without scanning the whole page.
+
+Please specifically check the discoverability of:
+- Investigate incident
+- Historical JSON import
+- delivery history
+- Gemini setup and analysis
+- Demo advance/reset actions
+
+Use progressive disclosure where appropriate so secondary details do not compete with the main task.
+
+3. Alignment, spacing, and polish
+
+Make the whole application feel visually consistent and smoother.
+
+Please improve:
+- shared content grid across pages
+- alignment of headings, panels, inputs, selects, buttons, and text boxes
+- consistent control heights and widths
+- consistent label/control alignment
+- consistent panel padding and margins
+- cleaner queue/detail alignment
+- spacing between sections
+- reduction of unnecessary nested borders/boxes
+- consistency between the denser Logs page and the rest of the app
+
+The UI should feel clean, deliberate, and polished, not decorative.
+
+4. Copy and Gemini UX
+
+Review visible UI text for:
+- consistent sentence case
+- consistent terminology
+- concise action-oriented button labels
+- clearer status wording
+- removal of redundant text
+
+For Gemini:
+- keep the memory-only key setup
+- add a small “Get Gemini API key” link to the official Google/AI Studio page
+- make configured/not configured state clear
+- explain that the key stays in server memory for this local session
+- keep Clear key
+- keep Preview -> explicit Send for analysis
+- do not make a real Gemini call unless I approve it
+
+Before editing:
+- inspect the current rendered app
+- identify which issues are genuine
+- avoid changing things that already work well
+
+After editing:
+- use Playwriter again on desktop and narrow widths
+- verify Overview -> Investigate -> Incidents
+- verify Logs/Historical, Deliveries, and Gemini setup
+- verify keyboard/focus and Back/Forward behavior
+- check console/network errors
+- run relevant frontend/backend tests and build/type/lint/static checks
+
+Report:
+- what changed
+- any remaining P0/P1/P2/P3 UX issues
+
+If there are no P0/P1 issues, say so explicitly.
+```
+
+Playwriter skill and full CLI documentation read. Initial sandbox relay startup failed; an authorized retry outside the sandbox reached the relay but is waiting for the Chrome extension. Requested that the user enable it on the app tab. UI edits remain pending the required rendered inspection. No Gemini call made.
+
+
+### Playwriter enabled — 2026-09-20
+
+```text
+> Playwriter’s relay is running, but the Chrome extension hasn’t connected. Please open the local app in Chrome and click the Playwriter extension icon on that tab, then let me know it’s enabled. This is needed for the rendered inspection you requested before edits.
+
+enabled
+```
+
+The extension still did not attach on retry. Playwriter local headless Chrome succeeded, so the requested before/after rendered inspection proceeded with that supported mode. The previously running app stopped before navigation; the coordinator launched its own isolated temporary database server for the checks and stopped only that server before backend HTTP tests. Rendered checks covered Overview/Investigate, evaluated Logs and Back/Forward focus, delivery payload/attempts, Historical upload and browse interval, Gemini synthetic-key setup/local preview/clear (never Send), and reset confirmation/cancel. No user credentials or user database were accessed. Findings and verification are recorded in docs/verification-ux.md.
+
+Final verification: 87 frontend tests and 132 backend tests passed, alongside build/type/lint/format/static contrast and the full temporary-database HTTP runtime validation. Playwriter after-checks found no app console/network errors. No P0/P1/P2 UX issue was found in the inspected paths; verbose full UTC timestamps on narrow screens remain a P3 density limitation. A separately running server occupied port 8000 after verification; it was left untouched. No GitHub publication or external submission performed for this pass.
+
+## Gemini setup bug — 2026-09-20
+
+```text
+I found a bug in the Gemini setup flow.
+
+Current behavior:
+- I enter a Gemini API key
+- click “Use key for this session”
+- then click “Preview evidence for analysis”
+- the app still says Gemini is not configured
+- I also see:
+  “Could not update or read Gemini setup. Check the local server and enter a valid key to retry.”
+- once that error appears, it stays visible until I click “Clear key”
+
+Please inspect the current frontend/backend implementation and fix the actual cause.
+
+Check specifically:
+- the request made by “Use key for this session”
+- request headers/payload
+- backend session-key storage
+- configured-status refresh
+- preview endpoint/configuration check
+- stale frontend error state after a successful save/status refresh
+- whether saving a key properly invalidates and resets previous preview/configuration errors
+
+Expected behavior:
+- after saving a valid key, the UI should show configured
+- Preview evidence should work immediately afterward
+- previous setup/preview errors should clear after a successful save or status refresh
+- Clear key should remove only the memory override and restore environment fallback behavior
+- no key should be persisted, logged, returned, or displayed
+
+Please fix this with the smallest coherent change, add/update regression tests, and run the relevant frontend/backend checks.
+
+No broad UX changes and no separate reviewer pass needed for this bug.
+```
+
+Synthetic regressions reproduced HTTP 422 for dotted authorization-key shapes, 256-character frontend truncation and stale analysis errors after successful configuration refresh. The fix accepts bounded opaque visible-ASCII keys (2,048 characters), synchronizes setup/preview availability, and clears the appropriate parent error on successful refresh. Existing backend memory storage and preview effective-settings lookup already shared the correct object; they were not replaced. Clear still restores the environment fallback and invalidates previews. No actual user key was inspected, persisted, logged or submitted to a provider. The separately running app was left untouched; its backend needs a restart to load source changes.
+
+Verification passed: 77 backend/API tests, all 89 frontend tests, production build, TypeScript, ESLint, Prettier, Ruff lint/format, mypy and static contrast. Logs: /tmp/watchdog-key-backend-final.log and /tmp/watchdog-key-all-frontend.log. No separate reviewer pass or external publication.
+
+
+## 2026-09-20 — Evidence privacy guidance and focused readability
+
+```text
+[Image #1]
+I'm able to now input the API key, but getting the attached error.
+In the logs tab, we should make service a dropdown along with the text input.
+
+We can improve the readability further for the incidents tab, as it is still quite information-heavy, along with redundant values like time interval for the spike.
+```
+
+The attached screenshot showed a configured key with the existing real/unverified-evidence privacy gate. Read-only aggregate inspection found older unverified Demo events alongside trusted simulator events. Preserved that gate, clarified the message and linked to the existing explicit reset confirmation. Added dataset-scoped service choices alongside free text and reduced repeated incident queue measurements. User data and the running user server were left untouched; browser tests use a disposable fixture and no provider call.
+
+Verification: 91 frontend and 78 backend API/analysis tests; build/typecheck, lint/format, mypy and contrast passed. Playwriter desktop/narrow checks verified filtering, privacy guidance and successful fresh-synthetic preview without sending. Documentation updated; no architecture change.
+
+## 2026-09-20 — Final bounded language and layout polish
+
+```text
+Please do one final bounded polish pass focused on two things: simplifying the user-facing language and tightening the layout so the app feels more polished and production-like.
+
+Keep the meaning, behavior, navigation, validation, detector logic, evidence semantics, and backend behavior unchanged.
+
+1. Simplify the visible language
+
+Review all user-facing copy across Overview, Incidents, Logs, Deliveries, Historical import, and Gemini setup.
+
+Please:
+- remove unnecessary implementation-heavy wording
+- keep helper text short and useful
+- use consistent sentence case
+- keep terminology consistent across pages
+- simplify labels like “Last successful dashboard refresh” to something more natural such as “Last refreshed”
+- simplify wording such as “Latest evaluated window: no spike detected” where the same meaning can be conveyed more cleanly
+- review phrases like “Synthetic scenario”, “Synthetic history”, “recorded window”, “actual local HTTP attempts”, and similar copy that sounds like engineering documentation rather than product UI
+- keep UTC where it matters, but avoid repeating it unnecessarily
+- prefer user-facing limits like “Upload a JSON file with up to 5,000 events” instead of exposing byte-level implementation details
+- keep exact technical limits, detector details, retry semantics, and implementation details in the docs rather than primary UI copy
+- preserve exact technical wording only where simplifying it would make the meaning less precise or misleading
+
+The goal is for the visible language to feel natural, concise, and easy to scan.
+
+2. Tighten the layout and visual consistency
+
+Please do a light layout/UI polish pass across the full app.
+
+Improve:
+- consistent content width and horizontal alignment across pages
+- alignment of page titles, dataset selector, action buttons, panels, inputs, text boxes, and tables
+- spacing between page header, controls, sections, panels, and tables
+- overly wide text blocks so long explanations are easier to read
+- balance between the incident queue and investigation pane
+- unnecessary empty space on sparse pages like Deliveries
+- consistent button/input/select heights
+- consistent label/control alignment
+- panel padding and margins
+- use spacing and section headings instead of adding unnecessary borders
+- keep Logs compact without making it feel cramped
+
+3. Fix the native dropdown styling
+
+The current select/dropdown controls look visually inconsistent and “shiny” because they are using browser-native styling.
+
+Please restyle the select controls so they match the rest of the product:
+- flat, clean appearance
+- same border, radius, height, typography, and background treatment as other inputs
+- consistent focus and hover states
+- clear dropdown indicator
+- no gradients, glossy/shiny native appearance, or platform-specific chrome where avoidable
+- preserve keyboard accessibility and native behavior
+
+Apply this consistently to controls such as:
+- Dataset
+- Severity
+- Receiver behavior
+- Evaluated window
+- any other select control in the app
+
+Do not replace them with an unnecessarily complex custom component unless required. Prefer a lightweight accessible styling solution.
+
+4. Keep the existing product direction
+
+Do not redesign the visual system.
+
+Keep:
+- current color palette
+- typography family
+- left navigation
+- SRE-console direction
+- existing information architecture
+- accessibility and focus-restoration behavior
+
+The goal is simply to make the app feel more balanced, deliberate, smooth, and finished.
+
+Before changing anything, inspect the rendered pages and avoid changing things that already work well.
+
+After the changes:
+- verify Overview, Incidents, Logs, Deliveries, Historical import, and Gemini setup
+- check desktop and narrow layouts
+- verify keyboard/focus behavior
+- run the relevant frontend tests/build/type/lint/static checks
+- report what changed and any remaining UX issues
+
+Do not introduce new features in this pass.
+```
+
+Completed a copy/CSS-only product refinement with one layout wrapper. Backend, handlers, detector and navigation logic unchanged. Before/after Playwriter inspection used the isolated port-8001 fixture, 1440px/390px. All 91 frontend tests, production build/typecheck, ESLint, Prettier and contrast passed. Updated the existing delivery keyboard test to await initial heading-focus restoration before moving focus, preserving its assertions. No provider call, user-data change, or external publication. See docs/verification-ux.md for scope and remaining limitations.
+
+## 2026-09-20 — Discoverable Demo walkthrough
+
+```text
+The Demo flow works, but it’s too hard for a reviewer to discover how to test it.
+
+Please add a lightweight Demo walkthrough on Overview, visible only in Demo mode, that guides the user through:
+
+1. Reset Demo
+2. Configure receiver behavior in Deliveries
+3. Advance one minute to generate the checkout incident
+4. Investigate the incident and inspect delivery history
+
+Use links to the existing pages/actions instead of duplicating functionality.
+
+Also add a short helper on Deliveries explaining how to generate a fresh Demo notification:
+“Reset Demo, choose a receiver behavior, then advance one minute from Overview.”
+
+Keep it compact and visually consistent.
+
+Do not add a one-click demo runner and do not change detector, retry, recovery, timing, or backend behavior.
+
+Afterward, verify the flow from a fresh Demo state and run the relevant frontend checks.
+```
+
+Added a four-step Demo-only Overview guide and a linked reminder beside Demo receiver settings. Links focus existing controls; no duplicate action handlers. Advance's new target ID is Overview-only, preserving Incidents focus behavior. Fresh isolated Demo verification followed reset → saved receiver choice → advance → checkout investigation → delivery history. No user data or backend logic changed. All 94 frontend tests, typecheck, lint, build, format and contrast passed.
+
+## 2026-09-20 — Target browser verification to change scope
+
+```text
+For small copy or styling changes, don’t run a full Playwriter walkthrough each time.
+
+Run the relevant frontend tests, typecheck, lint, and build first.
+
+Use Playwriter only for:
+- targeted verification of the specific changed screen/flow
+- changes affecting navigation, focus, responsiveness, or interactions
+- the final browser validation before merge
+
+Avoid re-checking the entire application for minor text/CSS changes unless something looks wrong.
+```
+
+Applied immediately: completed frontend checks before the browser pass, then checked only the new Demo walkthrough and its navigation/focus/responsive behavior. Future small copy/CSS work follows this bounded verification preference.
+
+## 2026-09-20 — Targeted micro-interactions
+
+```text
+Please do one small, targeted micro-interaction pass on the current UI.
+
+Use the installed Emil Kowalski motion/animation guidance if available in this session.
+
+The goal is to make state changes feel smoother and more polished without making the app flashy.
+
+Focus only on places where motion improves comprehension, such as:
+- Gemini loading -> response appearing
+- expanding/collapsing evidence or delivery details
+- incident selection or status changes
+- loading/success/error feedback
+- controls or sections appearing/disappearing
+
+Keep it restrained:
+- short, subtle transitions
+- no bouncy/decorative animation
+- no delays to interaction
+- preserve keyboard/focus behavior
+- respect prefers-reduced-motion
+- do not change layout, information architecture, or application logic
+
+Please inspect the rendered UI first, make only the interactions that genuinely benefit from motion, then do a targeted visual check of those changed areas.
+
+At the end, report where motion was added and why.
+```
+
+Applied the installed Emil design-engineering skill. Inspected Gemini preview/setup and delivery details before editing. Added a 140ms opacity-only entry transition from 0.85 to 1 for setup, evidence packet, result and delivery detail content. Exits remain immediate; no timing/handler/route/backend change. Reduced-motion disables it; visible keyboard focus suppresses transitions. Existing frontend checks passed before the targeted after-check. Gemini response verification used a browser-intercepted mock, with no external provider request.
+
+## 2026-09-20 — Documentation cleanup and refresh
+
+```text
+We’re close to finalizing the project. Please do a documentation cleanup and refresh.
+
+First, inspect the repo and organize the Markdown docs so they’re easier to navigate. Prefer creating/updating docs/README.md as a clear documentation index instead of moving lots of files around.
+
+Then review the main docs and update anything stale so they match the current implementation, especially:
+- README.md
+- PRODUCT.md
+- DESIGN.md
+- CONTEXT.md
+- docs/mvp-spec.md
+- docs/ui-flow.md
+- docs/detection.md
+- docs/deliveries.md
+- docs/analysis.md
+- docs/lifecycle.md
+- docs/tooling.md
+- docs/final-validation.md
+- docs/presentation.md
+- docs/adr/decisions.md
+
+Make sure they reflect the current UX, Demo flow, Historical import, Gemini setup, delivery behavior, browser validation, test status, limitations, and that no cloud resources were used.
+
+Keep the docs concise, avoid duplication, preserve prompts.md history, and fix any broken relative links.
+
+Do not change application behavior.
+
+At the end, report which docs changed and any stale items you intentionally left alone.
+```
+
+Created the documentation index and refreshed all requested current references against source, validation records and rendered UI. Consolidated repeated UI/tooling notes. Preserved ticket drafts, original verification snapshots and superseded ADR decisions as historical records. Relative links in current documentation resolve; copied skill-relative links in earlier prompts remain verbatim audit history. Clarified that no cloud application infrastructure was provisioned, while GitHub and AI development tools were used and optional Gemini remains external.
+
+## 2026-09-20 — Light/dark theme
+
+```text
+Please add a light/dark theme toggle to the app.
+
+Place a small moon/sun icon button in the top-right header area near the dataset selector.
+
+Requirements:
+- default to the user’s system theme on first load
+- persist the selected theme locally
+- use a moon icon for switching to dark mode and a sun icon for switching back
+- add an accessible label/tooltip
+- keep the existing visual language, spacing, and layout
+- make sure charts, tables, inputs, borders, status colors, error states, and focus indicators remain readable in both themes
+- use a subtle theme transition only; no decorative animation
+- respect prefers-reduced-motion
+- do not change application behavior
+
+After implementation, verify the main pages in both themes and at narrow width. also add this
+```
+
+Added the shared header toggle, first-paint system/saved preference, local theme persistence, dark tokens and reduced-motion-aware color transition. Only the theme preference uses localStorage; Gemini credentials remain server-memory-only. Added preference, storage-failure and keyboard regression coverage, and checked contrast for both palettes. Documentation refresh includes this authorized UI addition. Backend behavior remains unchanged.
+
+## 2026-09-20 — Continue
+
+```text
+go
+```
+
+Continued the documentation refresh, theme validation and audit updates without expanding scope.
+
+## 2026-09-20 — Demo scroll restoration fix
+
+```text
+I noticed a small navigation/scroll issue in the Demo flow.
+
+When I use actions like:
+- Reset demo
+- Advance one minute
+- Investigate incident
+
+the page shifts/scrolls upward slightly after the action, which makes the interaction feel jumpy.
+
+Please inspect the current focus restoration/history behavior and fix the scroll jump while preserving accessibility and keyboard focus.
+
+Expected behavior:
+- the user should stay at roughly the same scroll position after Reset/Advance unless navigation genuinely requires moving to another page/section
+- Investigate should navigate to the incident workspace and focus the relevant heading/section without an unnecessary extra jump
+- keyboard users should still get correct focus
+- browser Back/Forward behavior should remain intact
+
+Please make the smallest change needed and add/update regression coverage if appropriate.
+```
+
+Reproduced Reset scrolling from 330 to 0 through implicit focus scrolling. Reset completion/cancel now focus without scrolling. Incident selection focuses without implicit scrolling and reveals only the nearest off-screen destination, recording its final scroll immediately for rapid Back/Forward. Advance did not reproduce a jump and remains unchanged. Updated regression coverage, passed frontend checks, and verified targeted desktop/narrow behavior with Playwriter against an isolated fixture. No backend changes.
+
+## 2026-09-20 — Presentation handoff package
+
+```text
+I’m preparing the final AI-generated presentation for this project.
+
+Please create a presentation handoff package without changing application behavior.
+
+1. Capture clean screenshots with Playwriter
+
+Save them under:
+
+docs/screenshots/
+
+Use a consistent desktop viewport and safe Demo/synthetic data only.
+
+Please capture:
+
+- overview.png
+  Use the polished dark-mode Overview with:
+  - Try the Demo guidance visible
+  - a meaningful recent/recovered incident
+  - service trends visible
+
+- incidents.png
+  Incidents workspace with an incident selected and the key investigation context visible.
+
+- evaluated-logs.png
+  Logs opened from “View evaluated logs”, with the incident/evaluated-window context and filtered evidence visible.
+
+- deliveries.png
+  Delivery history showing a meaningful notification state, preferably successful delivery with attempts or retry behavior visible.
+
+- historical.png
+  Historical Logs view with the JSON import entry point and imported historical data/trends visible.
+
+- gemini-setup.png
+  Gemini setup/configuration state, without exposing any real API key.
+
+Do not capture Gemini analysis output. I already have a separate screenshot for the Gemini response that will be used in the presentation.
+
+Please avoid browser chrome where possible, avoid secrets/private information, and make sure each screenshot shows a meaningful state rather than an empty page.
+
+2. Create a short presentation handoff file:
+
+docs/presentation-handoff.md
+
+Keep it concise and include:
+
+- one-sentence project summary
+- problem being solved
+- core user journey
+- architecture summary
+- detection approach in plain language
+- Demo scenario in 4–5 steps
+- key product capabilities
+- agentic development workflow
+- current test/validation summary
+- known limitations
+- Tagle result if already documented
+- confirmation that no cloud resources or hosted environments were used
+- important repo links:
+  README
+  docs/README.md
+  MVP spec
+  ADR decisions
+  tooling
+  prompts.md
+  final validation
+  presentation source
+
+Use the latest implementation and current documentation as the source of truth. Do not invent unverified claims.
+
+At the end, report:
+- screenshot file paths
+- which screenshots were skipped and why
+- path to presentation-handoff.md
+- anything that still needs manual confirmation before the final deck
+```
+
+Captured all six requested images with Playwriter at a consistent desktop viewport using a separate synthetic database copy, no background delivery or provider call, and no real key. Historical uses 60 newly generated synthetic records imported through the UI. Handoff documents capture provenance, test scope, no cloud application infrastructure, and absence of a documented Tagle result. User app remained untouched; no application source changed or external submission occurred.
+
+## 2026-09-20 — Polished launch video
+
+```text
+Use $brag with --duration 18 --tone polished to make a launch video for this project.
+
+Focus the story on:
+Overview -> incident investigation -> evaluated evidence -> delivery history -> optional Gemini analysis.
+
+Use the current app state and screenshots where useful. Keep it professional and product-focused, not flashy.
+```
+
+Applied the user-supplied brag skill. Parsed 18 seconds, polished, landscape, music/SFX enabled, no narration. Created plan/brief and a local Hyperframes composition using the current synthetic screenshots. Five real-product beats, quiet music, two sparse SFX, no provider output or invented claims. No application source change, cloud rendering or publication.
+
+## 2026-09-20 — NumPy for video tooling
+
+```text
+install numpy if required
+```
+
+Used NumPy through uv tooling to run the official audio extraction helper. Only a thin accent rule responds to extracted music data; UI/text remain steady. The uv command unexpectedly synchronized the repository's local virtual environment; immediately restored requirements-dev.lock, removed its generated uv.lock, and verified all 27 installed project packages are compatible. NumPy stays in the separate uv tooling cache. No dependency manifest changed.
+
+Launch-video outcome: full Hyperframes check passed (zero errors, 90/90 contrast checks), final 18-second 1080p/30fps H.264/AAC render completed locally. Selected a settled 1.4-second poster and baked frame zero; preserved duration, 540 frames and original encoded audio. Inspected rendered evidence/closing frames, saved share copy and verification notes. No publication. Bundled music redistribution terms remain to be confirmed before public posting.
+
+## 2026-09-20 — Documentation organization
+
+```text
+Please reorganize the Markdown documentation so the repo is easier to navigate.
+
+Prefer a clean docs/ structure and a simple docs/README.md index. Move only files where it clearly helps, update all relative links, and avoid unnecessary churn.
+
+Keep prompts.md at the repo root. Do not change application code.
+
+Afterward, report what moved and confirm links still work.
+
+Finally commit and push.
+```
+
+Grouped the seven issue verification reports plus cleanup and UX reports under docs/verification/. Updated current documentation links, relocated-report links, and the index. Kept root entry points, presentation assets and runner documentation in place. Prior prompt history, including historical path references, remains unchanged. Validation checks current documentation links and heading anchors; no application code changed. Commit and push requested for the current cleanup-main-flows branch.
+
+Validation: all 131 checked relative links and heading anchors in current Markdown documentation resolve; historical prompts excluded from link rewriting/checking to preserve their exact text. Prior audit content is byte-for-byte unchanged. Git whitespace check passed. Application tests were not rerun for this documentation-only change.
+
+## 2026-09-20 — Supplied Gemini and Deliveries screenshots
+
+```text
+[Image #1]In the brag video for Gemini, can we use this?
+
+[Image #2] And this for the deliveries screenshot not for brag'/Users/junaidahamad/github/log_watchdog/docs/screenshots'Please, Gemini, with the image as well, here too.
+```
+
+Saved the supplied Gemini capture as docs/screenshots/gemini-response.png and replaced docs/screenshots/deliveries.png with the supplied Deliveries capture. Updated only the video's Gemini scene; its Deliveries asset stays unchanged. Preserved supplied image pixels and documented the response's imprecise rate wording. No application change or Gemini request.
+
+Validation: supplied files copied byte-for-byte; video Deliveries asset unchanged. Full Hyperframes check passed with zero errors and 90/90 contrast checks. Inspected the final encoded Gemini scene; final video is 18 seconds, 1080p/30fps, 540 frames. Current documentation links resolve. No application tests rerun for this media-only update.
+
+## 2026-09-20 — Update the timestamped video render
+
+```text
+'/Users/junaidahamad/github/log_watchdog/brag-output/composition/renders/composition_2026-09-20_09-29-34.mp4' Replace frame 4 with the Gemini image we shared, or add a frame 5 which shows what Gemini insight would look like. [Image #1] Add this to the video. As frame 5
+```
+
+Updated that timestamped MP4 to the verified revised video: the fifth scene (14–18 seconds) shows the supplied Gemini response. Delivery remains scene four. Continuing the already-active Demo scroll/focus task.
+
+## 2026-09-20 — Demo pointer and keyboard focus correction
+
+```text
+The Demo actions still have an awkward scroll/focus issue.
+
+When I click actions like:
+- Reset demo
+- Advance one minute
+- Investigate incident
+
+the page shifts vertically and sometimes focuses the Reset button, which feels jumpy and unnatural.
+
+Please inspect the current focus-restoration and history behavior and fix this without breaking keyboard accessibility.
+
+Expected behavior:
+- mouse clicks should not cause unnecessary scroll jumps
+- after Reset or Advance, keep the user at roughly the same scroll position
+- do not force focus onto Reset unless it is actually needed for keyboard flow
+- Investigate should move to the incident workspace cleanly, without an extra scroll jump
+- keyboard users should still get logical focus
+- Back/Forward behavior should remain intact
+
+Please make the smallest coherent fix and add/update regression coverage for the affected interactions.
+```
+
+Reproduced forced Reset focus after pointer cancellation/completion. Narrow browser tracing also showed layout scrolling before the deferred investigation focus. Kept the fix in Overview: preserve viewport around Demo updates, restore controls only after keyboard activation when focus has not moved elsewhere, and focus/reveal the investigation during the layout commit rather than a later animation frame. Added regression coverage; updated keyboard reset coverage. 101 frontend tests, typecheck, lint, build and formatting passed. Playwriter verified pointer/keyboard actions, desktop/narrow layouts, Back/Forward and evaluated Logs return using a separate synthetic port-8001 database with workers disabled. User app/database untouched; no backend behavior change.
+
+## 2026-09-20 — Screenshot identifies walkthrough anchor jump
+
+```text
+[Image #1]This is what happens when I click reset.
+```
+
+Reproduced the exact screenshot through Try the Demo → Reset Demo: native fragment navigation set #reset-demo, scrolled to y=268 and focused Reset without opening confirmation. The previous action-button checks missed this separate entry point. All three walkthrough anchors now prevent native fragment navigation, reveal only off-screen targets with nearest scrolling, and focus targets only for keyboard activation. Existing action buttons and confirmation behavior are unchanged. Playwriter verified desktop/narrow Reset links retain y=0, history length and empty hash, with no forced mouse focus; keyboard focus still works. No user-data mutations occurred. All 102 frontend tests, typecheck, lint, build and formatting passed.
+
+## 2026-09-20 — Finish walkthrough verification and push
+
+```text
+Do this: check this for other try-the-demo links as well. The advanced one-minute gave similar issues to me, so fix those, and we'll wrap development up. Once done, commit and push.
+```
+
+Verified all four walkthrough links with mouse and keyboard at desktop/narrow widths. Reset, Advance and Investigate guide links avoid native hash navigation and unwanted focus/scroll. Fixed the remaining narrow-screen receiver link: explicitly reveal its destination on first navigation and retain saved scroll on history restoration. Added a stable origin ID so Back restores the receiver walkthrough link. Expanded keyboard coverage across all three in-page links and added receiver/history regression coverage. All 103 frontend tests, typecheck, lint, build and formatting passed; Playwriter confirmed receiver visibility and Back/Forward. Committing and pushing the accumulated user-requested UI, screenshot and video revisions on cleanup-main-flows. No backend changes or external submission.
+
+## 2026-09-20 — Commit and push confirmation
+
+```text
+commit and push
+```
+
+Verified the working tree was clean at bffef30 on cleanup-main-flows. Recorded this prompt and the Git verification in the audit/tooling docs, then committed and pushed the documentation update. No application changes.
+
+## 2026-09-20 — Merge completed cleanup into main
+
+```text
+merge with main
+```
+
+Verified the clean cleanup-main-flows branch and its accumulated UI, Gemini setup, theme, documentation and media scope. No existing PR for this branch. User authorized creating/merging its PR into main and synchronizing local main; use GitHub mergeability/check results without bypassing branch protection. Validation remains the documented 103 frontend tests and frontend checks, targeted rendered navigation checks, and earlier scoped backend evidence. No new application edits for this merge.

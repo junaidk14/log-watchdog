@@ -9,7 +9,7 @@ The MVP implements all seven approved issues: ingestion and browsing, statistica
 - **Inspectable:** exact webhook payloads, attempt outcomes and restart recovery.
 - **Optional AI:** local summary always available; external analysis requires a preview and explicit send.
 
-[Presentation](docs/presentation.md) · [Final validation and limitations](docs/final-validation.md) · [Architecture decisions](docs/adr/decisions.md) · [Prompt audit](prompts.md) · [Tooling](docs/tooling.md)
+[Documentation index](docs/README.md) · [Presentation](docs/presentation.md) · [Final validation and limitations](docs/final-validation.md) · [Rendered UX checks](docs/verification/ux.md) · [Architecture decisions](docs/adr/decisions.md) · [Prompt audit](prompts.md) · [Tooling](docs/tooling.md)
 
 ## Start locally
 
@@ -31,15 +31,23 @@ For frontend development, keep the API running and use `npm --prefix frontend ru
 
 ## Five-minute walkthrough
 
-1. Open **Demo Overview**. The simulation is paused; normal history is already seeded. Use **Reset Demo** and confirm only if you want to discard the existing Demo investigation. Live and Historical remain intact.
+1. Open **Demo Overview** and follow **Try the Demo**, the compact four-step guide. The simulation is paused; normal history is already seeded. Use **Reset Demo** and confirm only if you want to discard the existing Demo investigation. Live and Historical remain intact.
 2. For the retry scenario, open **Deliveries**, choose **Fail first, then succeed** in the receiver controls and save before advancing. Return to Overview. Webhooks run in real time, independently of simulation time.
 3. Choose **Advance one minute**. Checkout produces 16 ERROR logs among 40 events (40.00%) and opens an incident. Select **Investigate checkout incident**.
 4. Inspect the recorded baseline, threshold and local summary. Open **View evaluated logs**, expand a message, then use Back. **Include later arrivals** explicitly broadens the evidence without changing the recorded measurement.
 5. Open **View delivery history**. Inspect the exact opening payload and the real HTTP 503 → 200 attempts. Wait for the real-time retry; advancing simulation does not accelerate it.
 6. Advance four more times from Overview. The second abnormal minute updates the same incident; three eligible normal minutes then mark it recovered. Inspect the separate recovery notification.
-7. Optionally use **Logs → Historical** to upload a JSON array (5 MB / 5,000 events max). Browse its trends; imported events do not train live baselines or trigger alerts.
+7. Optionally use **Logs → Import JSON into Historical** (or the Dataset selector → Historical) to upload a JSON array (5 MB / 5,000 events max). Browse its trends; imported events do not train live baselines or trigger alerts.
 
 The detector compares ERROR/FATAL events divided by **all logs**, not failed requests. It uses a configurable, sample-size-aware statistical heuristic with smoothed history and a minimum increase guard. [Formula, defaults and limitations](docs/detection.md).
+
+Overview shows recent incidents and current service trends. **Incidents** opens the focused queue/evidence workbench without the service-trend section. Overview never displays the full evidence pane. The investigation action row leads to evaluated logs, delivery history and optional Gemini; expand **Incident timeline and baseline** for lifecycle detail. Overview rows distinguish the latest abnormal measurement window from the full incident interval. Incidents queue rows show a compact last-spike rate; exact measurements and lifecycle detail stay in the selected pane; a recovered incident can therefore retain a 40% abnormal measurement while the latest evaluated service window is 0%.
+
+## Appearance and infrastructure
+
+The moon/sun button beside Dataset switches light/dark mode. First load follows the system theme; an explicit choice persists in browser localStorage (`log-watchdog-theme`). Clearing that preference restores system behavior on reload. If storage is blocked, switching still works for the current mounted page. Theme storage never contains Gemini credentials. Reduced-motion disables theme and disclosure transitions.
+
+No cloud compute, hosted database, cloud storage or deployment resources were used for this MVP. Development used GitHub and AI tools; optional Gemini can make an external API call only after explicit consent. No live Gemini call has been verified.
 
 ## Architecture
 
@@ -48,7 +56,7 @@ flowchart LR
     Sources[JSON API / simulator / historical upload] --> API[FastAPI]
     UI[React dashboard] --> API
     API --> DB[(SQLite)]
-    Loop[Single background loop] --> Detector[Per-service detector]
+    Loop[One process: background tasks] --> Detector[Per-service detector]
     Detector --> DB
     Loop --> Delivery[Durable delivery worker]
     Delivery -->|Actual loopback HTTP| Receiver[Built-in test receiver]
@@ -58,7 +66,7 @@ flowchart LR
 
 Demo, Live and Historical are isolated datasets. Evaluation watermarks preserve recorded evidence despite late logs. SQLite stores incidents, delivery work and attempt history; the single process resumes pending work after restart. Retention protects open investigations and pending notifications. No external webhook destinations, hosting, authentication, chat or agent orchestration are included.
 
-For optional analysis, set `GEMINI_API_KEY` in the **server environment** and restart. `GEMINI_MODEL` is configurable. Verified synthetic Demo evidence is the default eligibility boundary; enabling real-log analysis additionally requires appropriate paid-service configuration and `GEMINI_PAID_SERVICE=true`. Preview the bounded redacted packet, then explicitly **Send for analysis**. Redaction cannot guarantee removal of every secret. No live Gemini call has been verified. [Configuration, privacy and error behavior](docs/analysis.md).
+For optional analysis, open an incident → **Gemini analysis → Gemini setup** (use **Get Gemini API key** for Google AI Studio), enter a key, and choose **Use key for this session**. The password field clears immediately; only configured/not-configured state is shown. The backend keeps the key in memory until **Clear key** or server shutdown. `GEMINI_API_KEY` in the server environment remains the fallback; clearing the session key does not remove that environment value. No backend restart is needed for a UI-supplied key. `GEMINI_MODEL` is configurable. Verified synthetic Demo evidence is the default eligibility boundary; enabling real-log analysis additionally requires appropriate paid-service configuration and `GEMINI_PAID_SERVICE=true`. Preview the bounded redacted packet, then explicitly **Send for analysis**. Redaction cannot guarantee removal of every secret. No live Gemini call has been verified. [Configuration, privacy and error behavior](docs/analysis.md).
 
 ## Ingest and browse
 
@@ -76,7 +84,7 @@ Choose **Live** in the dashboard, enter `checkout` in Service and `timeout` in M
 - A batch is atomic: any validation error (422) or conflicting ID (409) rejects the entire batch. The response gives `event_ids`, `inserted`, and `duplicates`.
 - Reusing a supplied ID with identical normalized content deduplicates **within that dataset**, including duplicates inside a batch. Different content conflicts; nothing is overwritten. Metadata key ordering and equivalent timezone offsets do not cause conflicts.
 - Omitted or null IDs generate a new UUID every time. **Retrying without a supplied ID does not deduplicate.** Producer retries should supply stable IDs.
-- `GET /api/datasets/{dataset}/events`: `service`, `severity`, `start`, `end`, `message`, `page` (default 1), `page_size` (default 50, max 100). Service and severity match exactly; message is literal case-insensitive substring matching using SQLite's built-in lowercasing (ASCII, not full Unicode case folding). Time bounds are inclusive and require a timezone; dashboard inputs use `Z` explicitly.
+- `GET /api/datasets/{dataset}/events`: `service`, `severity`, `start`, `end`, `message`, `page` (default 1), `page_size` (default 50, max 100). The Logs service dropdown lists up to 200 alphabetically sorted services in the current dataset; the adjacent text field accepts any exact service name. Choose or type, then apply filters. Service and severity match exactly; message is literal case-insensitive substring matching using SQLite's built-in lowercasing (ASCII, not full Unicode case folding). Time bounds are inclusive and require a timezone; dashboard inputs use `Z` explicitly.
 - General Demo event browsing also accepts `run` (up to 100 characters). A stale run returns HTTP 410 with the reset explanation and no events; run identity, count, and page share one snapshot. Live/Historical ignore the run guard. Logs offers **Return to current demo** after a stale saved URL, refresh, or Back navigation.
 - Results include total matching count and newest-first events. Timestamp ties use insertion sequence. Count and page share one database snapshot. Pages are offset-based: new ingestion can move rows between pages across separate requests.
 - `GET /api/health` and API schema at `/docs`. Unknown API paths return 404.
@@ -105,7 +113,7 @@ npm --prefix frontend test
 
 Backend tests cover schema failures, complete-batch rollback, ID generation/deduplication/conflicts, normalization, literal filters, paging, dataset isolation, seed idempotence, and SQLite restart. Frontend tests cover query/Back restoration (including response timing), same-query actions, dataset races, expansion/focus, loading/empty/error/retry, literal rendering of untrusted messages, and available axe DOM accessibility rules. jsdom cannot establish rendered layout, contrast, or real-browser keyboard behavior. ESLint explicitly permits focusable named `region` elements to make the overflowing table keyboard-scrollable; other accessibility rules remain active.
 
-See [issue #1 evidence](docs/verification-issue-1.md), [issue #2 evidence](docs/verification-issue-2.md), [issue #3 evidence](docs/verification-issue-3.md), [issue #4 evidence](docs/verification-issue-4.md), [issue #5 evidence](docs/verification-issue-5.md), [issue #6 evidence](docs/verification-issue-6.md), and [issue #7 evidence](docs/verification-issue-7.md) for measured results and pending manual UI checks.
+See [issue #1 evidence](docs/verification/issue-1.md), [issue #2 evidence](docs/verification/issue-2.md), [issue #3 evidence](docs/verification/issue-3.md), [issue #4 evidence](docs/verification/issue-4.md), [issue #5 evidence](docs/verification/issue-5.md), [issue #6 evidence](docs/verification/issue-6.md), and [issue #7 evidence](docs/verification/issue-7.md) for historical issue evidence. [Current validation](docs/final-validation.md) records later browser coverage and remaining limitations.
 
 ## Investigate evaluated evidence
 
@@ -129,7 +137,7 @@ Imports persist across restart and never train Demo/Live baselines or create inc
 - `POST /api/historical/upload`: raw UTF-8 JSON array (not multipart), with required `Content-Type: application/json` (optional charset parameter). Unsupported or missing media types return 415 before ingestion. Bounded during request streaming; returns inserted/duplicate counts, event IDs, Historical dataset and the file's UTC start/end. Optional UTF-8 BOM accepted.
 - `GET /api/historical/trends`: optional exact `service`, inclusive timezone-aware `start`/`end`; returns aggregate volume and error-log rate buckets. No detector baseline or live-incident semantics.
 
-See [the synthetic upload walkthrough and verification](docs/verification-issue-5.md). Run backend tests and runtime validation sequentially: both require loopback port 8000.
+See [the synthetic upload walkthrough and verification](docs/verification/issue-5.md). Run backend tests and runtime validation sequentially: both require loopback port 8000.
 
 ## Reset Demo
 

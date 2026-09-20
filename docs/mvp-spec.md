@@ -1,6 +1,6 @@
 # Intelligent Observability & Event Watchdog MVP
 
-Status: Draft for final shared-understanding confirmation. Accepted architectural decisions are recorded in [decisions.md](adr/decisions.md). Implementation has not started.
+Status: Implemented MVP with the user-authorized bounded product cleanup. Accepted decisions are recorded in [decisions.md](adr/decisions.md).
 
 ## Outcome
 
@@ -8,9 +8,9 @@ A developer can run one local application, see an error-log rate spike, inspect 
 
 ## User flow
 
-1. Open the dashboard in demo mode with normal history already seeded for three services.
+1. Open Demo Overview and follow Try the Demo: reset/confirm, configure and save receiver behavior in Deliveries, then return to Overview. Normal history is seeded for three services.
 2. Advance the simulation one minute. Repeated downstream timeouts produce a detectable error-log rate spike in one service.
-3. Open the incident from the overview. Compare observed and expected error-log rate, inspect the affected interval and repeated message patterns, and follow supporting logs.
+3. Use Investigate from Overview to open the selected incident in the Incidents workbench. Compare observed and expected error-log rate, inspect the affected interval and repeated message patterns, and follow supporting logs.
 4. Filter logs by service, severity, time range, and message text. Clearly distinguish demo, live, and historical data.
    Incident links start with evaluated evidence; users can explicitly include later arrivals, which remain labeled as excluded from the recorded measurement.
 5. Inspect the local evidence summary. Optionally preview redacted evidence and explicitly send it for LLM analysis if configured.
@@ -47,7 +47,7 @@ A developer can run one local application, see an error-log rate spike, inspect 
 - Defaults: 30 prior normal windows, at least 10 baseline windows, at least 20 events in the evaluated window, and three eligible consecutive normal windows for recovery.
 - Use a sample-size-aware proportion threshold with smoothing and a minimum increase guard. Document the formula and all parameters; expose configuration rather than burying constants.
 - Keep the evaluated window out of its own baseline. Freeze baseline updates during incidents.
-- Show learning baseline when history or traffic is insufficient. Missing traffic must not imply health or recover an incident.
+- Show learning baseline for insufficient history and insufficient traffic for a sparse current window. Missing traffic must not imply health or recover an incident.
 - Consecutive abnormal windows belong to one incident. Preserve the evaluated counts, expected rate, threshold, and representative evidence for inspection.
 - Volume is a trend, not an additional anomaly detector. Health presentation describes observed log behavior rather than claiming comprehensive platform health.
 
@@ -58,8 +58,8 @@ A developer can run one local application, see an error-log rate spike, inspect 
 - Provide a receiver mode that deliberately fails the first attempt. Persist receiver/delivery identifiers to make retries inspectable.
 - Always provide a labeled local evidence summary. Optional LLM analysis adds evidence-linked summaries, possible causes, and next checks.
 - Preview the actual redacted payload before explicit send; bind the send to that preview so new logs are not silently added afterward.
-- Configure the LLM only through environment variables. Never expose the API key to the browser. Provider failure leaves investigation and local summaries usable.
-- Selected provider: Gemini REST API, default model `gemini-3.5-flash-lite`, with `GEMINI_API_KEY` and optional `GEMINI_MODEL`. Restrict unpaid processing to synthetic demo evidence; live/imported evidence needs appropriate paid-service configuration. Document the distinction in the preview and setup guidance; see ADR-021 for official sources.
+- Permit a password-field Gemini key submission to the local backend without restart. Keep the submitted key only in server memory; never persist it, log it, or return it in API responses/errors. Show only configured/not-configured state and provide Clear key. GEMINI_API_KEY remains the environment fallback; model/paid-service settings remain environment-controlled. Preserve preview followed by explicit Send for analysis. Provider failure leaves investigation and local summaries usable.
+- Selected provider: Gemini REST API, default model `gemini-3.5-flash-lite`, with `GEMINI_API_KEY` and optional `GEMINI_MODEL`. Restrict unpaid processing to synthetic demo evidence; Live or unverified Demo evidence needs appropriate paid-service configuration; Historical has no incident-analysis endpoint. Document the distinction in the preview and setup guidance; see ADR-021 for official sources.
 - Treat log content as untrusted data, validate evidence references in generated analysis, and never present generated causes as proven.
 - Explain that basic redaction may miss secrets embedded in arbitrary messages.
 
@@ -77,11 +77,18 @@ A developer can run one local application, see an error-log rate spike, inspect 
 - With no LLM credentials, the full investigation works and the local summary is labeled. With configured credentials, explicit-send analysis uses exactly the previewed redacted evidence; failures are handled visibly.
 - Record whether an actual provider call was tested. Mocked integration tests do not establish live provider success.
 
-## Implementation order
+## Completed delivery order
 
 1. API, persistence, event validation, simulator, and deterministic detector tests.
 2. Incident transitions, local HTTP receiver, durable delivery, restart and isolation checks.
 3. React overview, incident investigation, log explorer, upload, demo controls, and delivery history.
 4. Local summaries, optional LLM adapter, retention, end-to-end checks, and run documentation.
 
-Target remains a 4–6-hour MVP from the recorded project start, within the user's 16-hour maximum window. Reassess against measured progress; optional LLM integration is conditional on remaining lightweight.
+The original target was a 4–6-hour MVP, with a 16-hour maximum window. Core issues and the bounded optional Gemini integration are complete; subsequent user-requested cleanup and validation are recorded in the audit log.
+
+
+## Presentation and infrastructure
+
+Overview remains a summary; Incidents owns the full investigation. Logs exposes Historical import and service dropdown/text entry. Native controls use a consistent flat style; a header moon/sun toggle follows system preference until selected, then persists only the theme locally. Short entry feedback and theme transitions respect reduced-motion. These refinements do not change detection, evidence, retry or retention semantics.
+
+No cloud compute, hosted database/storage or deployment resources were provisioned. GitHub and AI tools supported development. No live Gemini provider call is claimed. Current test and browser status belongs to [final validation](final-validation.md), not the original ticket snapshots.

@@ -1,0 +1,47 @@
+npm notice run npx
+npm notice run 'hyperframes' check --snapshots
+◆  Checking composition
+[hyperframes] browserGpuMode probe → hardware (WebGL renderer vendor="Google Inc. (Apple)" renderer="ANGLE (Apple, ANGLE Metal Renderer: Apple M4, Unspecified Version)")
+
+Lint
+  ⚠ duplicate_media_discovery_risk: Detected 2 matching img entries with the same source/start/duration.
+    /Users/junaidahamad/github/log_watchdog/brag-output/composition/index.html [data-composition-id] t=0s
+    Fix: Avoid duplicated media nodes that can be discovered twice during compilation.
+  ⚠ nested_structure_needs_subcomposition: <section id="scene1"> is a timeline element that contains nested <div id="content1">. The timeline shows one row per top-level element, and the root composition is built only from sub-compositions.
+    /Users/junaidahamad/github/log_watchdog/brag-output/composition/index.html #scene1 t=0s
+    Fix: Move <section id="scene1"> and its contents into a sub-composition file and mount it with data-composition-src.
+  ⚠ nested_structure_needs_subcomposition: <section id="scene2"> is a timeline element that contains nested <div id="content2">. The timeline shows one row per top-level element, and the root composition is built only from sub-compositions.
+    /Users/junaidahamad/github/log_watchdog/brag-output/composition/index.html #scene2 t=0s
+    Fix: Move <section id="scene2"> and its contents into a sub-composition file and mount it with data-composition-src.
+  ⚠ nested_structure_needs_subcomposition: <section id="scene3"> is a timeline element that contains nested <div id="content3">. The timeline shows one row per top-level element, and the root composition is built only from sub-compositions.
+    /Users/junaidahamad/github/log_watchdog/brag-output/composition/index.html #scene3 t=0s
+    Fix: Move <section id="scene3"> and its contents into a sub-composition file and mount it with data-composition-src.
+  ⚠ nested_structure_needs_subcomposition: <section id="scene4"> is a timeline element that contains nested <div id="content4">. The timeline shows one row per top-level element, and the root composition is built only from sub-compositions.
+    /Users/junaidahamad/github/log_watchdog/brag-output/composition/index.html #scene4 t=0s
+    Fix: Move <section id="scene4"> and its contents into a sub-composition file and mount it with data-composition-src.
+  ⚠ nested_structure_needs_subcomposition: <section id="scene5"> is a timeline element that contains nested <div id="content5">. The timeline shows one row per top-level element, and the root composition is built only from sub-compositions.
+    /Users/junaidahamad/github/log_watchdog/brag-output/composition/index.html #scene5 t=0s
+    Fix: Move <section id="scene5"> and its contents into a sub-composition file and mount it with data-composition-src.
+  0 error(s), 6 warning(s), 0 info(s)
+
+Runtime
+  ◇ 0 errors, 0 warnings
+
+Layout
+  ◇ 0 issues across 9 sample(s)
+
+Motion
+  ◇ 0 errors, 0 warnings
+
+Contrast
+  ◇ 90/90 text checks pass WCAG AA
+
+Snapshots
+  ◇ 5 PNG(s) saved
+    snapshots/frame-00-at-1.0s.png
+    snapshots/frame-01-at-5.0s.png
+    snapshots/frame-02-at-9.0s.png
+    snapshots/frame-03-at-13.0s.png
+    snapshots/frame-04-at-17.0s.png
+
+◇  Check passed

@@ -1,5 +1,11 @@
+import { ThemeToggle } from "./ThemeToggle";
 import { useEffect, useRef, useState } from "react";
-import { PageLink, usePageRestoration, viewUrl } from "./navigation";
+import {
+  useDocumentTitle,
+  PageLink,
+  usePageRestoration,
+  viewUrl,
+} from "./navigation";
 
 type Attempt = {
   number: number;
@@ -32,6 +38,7 @@ type DeliveryData = {
 };
 
 export function Deliveries() {
+  useDocumentTitle("Deliveries");
   const params = new URLSearchParams(window.location.search);
   const dataset = params.get("dataset") ?? "demo";
   const incident = params.get("incident");
@@ -136,38 +143,41 @@ export function Deliveries() {
             <h1 id="deliveries-heading" tabIndex={-1}>
               Deliveries
             </h1>
-            <p>Inspect notifications and actual local HTTP attempts.</p>
+            <p>Track notifications and delivery attempts.</p>
           </div>
-          <label className="dataset-select">
-            Dataset
-            <select
-              value={dataset}
-              onChange={(event) => {
-                window.history.pushState(
-                  { focus: "deliveries-heading" },
-                  "",
-                  `?view=deliveries&dataset=${event.target.value}`,
-                );
-                window.dispatchEvent(new PopStateEvent("popstate"));
-              }}
-            >
-              <option value="demo">Demo</option>
-              <option value="live">Live</option>
-              <option value="historical">Historical</option>
-            </select>
-          </label>
+          <div className="header-controls">
+            <label className="dataset-select">
+              Dataset
+              <select
+                value={dataset}
+                onChange={(event) => {
+                  window.history.pushState(
+                    { focus: "deliveries-heading" },
+                    "",
+                    `?view=deliveries&dataset=${event.target.value}`,
+                  );
+                  window.dispatchEvent(new PopStateEvent("popstate"));
+                }}
+              >
+                <option value="demo">Demo</option>
+                <option value="live">Live</option>
+                <option value="historical">Historical</option>
+              </select>
+            </label>
+            <ThemeToggle />
+          </div>
         </header>
         <section className="dataset-context" aria-label="Delivery context">
           <strong>
             {dataset === "demo"
-              ? "Demo · Synthetic scenario"
+              ? "Demo · Simulated data"
               : dataset === "live"
                 ? "Live"
                 : "Historical"}
           </strong>
           <p>
-            Real time (UTC). Retries use real time; advancing the simulation
-            does not accelerate them.
+            Times are UTC. Retries run in real time, independently of Demo
+            advances.
           </p>
           {incident && (
             <>
@@ -187,9 +197,8 @@ export function Deliveries() {
           <button onClick={() => setRetry((v) => v + 1)}>
             Refresh deliveries
           </button>
-          {fetched && <p>Last successful refresh: {fetched}</p>}
+          {fetched && <p>Last refreshed: {fetched}</p>}
         </section>
-        {dataset === "demo" && <ReceiverControl />}
         <p role="status" className="sr-only">
           {announcement}
         </p>
@@ -210,39 +219,42 @@ export function Deliveries() {
             </PageLink>
           </div>
         )}
-        <section
-          className="delivery-list"
-          aria-label="Notification history"
-          aria-busy={!data && !error}
-        >
-          {!data && !error && <p role="status">Loading deliveries…</p>}
-          {data?.deliveries.length === 0 && (
-            <>
-              <h2>No notifications</h2>
-              <p>
-                {dataset === "historical"
-                  ? "Historical events do not trigger notifications."
-                  : "Notifications are created when an incident opens or recovers. Earlier incidents created before delivery support have no retroactive notifications."}
-              </p>
-              <PageLink
-                href={viewUrl("overview", {
-                  dataset: dataset === "historical" ? "live" : dataset,
-                })}
-                focus="overview-heading"
-              >
-                Open overview
-              </PageLink>
-            </>
-          )}
-          {data?.deliveries.map((delivery) => (
-            <DeliveryRow
-              key={delivery.id}
-              delivery={delivery}
-              max={data.max_attempts}
-              run={data.run}
-            />
-          ))}
-        </section>
+        <div className="delivery-workspace">
+          <section
+            className="delivery-list"
+            aria-label="Notification history"
+            aria-busy={!data && !error}
+          >
+            {!data && !error && <p role="status">Loading deliveries…</p>}
+            {data?.deliveries.length === 0 && (
+              <>
+                <h2>No notifications</h2>
+                <p>
+                  {dataset === "historical"
+                    ? "Historical events do not trigger notifications."
+                    : "Notifications appear when an incident opens or recovers. Older incidents may have no delivery history."}
+                </p>
+                <PageLink
+                  href={viewUrl("overview", {
+                    dataset: dataset === "historical" ? "live" : dataset,
+                  })}
+                  focus="overview-heading"
+                >
+                  Open overview
+                </PageLink>
+              </>
+            )}
+            {data?.deliveries.map((delivery) => (
+              <DeliveryRow
+                key={delivery.id}
+                delivery={delivery}
+                max={data.max_attempts}
+                run={data.run}
+              />
+            ))}
+          </section>
+          {dataset === "demo" && <ReceiverControl />}
+        </div>
       </main>
     </div>
   );
@@ -278,13 +290,25 @@ function ReceiverControl() {
   return (
     <section
       id="receiver-controls"
-      className="dataset-context"
+      className="receiver-settings"
       aria-labelledby="receiver-heading"
     >
-      <h2 id="receiver-heading">Demo receiver behavior</h2>
+      <h2 id="receiver-heading" tabIndex={-1}>
+        Demo receiver behavior
+      </h2>
       <p>
-        Applies to new Demo notifications only. Each notification keeps its
-        behavior through retries. Live always uses success.
+        <PageLink href="?view=overview&dataset=demo" focus="reset-demo">
+          Reset Demo
+        </PageLink>
+        , choose a receiver behavior, then advance one minute from{" "}
+        <PageLink href="?view=overview&dataset=demo" focus="advance-demo">
+          Overview
+        </PageLink>
+        .
+      </p>
+      <p>
+        Applies to new Demo notifications, including their retries. Live always
+        uses Success.
       </p>
       <form
         onSubmit={async (event) => {
@@ -359,7 +383,7 @@ function DeliveryRow({
         Incident {d.incident_state} · Notification {d.state} · {d.attempts_used}{" "}
         of {max} attempts used
       </p>
-      <p>Created {d.created_at} · Real time (UTC)</p>
+      <p>Created {d.created_at} · UTC</p>
       <PageLink
         href={viewUrl("incidents", {
           incident: String(d.incident_id),
@@ -371,7 +395,7 @@ function DeliveryRow({
       >
         Investigate incident #{d.incident_id}
       </PageLink>
-      {d.next_retry && <p>Next retry: {d.next_retry} (real time UTC)</p>}
+      {d.next_retry && <p>Next retry: {d.next_retry} (UTC)</p>}
       {d.state === "exhausted" && (
         <div className="error">
           <p>
@@ -404,7 +428,11 @@ function DeliveryRow({
       >
         {expanded ? "Hide" : "View"} payload and attempts
       </button>
-      <div id={`attempts-${d.id}`} hidden={!expanded}>
+      <div
+        className="delivery-details"
+        id={`attempts-${d.id}`}
+        hidden={!expanded}
+      >
         <p>Destination: {d.destination}</p>
         <p>Stable delivery ID: {d.id}</p>
         <p>
@@ -413,7 +441,7 @@ function DeliveryRow({
         </p>
         <h3>Exact payload</h3>
         <pre>{JSON.stringify(d.payload, null, 2)}</pre>
-        <h3>Attempts · Real time (UTC)</h3>
+        <h3>Attempts · UTC</h3>
         {d.attempts.length === 0 && <p>Pending first attempt.</p>}
         <ol>
           {d.attempts.map((attempt) => (

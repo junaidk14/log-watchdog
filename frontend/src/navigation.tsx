@@ -1,5 +1,11 @@
 import { useEffect, useRef, type ComponentProps } from "react";
 
+export function useDocumentTitle(destination: string) {
+  useEffect(() => {
+    document.title = `${destination} · Log Watchdog`;
+  }, [destination]);
+}
+
 export function viewUrl(
   view: string,
   changes: Record<string, string | null> = {},
@@ -15,11 +21,16 @@ export function viewUrl(
 
 export function PageLink({
   focus,
+  revealFocus,
   back,
   href,
   children,
   ...props
-}: ComponentProps<"a"> & { focus?: string; back?: boolean }) {
+}: ComponentProps<"a"> & {
+  focus?: string;
+  revealFocus?: boolean;
+  back?: boolean;
+}) {
   return (
     <a
       {...props}
@@ -47,6 +58,7 @@ export function PageLink({
         window.history.pushState(
           {
             returnState: previous,
+            revealFocus,
             ...destination,
             focus: destination?.focus || focus,
           },
@@ -123,6 +135,13 @@ export function usePageRestoration(
         focusVisible(fallback ? document.getElementById(fallback) : null);
       }
       if (typeof state?.scrollY === "number") window.scrollTo(0, state.scrollY);
+      else if (
+        state?.revealFocus &&
+        target &&
+        document.activeElement === target
+      ) {
+        target.scrollIntoView?.({ block: "start", behavior: "instant" });
+      }
       pending.current = false;
       return true;
     };

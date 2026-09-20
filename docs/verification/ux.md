@@ -1,0 +1,122 @@
+# Rendered UX cleanup — 2026-09-20
+
+Scope: one focused refinement of page responsibilities, next-action hierarchy, alignment and Gemini copy on top of `3975f1b`. No backend, detector, storage, provider or architectural changes.
+
+## Rendered findings and response
+
+| Finding before edits | Response |
+| --- | --- |
+| Investigate already navigated correctly. Overview could still mount full investigation when its URL retained an incident. | Preserve the working navigation; mount the evidence pane only in Incidents. Overview never marks a retained incident as selected. |
+| Two table columns squeezed measurements and their action into the narrow incident queue. | Use full-width semantic list rows with a clear Investigate action. Keep observed/expected, measurement interval and incident interval distinct. |
+| Repeated measurements and lifecycle metadata pushed the primary log action below the first desktop viewport. | Lead evaluated evidence with a primary log action, delivery action and Gemini jump. Keep the selected-window comparison visible; disclose full timeline/baseline detail separately. |
+| Gemini setup followed every sample event. | Put optional analysis after the local summary, before samples, with a focusable jump from the action row. Keep sample links mounted for focus restoration. |
+| Historical import was reachable and rendered correctly; the native file control was visually inconsistent. | Preserve its existing direct link/selector flow; align the file control and shared input/button geometry. |
+| Receiver configuration took priority over actual delivery results, especially on narrow screens. | Show notification history before secondary receiver settings. Preserve payload/attempt disclosure and receiver behavior. |
+| Checkbox labels stacked unnecessarily; controls inherited inconsistent typography/margins; mobile navigation wasted vertical space. | Inline the evidence-scope checkbox, use common control geometry and panel spacing, regular-weight input text, and compact wrapping navigation. Cap the shared main content width. |
+| Key lifetime copy was lengthy and the official key-acquisition path was missing. | Concise server-memory/fallback copy, persistent checked configuration state outside the disclosure, and **Get Gemini API key** linking to [Google AI Studio](https://aistudio.google.com/apikey). Destination verified against [Google's key documentation](https://ai.google.dev/gemini-api/docs/api-key). |
+
+The memory-only key implementation is unchanged. No key is fetched back, persisted or displayed. Saving is separate from preview; preview is separate from explicit Send for analysis. No real credential or Gemini call was used.
+
+## Browser verification
+
+Used the requested Playwriter CLI. The extension did not connect even after the user enabled it; Playwriter's supported **local headless Chrome** mode did work. This is actual browser rendering and interaction, not jsdom. Chrome DevTools MCP was not needed. The app used `/tmp/log-watchdog-rendered-ux.sqlite3`, separate from user data.
+
+- Inspected the running UI before editing; captured Overview, Incidents, Logs, Historical, Gemini and delivery states.
+- After changes, inspected desktop **1440 × 1000** and narrow **390 × 844** layouts. Main content showed no horizontal overflow in the inspected narrow incident, Logs, Historical and delivery states. Log tables retain intentional contained horizontal scrolling.
+- Overview → Investigate opened Incidents with the correct incident and evaluated window; title was `Incidents · Log Watchdog`. Keyboard activation focused `incident-heading`; Tab continued to Back to incidents.
+- Keyboard-opened evaluated Logs focused `logs-heading`. Browser Back restored `evaluated-logs`; Forward restored Logs. Explicit return from delivery history restored `incident-deliveries`.
+- Delivery payload/attempt expansion showed the actual local HTTP 200 acceptance. Receiver configuration remained available below history.
+- Historical file chooser → import inserted one synthetic event with zero duplicates. Browse file interval displayed that event. No detector or delivery work was created by import.
+- Gemini setup accepted only a synthetic test string, emptied the password input and showed Configured. Local evidence preview exposed the distinct Send button, which was **not activated**. Clear key restored Not configured and removed the preview/Send control.
+- Demo advance opened the seeded incident. Reset confirmation described its Demo-only effect; cancel restored focus to `reset-demo`.
+- Console logs were empty and failed-response/request collection was `[]` during the checked flows. Only URLs/statuses were captured, never request bodies/keys. Occasional Playwriter snapshot/navigation timing errors were resolved by waiting for the observed destination control and taking a fresh snapshot; these were tooling errors, not app console errors.
+
+Screenshots are retained under `/tmp/watchdog-before-*.png` and `/tmp/watchdog-after-*.png`, including `watchdog-after-incidents.png`, `watchdog-after-overview-desktop.png`, `watchdog-after-gemini-desktop.png`, `watchdog-after-gemini-narrow.png`, `watchdog-after-historical-narrow.png` and `watchdog-after-deliveries-narrow.png`. These are local verification artifacts, not externally published assets.
+
+## Automated verification
+
+- 87 frontend tests passed, including unchanged Back/Forward/failure restoration cases, summary-only Overview with a retained incident URL, Gemini jump focus and official key link.
+- 132 backend tests passed, including actual HTTP tests. The coordinator stopped only its own temporary server first. Existing two Starlette/AnyIO deprecation warnings remain.
+- Production build, TypeScript, ESLint, Prettier, Ruff lint/format, mypy and static text/focus contrast passed. Impeccable source detector returned `[]`.
+- A queued animation-frame focus callback could steal focus from an immediately selected next control; it now checks whether focus has already moved, while allowing restoration after a removed control. Existing regressions and real-browser keyboard checks passed.
+- Full real-HTTP runtime validation passed: 100k events, paced ingestion, assets/favicon, historical upload/restart, 40 evaluated versus 41 broader events, opening/recovery delivery, HTTP 503 → process restart → 200 with the same delivery ID, Demo reset isolation and real-clock worker evaluation. Synthetic key save/status/clear and preview checks made no provider call.
+
+Logs: `/tmp/watchdog-ux-tests-final.log`, `/tmp/watchdog-rendered-ux-backend.log`, `/tmp/watchdog-rendered-ux-runtime.log`.
+
+## Remaining UX assessment
+
+- **P0/P1: none found** in the inspected flows.
+- **P2: none found** in this bounded pass.
+- **P3:** Full UTC timestamps and representative log samples remain verbose on narrow screens. Precision and direct evidence links were retained deliberately; further density tuning is optional.
+
+Coverage limits: local headless Chrome only, not the user's extension-connected tab, physical mobile devices, other browser engines or a complete assistive-technology audit. Live Gemini success remains unverified and requires user approval before any provider call. No external submission or deployment.
+
+
+## Evidence eligibility and readability follow-up — 2026-09-20
+
+- Reproduced preview HTTP 403 with configured synthetic credentials and deliberately unverified events in a disposable database. The UI correctly distinguishes key presence from evidence eligibility and links to Overview's existing Demo reset confirmation. No automatic reset, credential disclosure or provider call.
+- Reset only the disposable Demo fixture and advanced one minute. The fresh incident produced a successful local preview labeled verified synthetic Demo evidence; Send for analysis remained untouched. The real database and port-8000 server were left unchanged.
+- Playwriter headless Chrome, 1440px and 390px: service dropdown populates dataset choices, selection updates the text input, Apply filters produces matching events; incident-scoped controls remain locked. Compact queue and selected evidence remain readable. Narrow service controls fit side by side. Existing exact-name entry has a React regression test.
+- All 91 frontend tests and 78 backend API/analysis tests passed, along with production build/typecheck, ESLint, Prettier, Ruff lint/format, mypy and contrast checks. One earlier existing delivery keyboard test failed transiently; subsequent full-suite runs passed without changing delivery behavior. One lint invocation could not locate its executable transiently; rerun passed. No checks were disabled.
+- Console showed only the intentional HTTP 403 during the privacy-gate reproduction; subsequent fresh preview and navigation had no console errors. Screenshots: `/tmp/watchdog-readability-desktop.png`, `/tmp/watchdog-readability-narrow.png`, `/tmp/watchdog-service-narrow-final.png`. Test logs: `/tmp/watchdog-readability-frontend.log`, `/tmp/watchdog-readability-backend.log`.
+- No P0/P1 found in affected flows. Remaining P3: representative event timestamps remain verbose by design. Browser coverage remains local headless Chrome; no live Gemini provider validation.
+
+## Final language/layout polish — 2026-09-20
+
+Before/after Playwriter inspection covered Overview, Incidents, Logs, Deliveries and Historical at 1440×1000 and 390×1000, plus expanded Gemini setup at both widths. Captures are `/tmp/polish-before-*.png`, `/tmp/polish-after-*.png` and `/tmp/polish-gemini-*.png`. Shared content edges, flat selects, wrapped narrow controls, queue/evidence balance and the compact delivery/settings composition were visually inspected. Historical file format/retry disclosure and exact validation remain intact.
+
+Keyboard Enter followed Overview → Investigate → evaluated Logs. Browser Back restored `evaluated-logs` focus; Forward returned to Logs. Enter expanded delivery payload/attempt details. Native select type-ahead chose fail-first behavior; Enter submitted the existing form in the disposable fixture only. No production/user dataset or configuration changed. Gemini configured state and memory-only/clear guidance were inspected; no external analysis request was made. Browser console had no errors in this pass.
+
+All 91 frontend tests passed, including upload, Gemini, accessibility and focus regressions. Production build/TypeScript, ESLint, Prettier, static contrast and diff checks passed. The existing delivery test now waits for initial heading restoration before moving focus, removing a harness race without changing application behavior or dropping assertions. Logs: `/tmp/watchdog-polish-final-tests.log`. Backend code is unchanged; no backend verification is claimed for this presentation-only pass.
+
+No P0/P1/P2 issue found in the inspected flows. P3: precise evidence timestamps remain verbose on narrow screens. Native popup menus can still use operating-system styling; the closed controls have the shared flat finish. Coverage is headless Chrome, not physical devices or a full screen-reader audit. No external provider validation or publication.
+
+## Demo walkthrough — 2026-09-20
+
+94 frontend tests, typecheck, ESLint, build, Prettier, contrast and diff checks passed before targeted browser verification. Regression tests assert the four existing-action links, no automatic mutation, and absence from Live Overview and Demo Incidents. The Advance anchor ID applies only on Overview to preserve existing Incidents focus restoration.
+
+Playwriter verified a fresh disposable Demo: reset confirmation; walkthrough link focuses receiver heading; save fail-first-then-succeed; reminder returns focus to Advance; advance creates checkout incident; investigation anchor focuses queue; incident opens its delivery history and expandable payload. Inspected the guide at desktop and 390px. Captures: `/tmp/walkthrough-desktop.png`, `/tmp/walkthrough-narrow.png`. The reused browser initially polled an old-run URL against the new fixture and recorded expected HTTP 410 responses before the fresh navigation; after the targeted flow, no new console errors appeared. Test log: `/tmp/watchdog-walkthrough-tests.log`.
+
+The user's port-8000 server was left running. The disposable port-8001 fixture disables the background worker, so the newly created notification remains pending; this verifies UI flow and creation, not real HTTP/retry timing. Backend delivery behavior is unchanged. No full-app browser repetition and no provider call.
+
+## Targeted micro-interactions — 2026-09-20
+
+Before editing, inspected Gemini setup/local preview and delivery details in the rendered isolated fixture. All 94 frontend tests, TypeScript, ESLint, build, Prettier, contrast and diff checks passed before the after-check. Log: `/tmp/watchdog-motion-tests.log`.
+
+Targeted Playwriter checks observed pointer-opened delivery details at opacity 0.85 with duration 0.14s, settling normally; keyboard expansion retained its trigger and expanded immediately. Reduced-motion computed duration is 0s. Verified a browser-intercepted Gemini loading→response cycle: the simulated result started at opacity 0.85 with 0.14s transition, then settled at opacity 1. No backend send or provider request occurred. Inspected the result and narrow delivery details; no console errors. Captures: `/tmp/motion-before-gemini.png`, `/tmp/motion-result.png`, `/tmp/motion-delivery-narrow.png`.
+
+No application timers, handlers, focus restoration, detector/delivery logic or layout changed. A result wrapper retains the existing paragraph typography/margins. Motion is a progressive CSS enhancement; unsupported browsers remain immediate. No new P0/P1/P2 issue found in this bounded pass. Browser coverage remains headless Chrome.
+
+## Light/dark theme — 2026-09-20
+
+All 97 frontend tests, TypeScript, ESLint, production build, Prettier and static contrast checks passed. The contrast script now checks 23 text/control/focus pairs in each palette. Theme tests cover system changes before selection, persistence/remount, keyboard focus, cross-tab preference updates, invalid preferences and blocked storage. Test log: `/tmp/watchdog-theme-tests.log`. JSDOM's existing canvas warning limits automated axe color evaluation; the explicit contrast script covers both palettes.
+
+Playwriter checked Overview, selected Incidents, Logs, Deliveries and Historical in both themes at 1440px and 390px. System-dark first load, keyboard toggle, saved light preference after reload under a dark system preference, and error-state readability were verified. Reduced-motion computes a 0s theme transition. Screenshots: `/tmp/theme-{light|dark}-{page}-{1440|390}.png`, plus `/tmp/theme-{light|dark}-error.png`. No new console errors in the main-page pass. Coverage is local headless Chrome; physical devices and other browser engines remain unverified. Backend code and delivery/provider behavior were not changed or re-tested. Expanded Gemini setup was also inspected in dark mode with an empty key field; no real Gemini call. The reused browser log still contains earlier stale-run 410 entries noted above; these are not newly introduced theme errors.
+
+No P0/P1 issue found in these checks. Previously documented P3 timestamp density and native popup-menu styling remain. The documentation refresh links current validation separately from original issue snapshots.
+
+## Demo scroll restoration — 2026-09-20
+
+The original Playwriter reproduction moved Reset from scrollY 330 to 0; tracing focus identified the unqualified reset-button focus call. Updated reset/cancel and selection focus regression assertions failed before the fix. All 97 frontend tests, typecheck, ESLint, build and Prettier pass afterward (`/tmp/watchdog-scroll-tests.log`). Backend behavior is unchanged.
+
+Targeted headless Chrome verification: desktop Reset retains 330; narrow Reset and Advance retain 668. Keyboard Investigate focuses the incident heading and only reveals it as needed. Immediate Back restores incident-link focus at 778 and Forward restores heading focus at 237. The final destination position is recorded synchronously so a later browser scroll event is not required for correct history. Advance showed no independent defect in desktop/narrow reproduction and was not changed. Testing used a disposable port-8001 dataset with background workers disabled, not the user's server.
+
+## Demo focus follow-up — 2026-09-20
+
+Reproduced pointer Reset forcing focus back to Reset; narrow Investigate also scrolled as the layout changed before its animation-frame focus. Overview now preserves the viewport across Demo UI updates and applies investigation focus/reveal before paint. Reset/Cancel and Advance restore controls only for keyboard activation; asynchronous completion does not steal focus from another control.
+
+Regression coverage includes pointer reset/cancel, keyboard reset/advance, focus moved during a pending advance, and same-commit investigation focus. All **101 frontend tests in eight files**, TypeScript, ESLint, build and Prettier passed. Existing history/evidence restoration tests remain green.
+
+Playwriter local headless Chrome, 1440×900 and 390×844, isolated synthetic database and disabled workers: pointer reset retained y=200 without Reset focus; narrow keyboard Reset and Advance retained y=583; Investigate focused the heading with one settled destination; Back restored incident-link focus at y=583 and Forward restored the workspace at y=93. Evaluated Logs → Back restored its originating link. No console errors observed. These are targeted Chrome checks, not cross-browser or physical-device claims. No backend changes or tests in this pass.
+
+### Walkthrough anchor correction
+
+The user's screenshot identified a separate entry point missed above: Try the Demo's native `#reset-demo` link aligned Reset to the viewport top (y=268), focused it and added a hash-history entry, without opening confirmation. The three walkthrough anchors now use nearest target visibility and keyboard-only target focus; they retain their role as links to the existing controls/queue. Modified clicks retain native behavior. Actual Reset/Advance/Investigate actions are unchanged.
+
+The new regression failed before the fix. All **102 frontend tests**, typecheck, lint, build and formatting passed. Playwriter on the served build at 1534×895 and 390×895 verified pointer Reset retained y=0, unchanged history length and no hash/focus redirection; the other guide links avoid hash history, and keyboard Reset focuses its target. No console errors or user-data mutations. Reload an already-open tab to load the new frontend bundle.
+
+### Final walkthrough sweep
+
+All four Try the Demo links verified with mouse/keyboard at 1534×895 and 390×895. Reset/Advance/Investigate kept visible targets in place without hash-history entries. The receiver link had focused an off-screen heading on narrow screens; it now explicitly reveals receiver setup on first navigation, while saved Back/Forward scroll takes priority. A stable walkthrough-link ID restores its origin focus on Back. Narrow receiver navigation settled at y=321, Back at y=0 and Forward at y=321; no console errors or data mutations.
+
+**103 frontend tests** plus typecheck, ESLint, production build and Prettier passed. Regression coverage checks all three in-page links for pointer/keyboard behavior and receiver reveal versus saved history position. Backend behavior remains unchanged.

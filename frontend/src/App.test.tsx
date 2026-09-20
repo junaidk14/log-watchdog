@@ -363,3 +363,45 @@ it("withholds stale general Demo Logs on load, refresh and Back, and restores cu
   );
   await screen.findByText("Replacement run event");
 });
+
+it("exposes the file chooser immediately through Historical and the Import JSON entry", async () => {
+  const user = userEvent.setup();
+  render(<App />);
+  await screen.findByText("101 matching events · Page 1 of 3");
+  await user.selectOptions(screen.getByLabelText("Dataset"), "historical");
+  expect(await screen.findByLabelText("JSON log file")).toHaveAttribute(
+    "type",
+    "file",
+  );
+  expect(
+    screen.getByRole("button", { name: "Import into Historical" }),
+  ).toBeVisible();
+  await user.selectOptions(screen.getByLabelText("Dataset"), "demo");
+  await user.click(
+    screen.getByRole("link", { name: "Import JSON into Historical" }),
+  );
+  expect(await screen.findByLabelText("JSON log file")).toBeVisible();
+  expect(window.location.search).toContain("dataset=historical");
+});
+
+it("offers dataset service choices while retaining exact free-text filtering", async () => {
+  fetchMock.mockImplementation(() =>
+    Promise.resolve({
+      ok: true,
+      json: async () => ({ ...result, services: ["checkout", "worker"] }),
+    }),
+  );
+  const user = userEvent.setup();
+  render(<App />);
+  await screen.findByText(row.message);
+  const service = screen.getByRole("textbox", { name: "Service" });
+  await user.selectOptions(
+    screen.getByRole("combobox", { name: "Choose service" }),
+    "worker",
+  );
+  expect(service).toHaveValue("worker");
+  await user.clear(service);
+  await user.type(service, "custom-service");
+  await user.click(screen.getByRole("button", { name: "Apply filters" }));
+  expect(window.location.search).toContain("service=custom-service");
+});

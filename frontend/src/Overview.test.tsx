@@ -1,4 +1,10 @@
-import { act, render, screen, waitFor } from "@testing-library/react";
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, expect, it, vi } from "vitest";
 import axe from "axe-core";
@@ -59,6 +65,7 @@ function respond(value = data) {
 beforeEach(() => {
   window.history.replaceState({}, "", "/?view=overview&dataset=demo");
   vi.stubGlobal("scrollTo", vi.fn());
+  vi.stubGlobal("scrollY", 0);
   fetchMock.mockReset();
   fetchMock.mockImplementation(() => respond());
   vi.stubGlobal("fetch", (url: string, ...args: unknown[]) => {
@@ -86,6 +93,10 @@ it("selects with keyboard, preserves selection through recovery and returns focu
   const link = await screen.findByRole("link", {
     name: "Investigate checkout incident #1",
   });
+  const focusHeading = vi.spyOn(HTMLElement.prototype, "focus");
+  const revealHeading = vi.fn(() => vi.stubGlobal("scrollY", 123));
+  vi.stubGlobal("scrollY", 330);
+  HTMLElement.prototype.scrollIntoView = revealHeading;
   link.focus();
   await user.keyboard("{Enter}");
   await waitFor(() =>
@@ -93,6 +104,14 @@ it("selects with keyboard, preserves selection through recovery and returns focu
       screen.getByRole("heading", { name: "checkout · open" }),
     ).toHaveFocus(),
   );
+  expect(focusHeading).toHaveBeenLastCalledWith({ preventScroll: true });
+  expect(revealHeading).toHaveBeenCalledWith({
+    block: "nearest",
+    behavior: "instant",
+  });
+  expect(window.history.state.scrollY).toBe(123);
+  focusHeading.mockRestore();
+  delete (HTMLElement.prototype as Partial<HTMLElement>).scrollIntoView;
   expect(window.location.search).toContain("incident=1");
   expect(link).toHaveAttribute("aria-current", "true");
   expect(
@@ -102,7 +121,7 @@ it("selects with keyboard, preserves selection through recovery and returns focu
   recovered.incidents[0].state = "recovered";
   recovered.incidents[0].recovered_at = "2026-01-01T12:05:00Z";
   fetchMock.mockImplementation(() => respond(recovered));
-  await user.click(screen.getByRole("button", { name: "Refresh overview" }));
+  await user.click(screen.getByRole("button", { name: "Refresh incidents" }));
   expect(
     await screen.findByRole("heading", { name: "checkout · recovered" }),
   ).toBeInTheDocument();
@@ -124,13 +143,13 @@ it("retains values and selected detail on refresh error and retries", async () =
   window.history.replaceState(
     {},
     "",
-    "/?view=overview&dataset=demo&incident=1",
+    "/?view=incidents&dataset=demo&incident=1",
   );
   const user = userEvent.setup();
   render(<Overview />);
   await screen.findByRole("heading", { name: "checkout · open" });
   fetchMock.mockRejectedValueOnce(new Error("Local server offline"));
-  await user.click(screen.getByRole("button", { name: "Refresh overview" }));
+  await user.click(screen.getByRole("button", { name: "Refresh incidents" }));
   expect(await screen.findByRole("alert")).toHaveTextContent(
     "Showing results fetched at",
   );
@@ -215,7 +234,7 @@ it("renders loading, initial failure, retry and honest empty live baseline", asy
 it("shows one recorded window as an honest comparison and keeps volume non-anomalous", () => {
   const { container, rerender } = render(<Trend rows={[measurement]} />);
   expect(
-    screen.getByText("Error-log rate · recorded window"),
+    screen.getByText("Error-log rate · evaluated window"),
   ).toBeInTheDocument();
   expect(screen.getByText("40.00%")).toBeInTheDocument();
   expect(screen.getByText("0.04%")).toBeInTheDocument();
@@ -250,7 +269,7 @@ it("shows sparse recovery, delayed live windows and exact chart values accessibl
   window.history.replaceState(
     {},
     "",
-    "/?view=overview&dataset=live&incident=1",
+    "/?view=incidents&dataset=live&incident=1",
   );
   fetchMock.mockImplementation(() =>
     respond({
@@ -275,6 +294,8 @@ it("shows sparse recovery, delayed live windows and exact chart values accessibl
   expect(
     screen.getByText(/Evaluation delayed for window starting/),
   ).toBeInTheDocument();
+  await userEvent.setup().click(screen.getByRole("link", { name: "Overview" }));
+  await screen.findByText("Service trends");
   await userEvent
     .setup()
     .click(screen.getByText("Evaluated windows for checkout"));
@@ -364,6 +385,7 @@ it("confirms a demo-only reset, restores context and focus, and announces comple
   const { container } = render(<Overview />);
   const reset = await screen.findByRole("button", { name: "Reset demo" });
   await waitFor(() => expect(reset).toBeEnabled());
+  const resetFocus = vi.spyOn(reset, "focus");
   reset.focus();
   await user.keyboard("{Enter}");
   expect(
@@ -379,12 +401,13 @@ it("confirms a demo-only reset, restores context and focus, and announces comple
       })
     ).violations,
   ).toEqual([]);
-  await user.click(screen.getByRole("button", { name: "Cancel reset" }));
+  screen.getByRole("button", { name: "Cancel reset" }).focus();
+  await user.keyboard("{Enter}");
   expect(reset).toHaveFocus();
+  expect(resetFocus).toHaveBeenLastCalledWith({ preventScroll: true });
   await user.click(reset);
-  await user.click(
-    screen.getByRole("button", { name: "Confirm reset Demo only" }),
-  );
+  screen.getByRole("button", { name: "Confirm reset Demo only" }).focus();
+  await user.keyboard("{Enter}");
   await screen.findByText(
     "Demo reset. Normal history restored; Live and Historical are unchanged.",
   );
@@ -397,6 +420,8 @@ it("confirms a demo-only reset, restores context and focus, and announces comple
     "?view=overview&dataset=demo&run=new-run",
   );
   await waitFor(() => expect(reset).toHaveFocus());
+  expect(resetFocus).toHaveBeenLastCalledWith({ preventScroll: true });
+  resetFocus.mockRestore();
   expect(
     screen.queryByRole("heading", { name: "Reset only Demo?" }),
   ).not.toBeInTheDocument();
@@ -499,7 +524,7 @@ it("binds confirmation to its original run even if a refresh discovers another r
     }),
   );
   expect(await screen.findByRole("alert")).toHaveTextContent(
-    "Cancel, refresh overview",
+    "Cancel, refresh this page",
   );
 });
 
@@ -594,4 +619,160 @@ it("explains a stale Overview on Back after two successful resets", async () => 
   expect(
     fetchMock.mock.calls.filter(([url]) => url === "/api/demo/reset"),
   ).toHaveLength(2);
+});
+
+it("guides Demo Overview through existing controls without starting actions", async () => {
+  render(<Overview />);
+  await screen.findByRole("heading", { name: "Try the Demo" });
+  expect(screen.getByRole("link", { name: "Reset Demo" })).toHaveAttribute(
+    "href",
+    "#reset-demo",
+  );
+  expect(
+    screen.getByRole("link", {
+      name: "Choose receiver behavior in Deliveries",
+    }),
+  ).toHaveAttribute("href", "?view=deliveries&dataset=demo");
+  expect(
+    screen.getByRole("link", { name: "advance one minute" }),
+  ).toHaveAttribute("href", "#advance-demo");
+  expect(
+    screen.getByRole("button", { name: "Advance one minute" }),
+  ).toHaveAttribute("id", "advance-demo");
+  expect(
+    screen.getByRole("link", { name: "Investigate the incident" }),
+  ).toHaveAttribute("href", "#queue-heading");
+  expect(
+    fetchMock.mock.calls.every(
+      ([, options]) => !options?.method || options.method === "GET",
+    ),
+  ).toBe(true);
+});
+
+it.each(["?view=overview&dataset=live", "?view=incidents&dataset=demo"])(
+  "omits the walkthrough outside Demo Overview: %s",
+  async (url) => {
+    window.history.replaceState({}, "", url);
+    render(<Overview />);
+    await screen.findByRole("heading", {
+      name: /Recent incidents|Incident queue/,
+    });
+    expect(
+      screen.queryByRole("heading", { name: "Try the Demo" }),
+    ).not.toBeInTheDocument();
+  },
+);
+
+it("does not force Reset focus after pointer cancellation or completion", async () => {
+  const user = userEvent.setup();
+  fetchMock.mockImplementation((url: string) =>
+    respond({
+      ...data,
+      run: url === "/api/demo/reset" ? "new-run" : "old-run",
+    }),
+  );
+  render(<Overview />);
+  const reset = await screen.findByRole("button", { name: "Reset demo" });
+  await waitFor(() => expect(reset).toBeEnabled());
+  const focus = vi.spyOn(reset, "focus");
+  await user.click(reset);
+  focus.mockClear();
+  await user.click(screen.getByRole("button", { name: "Cancel reset" }));
+  expect(focus).not.toHaveBeenCalled();
+  await user.click(reset);
+  focus.mockClear();
+  await user.click(
+    screen.getByRole("button", { name: "Confirm reset Demo only" }),
+  );
+  await screen.findByText(
+    "Demo reset. Normal history restored; Live and Historical are unchanged.",
+  );
+  await new Promise((resolve) => requestAnimationFrame(resolve));
+  expect(focus).not.toHaveBeenCalled();
+  expect(window.history.state.focus).not.toBe("reset-demo");
+  focus.mockRestore();
+});
+
+it("restores keyboard Advance focus without scrolling after the async update", async () => {
+  const user = userEvent.setup();
+  render(<Overview />);
+  const button = await screen.findByRole("button", {
+    name: "Advance one minute",
+  });
+  await waitFor(() => expect(button).toBeEnabled());
+  button.focus();
+  const focus = vi.spyOn(button, "focus");
+  await user.keyboard("{Enter}");
+  await waitFor(() =>
+    expect(focus).toHaveBeenCalledWith({ preventScroll: true }),
+  );
+  expect(button).toHaveFocus();
+  focus.mockRestore();
+});
+
+it("focuses the investigation in the same commit, without a deferred second jump", async () => {
+  render(<Overview />);
+  const link = await screen.findByRole("link", {
+    name: "Investigate checkout incident #1",
+  });
+  link.focus();
+  fireEvent.click(link);
+  expect(
+    screen.getByRole("heading", { name: "checkout · open" }),
+  ).toHaveFocus();
+});
+
+it("does not steal focus when a keyboard user moves during Advance", async () => {
+  const user = userEvent.setup();
+  render(<Overview />);
+  const button = await screen.findByRole("button", {
+    name: "Advance one minute",
+  });
+  await waitFor(() => expect(button).toBeEnabled());
+  let finish!: (value: Response) => void;
+  fetchMock.mockImplementationOnce(
+    () =>
+      new Promise<Response>((resolve) => {
+        finish = resolve;
+      }),
+  );
+  button.focus();
+  await user.keyboard("{Enter}");
+  const dataset = screen.getByRole("combobox", { name: "Dataset" });
+  dataset.focus();
+  await act(async () => finish(await respond()));
+  expect(dataset).toHaveFocus();
+});
+
+it("reveals walkthrough targets without hash navigation or pointer focus jumps", async () => {
+  fetchMock.mockImplementation(() => respond({ ...data, run: "demo-run" }));
+  const user = userEvent.setup();
+  render(<Overview />);
+  await screen.findByText("Service trends");
+  const reveal = vi.fn();
+  HTMLElement.prototype.scrollIntoView = reveal;
+  const url = window.location.href;
+  for (const [name, id] of [
+    ["Reset Demo", "reset-demo"],
+    ["advance one minute", "advance-demo"],
+    ["Investigate the incident", "queue-heading"],
+  ]) {
+    const target = document.getElementById(id)!;
+    const focus = vi.spyOn(target, "focus");
+    const guide = screen.getByRole("link", { name });
+    await user.click(guide);
+    expect(window.location.href).toBe(url);
+    expect(reveal).toHaveBeenLastCalledWith({
+      block: "nearest",
+      behavior: "instant",
+    });
+    expect(focus).not.toHaveBeenCalled();
+    guide.focus();
+    await user.keyboard("{Enter}");
+    expect(focus).toHaveBeenLastCalledWith({ preventScroll: true });
+    expect(target).toHaveFocus();
+    expect(window.location.href).toBe(url);
+    focus.mockRestore();
+  }
+  delete (HTMLElement.prototype as Partial<HTMLElement>).scrollIntoView;
 });

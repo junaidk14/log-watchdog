@@ -8,7 +8,7 @@ web
 
 ## Stack
 
-User-selected: Python with FastAPI and SQLite, plus a lightweight React dashboard. FastAPI serves the built frontend as one localhost application with a single worker and background evaluation/delivery loop. Frontend build tooling remains an implementation choice.
+User-selected: Python with FastAPI and SQLite, plus a lightweight React dashboard. FastAPI serves the built frontend as one localhost application with a single process with background evaluation, delivery and retention tasks. Vite builds the dashboard; native CSS/SVG provides controls, charts and theme styling.
 
 ## Users
 
@@ -29,8 +29,10 @@ An explainable local observability MVP with a reproducible incident demonstratio
 - The overview is incident-first: active problems and investigation take priority over service trends. The UI should feel like a lightweight SRE operations console with scanable information, clear severity states, and useful trends.
 - The selected Incident workbench keeps the incident queue beside its evidence pane on desktop. Incident log links open evaluated evidence first, with an explicit option to include later arrivals that did not change the recorded measurement.
 - The seeded scenario covers three services and a spike caused by repeated downstream timeouts.
+- Demo Overview includes a compact Reset → configure receiver → advance → investigate walkthrough using existing actions.
 - Isolated demo data uses a simulation clock with an "Advance one minute" control. Live operation uses real time; both exercise the same ingestion and detector logic. Webhook delivery and retries stay real-time.
 - Structured JSON arrives through the API, simulator, or bounded file upload. Historical imports support browsing and trends without triggering alerts or training live baselines.
+- A moon/sun header control follows system theme on first load and persists an explicit light/dark preference locally. It does not store credentials.
 - The user delegates implementation and fixes to the agent; manual code edits are not part of the workflow.
 
 ## Capabilities and Constraints
@@ -43,8 +45,8 @@ An explainable local observability MVP with a reproducible incident demonstratio
 - Uploads accept JSON arrays bounded to 5 MB and 5,000 events.
 - Send actual HTTP notifications on opening and recovery to the built-in local receiver only. Persist delivery state and attempt history; allow three attempts and resume pending work after restart.
 - Always provide a clearly labeled local evidence summary. Optional LLM output supplies evidence-linked summaries, possible causes, and next checks, never alert decisions or definitive root causes.
-- External analysis requires preview and an explicit "Send for analysis" action. Credentials and provider settings come only from environment variables. Basic redaction does not guarantee removal of secrets in arbitrary messages.
-- Gemini is the delegated provider selection, conditional on lightweight integration. Unpaid processing is limited to synthetic demo evidence; real-log analysis needs appropriate paid-service configuration. The REST integration is implemented and tested with controlled responses; live account access remains unverified.
+- External analysis requires preview and an explicit "Send for analysis" action. A user may supply a Gemini key through the local UI for server-memory-only use; GEMINI_API_KEY remains the environment fallback. Model and paid-service settings remain environment-configured. The UI shows configured/not-configured state, never retrieves a key, and offers Clear key. Basic redaction does not guarantee removal of secrets in arbitrary messages.
+- Gemini is the optional analysis provider, implemented through a lightweight REST integration. Unpaid processing is limited to synthetic demo evidence; real-log analysis needs appropriate paid-service configuration. The integration is tested with controlled responses; live account access remains unverified.
 - Apply seven-day retention to logs and completed investigations while preserving open incidents, their evidence, and pending deliveries. Demo reset clears and reseeds only demo data.
 - Three services, approximately 100,000 stored events, and roughly 20 events/second are design/test targets, not performance guarantees.
 - Defer arbitrary text parsing, external platform connectors, arbitrary webhook destinations, multi-user hosting, acknowledgment, assignment, and escalation.
@@ -66,8 +68,9 @@ An explainable local observability MVP with a reproducible incident demonstratio
 4. Make delivery failures and recovery inspectable and reproducible.
 5. Favor a bounded local workflow over integration and infrastructure breadth.
 
-## Open Product Details
+## Delivery and verification boundaries
 
 - "Intelligent Observability & Event Watchdog" is the working project description; no final brand identity or assets have been established.
+- No cloud application resources were provisioned. GitHub/AI development tools were used; optional Gemini remains an external API.
 - No product-specific accessibility standard or additional device audience has been specified. This does not waive ordinary accessible interface implementation.
 - All seven approved issues have merged. Final refinement and handoff are authorized separately; no external submission or deployment is authorized.

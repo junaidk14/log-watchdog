@@ -1,6 +1,19 @@
+import { ThemeToggle } from "./ThemeToggle";
 import { EvidencePane } from "./EvidencePane";
-import { PageLink, viewUrl, usePageRestoration } from "./navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useDocumentTitle,
+  PageLink,
+  viewUrl,
+  usePageRestoration,
+} from "./navigation";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type MouseEvent,
+} from "react";
 
 export type Measurement = {
   id: number;
@@ -63,7 +76,7 @@ export function Trend({
     const row = rows[0];
     return (
       <figure className="window-comparison">
-        <figcaption>Error-log rate · recorded window</figcaption>
+        <figcaption>Error-log rate · evaluated window</figcaption>
         <dl>
           <div>
             <dt>Observed</dt>
@@ -175,10 +188,31 @@ export function Trend({
   );
 }
 
+function followDemoGuide(event: MouseEvent<HTMLAnchorElement>) {
+  if (
+    event.button ||
+    event.metaKey ||
+    event.ctrlKey ||
+    event.shiftKey ||
+    event.altKey
+  )
+    return;
+  const target = document.getElementById(event.currentTarget.hash.slice(1));
+  if (!target) return;
+  event.preventDefault();
+  // These links point to existing controls, not a new history destination.
+  // Native fragment navigation aligns the target to the top even when visible.
+  if (event.detail === 0) target.focus({ preventScroll: true });
+  target.scrollIntoView?.({ block: "nearest", behavior: "instant" });
+}
+
 export function Overview() {
   const [location, setLocation] = useState(window.location.search);
   const params = new URLSearchParams(location);
   const dataset = params.get("dataset") ?? "demo";
+  const isIncidents = params.get("view") === "incidents";
+  const destination = isIncidents ? "incidents" : "overview";
+  useDocumentTitle(isIncidents ? "Incidents" : "Overview");
   const [selected, setSelected] = useState(params.get("incident"));
   const [data, setData] = useState<OverviewData | null>(null);
   const reset =
@@ -195,6 +229,55 @@ export function Overview() {
   const [resetMessage, setResetMessage] = useState("");
   const [resetError, setResetError] = useState("");
   const resetButton = useRef<HTMLButtonElement>(null);
+  const viewport = useRef<{ x: number; y: number } | null>(null);
+  const restoreResetFocus = useRef(false);
+  const advanceButton = useRef<HTMLButtonElement>(null);
+  const restoreAdvanceFocus = useRef(false);
+  const selection = useRef<{
+    url: string;
+    origin: Element | null;
+    target: string;
+  } | null>(null);
+  function preserveViewport() {
+    viewport.current = { x: window.scrollX, y: window.scrollY };
+  }
+  useLayoutEffect(() => {
+    // Apply focus and scroll in the DOM commit, before layout changes can paint
+    // an intermediate position. Pointer actions never redirect focus to Reset.
+    if (restoreAdvanceFocus.current) {
+      restoreAdvanceFocus.current = false;
+      advanceButton.current?.focus({ preventScroll: true });
+    }
+    const position = viewport.current;
+    viewport.current = null;
+    if (restoreResetFocus.current) {
+      restoreResetFocus.current = false;
+      resetButton.current?.focus({ preventScroll: true });
+    }
+    if (
+      position &&
+      (window.scrollX !== position.x || window.scrollY !== position.y)
+    ) {
+      window.scrollTo(position.x, position.y);
+    }
+    const pending = selection.current;
+    selection.current = null;
+    if (
+      pending &&
+      window.location.search === pending.url &&
+      (document.activeElement === pending.origin ||
+        document.activeElement === document.body)
+    ) {
+      const target = document.getElementById(pending.target) ?? queue.current;
+      target?.focus({ preventScroll: true });
+      target?.scrollIntoView?.({ block: "nearest", behavior: "instant" });
+      window.history.replaceState(
+        { ...window.history.state, scrollY: window.scrollY },
+        "",
+        window.location.href,
+      );
+    }
+  });
   const [revision, setRevision] = useState(0);
   const heading = useRef<HTMLHeadingElement>(null);
   const queue = useRef<HTMLHeadingElement>(null);
@@ -246,7 +329,7 @@ export function Overview() {
         });
         if (!response.ok)
           throw new Error(
-            `Could not refresh overview (HTTP ${response.status}). Check the local server.`,
+            `Could not refresh ${destination} (HTTP ${response.status}). Check the local server.`,
           );
         const next: OverviewData = await response.json();
         if (!controller.signal.aborted && number === requestNumber.current) {
@@ -258,7 +341,7 @@ export function Overview() {
           setError(
             problem instanceof Error
               ? problem.message
-              : "Could not refresh overview. Check the local server.",
+              : `Could not refresh ${destination}. Check the local server.`,
           );
       }
     }
@@ -274,7 +357,7 @@ export function Overview() {
       controller.abort();
       window.clearInterval(timer);
     };
-  }, [dataset, revision, acceptResults]);
+  }, [dataset, revision, acceptResults, destination]);
   usePageRestoration(
     data !== null || error !== null,
     // A failed initial load has no workbench headings or evidence controls.
@@ -293,12 +376,15 @@ export function Overview() {
     window.addEventListener("popstate", back);
     return () => window.removeEventListener("popstate", back);
   }, []);
-  async function advance() {
+  async function advance(keyboard: boolean) {
     if (reset || advancing.current) return;
+    preserveViewport();
     advancing.current = true;
     ++requestNumber.current;
     setBusy(true);
     setError(null);
+    const origin = document.activeElement;
+    const advanceUrl = window.location.search;
     try {
       const response = await fetch(
         `/api/demo/advance${data?.run ? `?run=${encodeURIComponent(data.run)}` : ""}`,
@@ -310,6 +396,7 @@ export function Overview() {
         );
       const next: OverviewData = await response.json();
       if (mounted.current) {
+        preserveViewport();
         acceptResults(next, true);
       }
     } catch (problem) {
@@ -321,17 +408,28 @@ export function Overview() {
         );
     } finally {
       advancing.current = false;
-      if (mounted.current) setBusy(false);
+      if (mounted.current) {
+        preserveViewport();
+        restoreAdvanceFocus.current =
+          keyboard &&
+          window.location.search === advanceUrl &&
+          (document.activeElement === origin ||
+            document.activeElement === document.body);
+        setBusy(false);
+      }
     }
   }
-  async function resetDemo() {
+  async function resetDemo(keyboard: boolean) {
     if (reset || advancing.current || !resetRun.current) return;
+    preserveViewport();
     advancing.current = true;
     ++requestNumber.current;
     setBusy(true);
     setResetting(true);
     setResetError("");
     setResetMessage("");
+    const origin = document.activeElement;
+    const resetUrl = window.location.search;
     try {
       const response = await fetch("/api/demo/reset", {
         method: "POST",
@@ -344,17 +442,26 @@ export function Overview() {
       if (!response.ok)
         throw new Error(
           response.status === 409
-            ? "This demo run was already reset. Cancel, refresh overview, then open Reset demo again."
-            : `Reset result unknown (HTTP ${response.status}). Refresh overview to check the current run before retrying.`,
+            ? "This demo run was already reset. Cancel, refresh this page, then open Reset demo again."
+            : `Reset result unknown (HTTP ${response.status}). Refresh this page to check the current run before retrying.`,
         );
       const next: OverviewData = await response.json();
       if (!mounted.current) return;
+      preserveViewport();
+      restoreResetFocus.current =
+        keyboard &&
+        window.location.search === resetUrl &&
+        (document.activeElement === origin ||
+          document.activeElement === document.body);
       previousIncidents.current = null;
       acceptResults(next);
       setError(null);
       setSelected(null);
       window.history.pushState(
-        { focus: "reset-demo" },
+        {
+          focus: keyboard ? "reset-demo" : "overview-heading",
+          scrollY: window.scrollY,
+        },
         "",
         `?view=overview&dataset=demo&run=${encodeURIComponent(next.run!)}`,
       );
@@ -363,13 +470,12 @@ export function Overview() {
       setResetMessage(
         "Demo reset. Normal history restored; Live and Historical are unchanged.",
       );
-      window.requestAnimationFrame(() => resetButton.current?.focus());
     } catch (problem) {
       if (mounted.current)
         setResetError(
           problem instanceof Error
             ? problem.message
-            : "Reset result unknown. Refresh overview before retrying.",
+            : "Reset result unknown. Refresh this page before retrying.",
         );
     } finally {
       advancing.current = false;
@@ -412,15 +518,11 @@ export function Overview() {
     );
     setLocation(window.location.search);
     setSelected(id);
-    const selectionUrl = window.location.search;
-    window.requestAnimationFrame(() => {
-      if (window.location.search !== selectionUrl) return;
-      if (id) heading.current?.focus();
-      else
-        (
-          document.getElementById(`incident-${selected}`) ?? queue.current
-        )?.focus();
-    });
+    selection.current = {
+      url: window.location.search,
+      origin: document.activeElement,
+      target: id ? "incident-heading" : `incident-${selected}`,
+    };
   }
   const incident = reset
     ? undefined
@@ -449,7 +551,7 @@ export function Overview() {
   return (
     <div className="workbench">
       <a href="#overview" className="skip-link">
-        Skip to overview
+        Skip to {destination}
       </a>
       <aside className="rail" aria-label="Workspace">
         <a className="brand" href="?view=overview&dataset=demo">
@@ -511,21 +613,28 @@ export function Overview() {
             <h1 id="overview-heading" tabIndex={-1}>
               {params.get("view") === "incidents" ? "Incidents" : "Overview"}
             </h1>
-            <p>Investigate unusual error-log rates.</p>
+            <p>
+              {isIncidents
+                ? "Select an incident to investigate its evidence."
+                : "Check recent incidents and service trends."}
+            </p>
           </div>
-          <label className="dataset-select">
-            Dataset
-            <select
-              value={dataset}
-              onChange={(event) => {
-                window.location.href = `?view=${event.target.value === "historical" ? "logs" : "overview"}&dataset=${event.target.value}`;
-              }}
-            >
-              <option value="demo">Demo</option>
-              <option value="live">Live</option>
-              <option value="historical">Historical</option>
-            </select>
-          </label>
+          <div className="header-controls">
+            <label className="dataset-select">
+              Dataset
+              <select
+                value={dataset}
+                onChange={(event) => {
+                  window.location.href = `?view=${event.target.value === "historical" ? "logs" : destination}&dataset=${event.target.value}`;
+                }}
+              >
+                <option value="demo">Demo</option>
+                <option value="live">Live</option>
+                <option value="historical">Historical</option>
+              </select>
+            </label>
+            <ThemeToggle />
+          </div>
         </header>
         {reset && (
           <div className="error" role="alert">
@@ -538,17 +647,58 @@ export function Overview() {
             </PageLink>
           </div>
         )}
+        {dataset === "demo" && !isIncidents && (
+          <section
+            className="demo-walkthrough"
+            aria-labelledby="demo-walkthrough-heading"
+          >
+            <h2 id="demo-walkthrough-heading">Try the Demo</h2>
+            <ol>
+              <li>
+                <a href="#reset-demo" onClick={followDemoGuide}>
+                  Reset Demo
+                </a>{" "}
+                and confirm to start fresh. This clears Demo history only.
+              </li>
+              <li>
+                <PageLink
+                  id="demo-receiver-guide"
+                  href="?view=deliveries&dataset=demo"
+                  focus="receiver-heading"
+                  revealFocus
+                >
+                  Choose receiver behavior in Deliveries
+                </PageLink>
+                , then save it.
+              </li>
+              <li>
+                Return here and{" "}
+                <a href="#advance-demo" onClick={followDemoGuide}>
+                  advance one minute
+                </a>{" "}
+                to generate a checkout incident.
+              </li>
+              <li>
+                <a href="#queue-heading" onClick={followDemoGuide}>
+                  Investigate the incident
+                </a>
+                , then open its delivery history to inspect the result and
+                attempts.
+              </li>
+            </ol>
+          </section>
+        )}
         <div className="overview-controls">
           <div>
             <strong>
               {dataset === "demo"
-                ? "Demo · Synthetic scenario"
-                : "Live · API events"}
+                ? "Demo · Simulated data"
+                : "Live · Incoming logs"}
             </strong>
             <p>
               {dataset === "demo"
-                ? `Simulation paused · Simulation time (UTC): ${data ? time(data.progress.clock) : "Loading"}`
-                : "Event time (UTC) · Automatic real-time evaluation"}
+                ? `Paused · Simulation time (UTC): ${data ? time(data.progress.clock) : "Loading"}`
+                : "Live monitoring · Event time (UTC)"}
             </p>
             {dataset === "demo" && (
               <p className="hint">
@@ -557,16 +707,18 @@ export function Overview() {
                   : data.progress.steps < 2
                     ? "Next: continued spike"
                     : "Next: normal traffic / recovery"}
-                . Each advance completes one minute and its lateness grace.
+                . Advance to evaluate the next minute.
               </p>
             )}
           </div>
           <div className="overview-actions">
             {dataset === "demo" && (
               <button
+                id={isIncidents ? undefined : "advance-demo"}
                 className="primary"
                 disabled={busy || reset || confirmReset || !data}
-                onClick={() => void advance()}
+                ref={advanceButton}
+                onClick={(event) => void advance(event.detail === 0)}
               >
                 {busy && !resetting ? "Advancing…" : "Advance one minute"}
               </button>
@@ -579,6 +731,7 @@ export function Overview() {
                 aria-expanded={confirmReset}
                 aria-controls="reset-confirmation"
                 onClick={() => {
+                  preserveViewport();
                   resetRun.current = data?.run ?? null;
                   setConfirmReset(true);
                   setResetError("");
@@ -595,7 +748,7 @@ export function Overview() {
                 setRevision((v) => v + 1);
               }}
             >
-              Refresh overview
+              Refresh {destination}
             </button>
           </div>
         </div>
@@ -616,16 +769,17 @@ export function Overview() {
               <button
                 className="destructive"
                 disabled={busy || reset}
-                onClick={() => void resetDemo()}
+                onClick={(event) => void resetDemo(event.detail === 0)}
               >
                 {resetting ? "Resetting Demo…" : "Confirm reset Demo only"}
               </button>
               <button
                 disabled={busy}
-                onClick={() => {
+                onClick={(event) => {
+                  preserveViewport();
+                  restoreResetFocus.current = event.detail === 0;
                   setConfirmReset(false);
                   setResetError("");
-                  resetButton.current?.focus();
                 }}
               >
                 Cancel reset
@@ -649,14 +803,14 @@ export function Overview() {
         )}
         {!data && !error && (
           <div className="loading" role="status">
-            Loading overview…
+            Loading {destination}…
           </div>
         )}
         {data && !reset && (
           <>
             <p className="refresh-time">
-              Last evaluated through {time(data.progress.next_start)} · Last
-              successful dashboard refresh {fetched && time(fetched)}
+              Evaluated through {time(data.progress.next_start)} · Last
+              refreshed {fetched && time(fetched)}
             </p>
             {data.delayed && (
               <p className="error" role="status">
@@ -666,25 +820,25 @@ export function Overview() {
               </p>
             )}
             <div
-              className={`incident-workbench ${selected ? "has-selection" : ""} ${!selected && data.incidents.length === 0 ? "is-empty" : ""}`}
+              className={`incident-workbench ${isIncidents ? "investigation-view" : "summary-view"} ${selected && isIncidents ? "has-selection" : ""} ${!selected && data.incidents.length === 0 ? "is-empty" : ""}`}
             >
               <section
                 className="incident-queue"
                 aria-labelledby="queue-heading"
               >
                 <h2 id="queue-heading" ref={queue} tabIndex={-1}>
-                  Incidents
+                  {isIncidents ? "Incident queue" : "Recent incidents"}
                 </h2>
                 {!data.incidents.some((i) => i.state === "open") && (
                   <p className="no-active">
-                    No active incidents. This does not establish overall service
-                    health.
+                    No active incidents. This is not an overall health
+                    assessment.
                   </p>
                 )}
                 {data.incidents.length === 0 && !selected && (
                   <p className="empty-guidance">
                     {dataset === "demo" ? (
-                      "Use “Advance one minute” above to introduce the seeded downstream timeouts, then investigate the recorded spike."
+                      "Advance one minute to simulate downstream timeouts, then investigate the spike."
                     ) : (
                       <>
                         Send structured events through the{" "}
@@ -696,250 +850,287 @@ export function Overview() {
                   </p>
                 )}
                 {data.incidents.length > 0 && (
-                  <table className="incident-table">
-                    <caption className="sr-only">Incident queue</caption>
-                    <thead>
-                      <tr>
-                        <th scope="col">Service and measurement</th>
-                        <th scope="col">Investigation</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {data.incidents.map((i) => (
-                        <tr
-                          key={i.id}
-                          className={
-                            selected === String(i.id)
-                              ? "incident-row selected"
-                              : "incident-row"
-                          }
-                        >
-                          <td>
-                            <h3>{i.service}</h3>
+                  <ul className="incident-list" aria-label="Incident queue">
+                    {data.incidents.map((i) => (
+                      <li
+                        key={i.id}
+                        className={
+                          isIncidents && selected === String(i.id)
+                            ? "incident-row selected"
+                            : "incident-row"
+                        }
+                      >
+                        <div>
+                          <h3>{i.service}</h3>
+                          <p>
+                            <strong>
+                              {i.state === "open" ? "Open" : "Recovered"}
+                            </strong>
+                            {isIncidents &&
+                              selected === String(i.id) &&
+                              " · Selected"}
+                          </p>
+                          {isIncidents ? (
                             <p>
-                              <strong>
-                                {i.state === "open" ? "Open" : "Recovered"}
-                              </strong>
-                              {selected === String(i.id) && " · Selected"}
-                            </p>
-                            <p>
-                              {pct(i.measurement.rate)} observed /{" "}
-                              {pct(i.measurement.expected)} expected error-log
+                              Last spike: {pct(i.measurement.rate)} error-log
                               rate
                             </p>
-                            <p className="hint">
-                              {time(i.start)} → {time(i.end)}
-                            </p>
-                          </td>
-                          <td>
-                            <a
-                              id={`incident-${i.id}`}
-                              href={viewUrl("incidents", {
-                                incident: String(i.id),
-                                run: data.run ?? null,
-                                evaluation: null,
-                              })}
-                              aria-current={
-                                selected === String(i.id) ? "true" : undefined
+                          ) : (
+                            <>
+                              <p>
+                                Latest abnormal window:{" "}
+                                {pct(i.measurement.rate)} observed /{" "}
+                                {pct(i.measurement.expected)} expected error-log
+                                rate
+                              </p>
+                              <p className="hint">
+                                Measurement (UTC): {time(i.measurement.start)} →{" "}
+                                {time(i.measurement.end)}
+                              </p>
+                              <p className="hint">
+                                Incident interval (UTC): {time(i.start)} →{" "}
+                                {time(i.end)}
+                              </p>
+                            </>
+                          )}
+                        </div>
+                        <div>
+                          <a
+                            className="action-link"
+                            id={`incident-${i.id}`}
+                            href={viewUrl("incidents", {
+                              incident: String(i.id),
+                              run: data.run ?? null,
+                              evaluation: null,
+                            })}
+                            aria-current={
+                              isIncidents && selected === String(i.id)
+                                ? "true"
+                                : undefined
+                            }
+                            onClick={(event) => {
+                              if (
+                                !event.ctrlKey &&
+                                !event.metaKey &&
+                                !event.shiftKey &&
+                                !event.altKey &&
+                                event.button === 0
+                              ) {
+                                event.preventDefault();
+                                select(String(i.id));
                               }
-                              onClick={(event) => {
-                                if (
-                                  !event.ctrlKey &&
-                                  !event.metaKey &&
-                                  !event.shiftKey &&
-                                  !event.altKey &&
-                                  event.button === 0
-                                ) {
-                                  event.preventDefault();
-                                  select(String(i.id));
-                                }
-                              }}
-                            >
-                              Investigate {i.service} incident #{i.id}
-                            </a>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                            }}
+                          >
+                            Investigate {i.service} incident #{i.id}
+                          </a>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
                 )}
               </section>
-              <section
-                className="incident-pane"
-                hidden={!selected && data.incidents.length === 0}
-                aria-labelledby="incident-heading"
-              >
-                <h2 id="incident-heading" ref={heading} tabIndex={-1}>
-                  {incident
-                    ? `${incident.service} · ${incident.state}`
-                    : selected
-                      ? "Incident unavailable"
-                      : "Select an incident"}
-                </h2>
-                {selected && (
-                  <button id="back-to-incidents" onClick={() => select(null)}>
-                    Back to incidents
-                  </button>
-                )}
-                {selected && !incident && (
-                  <p>
-                    Incident unavailable in this dataset or no longer retained.
-                    <PageLink
-                      href={`?view=overview&dataset=${dataset}`}
-                      focus="queue-heading"
-                    >
-                      Return to current {dataset}
-                    </PageLink>
-                  </p>
-                )}
-                {!selected && (
-                  <p>
-                    Select an incident to compare its recorded measurement with
-                    the baseline.
-                  </p>
-                )}
-                {incident && (
-                  <>
-                    {incident.state === "recovered" && (
-                      <p>
-                        Selected incident recovered. Selection and evidence
-                        remain available.
-                      </p>
-                    )}
-                    <p className="recovery-status">{recoveryStatus}</p>
-                    <dl>
-                      <dt>Incident interval (UTC)</dt>
-                      <dd>
-                        {time(incident.start)} → {time(incident.end)}
-                      </dd>
-                      <dt>Latest abnormal window</dt>
-                      <dd>
-                        {time(incident.measurement.start)} →{" "}
-                        {time(incident.measurement.end)}
-                      </dd>
-                      <dt>Observed error-log rate</dt>
-                      <dd>
-                        {pct(incident.measurement.rate)} ·{" "}
-                        {incident.measurement.errors} ERROR/FATAL /{" "}
-                        {incident.measurement.total} events
-                      </dd>
-                      <dt>Expected baseline</dt>
-                      <dd>
-                        {pct(incident.measurement.expected)} ·{" "}
-                        {incident.measurement.baseline_count} prior normal
-                        windows / {incident.measurement.baseline_total} events
-                      </dd>
-                      <dt>Threshold</dt>
-                      <dd>
-                        {pct(incident.measurement.threshold)} · observed must
-                        exceed threshold
-                      </dd>
-                    </dl>
-                    <p className="workspace-footnote">
-                      Recorded measurements exclude later arrivals. Detection is
-                      a statistical heuristic, not a probability of failure.
-                    </p>
-                    <EvidencePane
-                      key={`${dataset}-${selected}`}
-                      dataset={dataset}
-                      incident={selected!}
-                      run={params.get("run") ?? data.run}
-                      evaluation={params.get("evaluation")}
-                      refreshKey={fetched ?? ""}
-                    />
-                  </>
-                )}
-              </section>
-            </div>
-            <section
-              className="service-trends"
-              aria-labelledby="trends-heading"
-            >
-              <h2 id="trends-heading">Service trends</h2>
-              <p>
-                {dataset === "demo"
-                  ? "Simulation time (UTC)"
-                  : "Event time (UTC)"}{" "}
-                · Last 30 evaluated minutes. Volume is not an anomaly detector.
-              </p>
-              {data.services.length === 0 && (
-                <p className="no-active">
-                  Learning baseline. Send live events and wait for a completed
-                  minute plus {data.config.grace_seconds}s grace. At least{" "}
-                  {data.config.minimum_events} events per window and{" "}
-                  {data.config.minimum_baseline_windows} baseline windows are
-                  required.
-                </p>
-              )}
-              {data.services.map((service) => {
-                const rows = data.trends.filter(
-                  (row) => row.service === service.service,
-                );
-                return (
-                  <section
-                    key={service.service}
-                    className="service-trend"
-                    aria-label={`${service.service} trends`}
-                  >
-                    <h3>{service.service}</h3>
+              {isIncidents && (
+                <section
+                  className="incident-pane"
+                  hidden={!selected && data.incidents.length === 0}
+                  aria-labelledby="incident-heading"
+                >
+                  <h2 id="incident-heading" ref={heading} tabIndex={-1}>
+                    {incident
+                      ? `${incident.service} · ${incident.state}`
+                      : selected
+                        ? "Incident unavailable"
+                        : "Select an incident"}
+                  </h2>
+                  {selected && (
+                    <button id="back-to-incidents" onClick={() => select(null)}>
+                      Back to incidents
+                    </button>
+                  )}
+                  {selected && !incident && (
                     <p>
-                      <strong>{service.status}</strong> · {service.errors}{" "}
-                      ERROR/FATAL / {service.total} events · {pct(service.rate)}
-                    </p>
-                    <div className="trend-pair">
-                      <Trend rows={rows} />
-                      <Trend rows={rows} volume />
-                    </div>
-                    <details>
-                      <summary>Evaluated windows for {service.service}</summary>
-                      <div
-                        className="table-scroll"
-                        role="region"
-                        aria-label={`${service.service} evaluated values`}
-                        tabIndex={0}
+                      Incident unavailable in this dataset or no longer
+                      retained.
+                      <PageLink
+                        href={`?view=overview&dataset=${dataset}`}
+                        focus="queue-heading"
                       >
-                        <table className="trend-table">
-                          <caption>
-                            Exact chart values · UTC minute starts (end
-                            exclusive)
-                          </caption>
-                          <thead>
-                            <tr>
-                              <th>Window start</th>
-                              <th>Error-log rate</th>
-                              <th>ERROR/FATAL / total</th>
-                              <th>Baseline</th>
-                              <th>Threshold</th>
-                              <th>State</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {rows.map((row) => (
-                              <tr key={row.id}>
-                                <td>{time(row.start)}</td>
-                                <td>{pct(row.rate)}</td>
-                                <td>
-                                  {row.errors} / {row.total}
-                                </td>
-                                <td>{pct(row.expected)}</td>
-                                <td>{pct(row.threshold)}</td>
-                                <td>{row.status}</td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
+                        Return to current {dataset}
+                      </PageLink>
+                    </p>
+                  )}
+                  {!selected && (
+                    <p>
+                      Select an incident to compare its recorded measurement
+                      with the baseline.
+                    </p>
+                  )}
+                  {incident && (
+                    <>
+                      {incident.state === "recovered" && (
+                        <p>
+                          Selected incident recovered. Selection and evidence
+                          remain available.
+                        </p>
+                      )}
+                      <p className="recovery-status">{recoveryStatus}</p>
+                      <details className="incident-background">
+                        <summary>Incident timeline and baseline</summary>
+                        <dl>
+                          <dt>Incident interval (UTC)</dt>
+                          <dd>
+                            {time(incident.start)} → {time(incident.end)}
+                          </dd>
+                          <dt>Latest abnormal window</dt>
+                          <dd>
+                            {time(incident.measurement.start)} →{" "}
+                            {time(incident.measurement.end)}
+                          </dd>
+                          <dt>Observed error-log rate</dt>
+                          <dd>
+                            {pct(incident.measurement.rate)} ·{" "}
+                            {incident.measurement.errors} ERROR/FATAL /{" "}
+                            {incident.measurement.total} events
+                          </dd>
+                          <dt>Expected baseline</dt>
+                          <dd>
+                            {pct(incident.measurement.expected)} ·{" "}
+                            {incident.measurement.baseline_count} prior normal
+                            windows / {incident.measurement.baseline_total}{" "}
+                            events
+                          </dd>
+                          <dt>Threshold</dt>
+                          <dd>
+                            {pct(incident.measurement.threshold)} · observed
+                            must exceed threshold
+                          </dd>
+                        </dl>
+                        <p className="workspace-footnote">
+                          Recorded measurements exclude later arrivals.
+                          Detection is a statistical heuristic, not a
+                          probability of failure.
+                        </p>
+                      </details>
+                      <EvidencePane
+                        key={`${dataset}-${selected}`}
+                        dataset={dataset}
+                        incident={selected!}
+                        run={params.get("run") ?? data.run}
+                        evaluation={params.get("evaluation")}
+                        refreshKey={fetched ?? ""}
+                      />
+                    </>
+                  )}
+                </section>
+              )}
+            </div>
+            {!isIncidents && (
+              <section
+                className="service-trends"
+                aria-labelledby="trends-heading"
+              >
+                <h2 id="trends-heading">Service trends</h2>
+                <p>
+                  {dataset === "demo"
+                    ? "Simulation time (UTC)"
+                    : "Event time (UTC)"}{" "}
+                  · Last 30 evaluated minutes. Volume is shown for context only.
+                </p>
+                {data.services.length === 0 && (
+                  <p className="no-active">
+                    Learning baseline. Send live events and wait for a completed
+                    minute plus {data.config.grace_seconds}s grace. At least{" "}
+                    {data.config.minimum_events} events per window and{" "}
+                    {data.config.minimum_baseline_windows} baseline windows are
+                    required.
+                  </p>
+                )}
+                {data.services.map((service) => {
+                  const rows = data.trends.filter(
+                    (row) => row.service === service.service,
+                  );
+                  return (
+                    <section
+                      key={service.service}
+                      className="service-trend"
+                      aria-label={`${service.service} trends`}
+                    >
+                      <h3>{service.service}</h3>
+                      <p>
+                        <strong>
+                          Latest window:{" "}
+                          {service.status === "no spike detected"
+                            ? "No spike"
+                            : service.status === "spike detected"
+                              ? "Spike detected"
+                              : service.status === "learning baseline"
+                                ? "Learning baseline"
+                                : service.status}
+                        </strong>{" "}
+                        · {service.errors} ERROR/FATAL / {service.total} events
+                        · {pct(service.rate)}
+                      </p>
+                      <p className="hint">
+                        {time(service.start)} → {time(service.end)} (UTC).
+                        Earlier spikes remain in the chart.
+                      </p>
+                      <div className="trend-pair">
+                        <Trend rows={rows} />
+                        <Trend rows={rows} volume />
                       </div>
-                    </details>
-                  </section>
-                );
-              })}
-            </section>
+                      <details>
+                        <summary>
+                          Evaluated windows for {service.service}
+                        </summary>
+                        <div
+                          className="table-scroll"
+                          role="region"
+                          aria-label={`${service.service} evaluated values`}
+                          tabIndex={0}
+                        >
+                          <table className="trend-table">
+                            <caption>
+                              Exact chart values · UTC minute starts (end
+                              exclusive)
+                            </caption>
+                            <thead>
+                              <tr>
+                                <th>Window start</th>
+                                <th>Error-log rate</th>
+                                <th>ERROR/FATAL / total</th>
+                                <th>Baseline</th>
+                                <th>Threshold</th>
+                                <th>State</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {rows.map((row) => (
+                                <tr key={row.id}>
+                                  <td>{time(row.start)}</td>
+                                  <td>{pct(row.rate)}</td>
+                                  <td>
+                                    {row.errors} / {row.total}
+                                  </td>
+                                  <td>{pct(row.expected)}</td>
+                                  <td>{pct(row.threshold)}</td>
+                                  <td>{row.status}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </details>
+                    </section>
+                  );
+                })}
+              </section>
+            )}
           </>
         )}
         <p className="workspace-footnote">
-          Routine data expires after seven days. Open investigations, their
-          evaluated evidence and pending deliveries are protected; this is not a
-          hard storage cap. Demo retention follows simulation time.
+          Logs and completed investigations are kept for seven days. Open
+          investigations, their evidence, and pending deliveries are preserved.
+          Demo uses simulation time.
         </p>
       </main>
     </div>

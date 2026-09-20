@@ -36,7 +36,7 @@ Speaker note: “Intelligent” means local statistical detection plus optional 
 
 The simulation clock accelerates the scenario. HTTP delivery and retries remain in real time. Missing traffic never proves recovery.
 
-Speaker note: Reset Demo, configure “Fail first, then succeed,” save, then advance. Show the actual 503 → 200 attempts before completing recovery.
+Speaker note: Follow “Try the Demo” on Overview: Reset Demo, configure “Fail first, then succeed” in Deliveries, save, then advance. Show the actual 503 → 200 attempts before completing recovery.
 
 ---
 
@@ -47,7 +47,7 @@ flowchart TB
     Inputs[Structured API / seeded simulator / JSON upload] --> API[FastAPI]
     React[React investigation dashboard] --> API
     API <--> DB[(SQLite: events / evaluations / incidents / delivery history)]
-    Worker[Single background loop] --> Detect[Local statistical detector]
+    Worker[One process: background tasks] --> Detect[Local statistical detector]
     Detect --> DB
     Worker --> Deliver[Persisted notification work]
     Deliver --> Receiver[Built-in loopback HTTP receiver]
@@ -55,7 +55,7 @@ flowchart TB
     API -->|Explicit preview and send| LLM[Optional Gemini API]
 ```
 
-One server serves API and built dashboard on localhost. No database service, message broker, ORM or provider orchestration framework is required.
+One server serves API and built dashboard on localhost. No cloud compute, hosted database/storage or deployment resources were provisioned. GitHub and AI tools supported development; optional Gemini is an external API.
 
 ---
 
@@ -79,7 +79,7 @@ Speaker note: The threshold is a practical statistical heuristic, not a calibrat
 - Patterns, a representative sample and the local summary link back to supporting logs.
 - URL selection and Back behavior preserve investigation context.
 
-The final UI pass keeps the incident workbench: compact sparse states, clearer trend reference lines, a one-window comparison, restrained visible focus, and optional analysis after core evidence.
+Overview remains a summary; Investigate opens the Incidents queue/evidence workspace. Logs and delivery actions lead the pane, lifecycle detail is disclosed separately, and Gemini follows the local summary before sample logs. Light/dark themes share the same layout and readable state colors.
 
 ---
 
@@ -97,7 +97,7 @@ Incident recovery and notification success are separate facts. The dashboard sho
 
 The non-LLM **Local evidence summary** is always available.
 
-Optional Gemini analysis requires environment configuration, an exact bounded redacted evidence preview, and an explicit **Send for analysis** click. It returns evidence-linked summaries, possible causes and next checks. It cannot fire alerts or execute actions.
+Optional Gemini analysis accepts a server-memory-only key through **Gemini setup**, with an environment-key fallback, then requires an exact bounded redacted evidence preview and an explicit **Send for analysis** click. Clear key removes the session override; no key is returned to the UI. It returns evidence-linked summaries, possible causes and next checks. It cannot fire alerts or execute actions.
 
 Unpaid access is limited to trusted simulator evidence. Real-log eligibility requires appropriate paid-service configuration. Redaction cannot guarantee removal of all secrets. Model references are validated for membership, not truth.
 
@@ -135,6 +135,6 @@ The 100k-event and roughly 20-events/second exercises are synthetic validation t
 
 Run the app using the [README](../README.md), then demonstrate the five-advance scenario and inspect delivery attempts. The [architectural decisions](adr/decisions.md), [tooling inventory](tooling.md), [prompt audit](../prompts.md) and [verification record](final-validation.md) preserve how it was built.
 
-Remaining manual checks: rendered desktop and narrow layouts, zoom/overflow, real-browser keyboard/focus and screen-reader behavior. The environment exposed no usable browser; those checks are deferred, not passed.
+Playwriter headless Chrome verified desktop/narrow flows, keyboard/Back/Forward, Historical import, Gemini setup and both themes. Current frontend: 97 passing tests plus build/type/lint checks. Earlier full backend/runtime and later targeted checks are scoped in the validation record. Remaining limits: physical devices, other engines, full zoom/screen-reader audit and live Gemini access/output quality.
 
 No external submission, deployment or presentation publication has been performed.

@@ -104,6 +104,42 @@ export function EvidencePane({
       {!data && !error && <p role="status">Loading evaluated evidence…</p>}
       {data && (
         <>
+          <h3 className="evidence-title">Evaluated evidence</h3>
+          <div hidden={switching}>
+            <div
+              className="investigation-actions"
+              aria-label="Investigation actions"
+              role="group"
+            >
+              <PageLink
+                id="evaluated-logs"
+                className="action-link primary"
+                href={url()}
+                focus="logs-heading"
+              >
+                View evaluated logs
+              </PageLink>
+              <PageLink
+                id="incident-deliveries"
+                className="action-link"
+                href={url().replace("view=logs", "view=deliveries")}
+                focus="deliveries-heading"
+              >
+                View delivery history
+              </PageLink>
+              <button
+                type="button"
+                disabled={!!error}
+                onClick={() => {
+                  const target = document.getElementById("analysis-heading");
+                  target?.focus();
+                  target?.scrollIntoView({ block: "start" });
+                }}
+              >
+                Gemini analysis
+              </button>
+            </div>
+          </div>
           <label>
             Evaluated window
             <select
@@ -138,27 +174,16 @@ export function EvidencePane({
             >
               {data.windows.map((w) => (
                 <option key={w.id} value={w.id}>
-                  {w.start} · {w.status}
+                  {w.start.slice(0, 16).replace("T", " ")} UTC · {w.status}
                 </option>
               ))}
             </select>
           </label>
           {switching && !error && <p role="status">Loading selected window…</p>}
           <div hidden={switching}>
-            <p>
+            <p className="hint window-count">
               {data.measurement.errors} ERROR/FATAL / {data.measurement.total}{" "}
-              evaluated events ·{" "}
-              {data.measurement.rate === null
-                ? "Not evaluated"
-                : `${(data.measurement.rate * 100).toFixed(2)}%`}{" "}
-              observed · Expected{" "}
-              {data.measurement.expected === null
-                ? "Not evaluated"
-                : `${(data.measurement.expected * 100).toFixed(2)}%`}{" "}
-              · Threshold{" "}
-              {data.measurement.threshold === null
-                ? "Not evaluated"
-                : `${(data.measurement.threshold * 100).toFixed(2)}%`}
+              evaluated events
             </p>
             <Trend rows={[data.measurement]} />
             {data.evidence_missing && (
@@ -168,35 +193,18 @@ export function EvidencePane({
                 remain; recorded measurements are unchanged.
               </p>
             )}
-            <PageLink
-              id="evaluated-logs"
-              className="evidence-action"
-              href={url()}
-              focus="logs-heading"
-            >
-              View evaluated logs
-            </PageLink>
-            <h3>Notifications</h3>
-            {data.deliveries?.length ? (
-              data.deliveries.map((d) => (
-                <p key={d.kind}>
-                  {d.kind}: {d.state}
-                </p>
-              ))
-            ) : (
-              <p>No notifications recorded.</p>
-            )}
-            <PageLink
-              id="incident-deliveries"
-              href={url().replace("view=logs", "view=deliveries")}
-              focus="deliveries-heading"
-            >
-              View delivery history
-            </PageLink>
-            <p>Delivery attempts and retries use real time (UTC).</p>
+            <p className="hint delivery-summary">
+              Notifications:{" "}
+              {data.deliveries?.length
+                ? data.deliveries
+                    .map((d) => `${d.kind}: ${d.state}`)
+                    .join(" · ")
+                : "none recorded"}
+              . Retries use real time.
+            </p>
             <h3>Repeated error patterns</h3>
             <p className="hint">
-              Exact message matches in this evaluated window; up to 10 patterns.
+              Matching error messages in the selected window (up to 10).
             </p>
             {data.patterns.length ? (
               <ul>
@@ -218,14 +226,11 @@ export function EvidencePane({
             )}
             <h3>Local evidence summary</h3>
             <p>
-              Non-LLM analysis. The recorded window contains{" "}
-              {data.measurement.errors} ERROR/FATAL events among{" "}
-              {data.measurement.total} events.{" "}
+              Local analysis — no AI.{" "}
               {data.measurement.status === "spike detected"
-                ? "The observed error-log rate exceeded its service-specific baseline threshold."
+                ? "The error-log rate exceeded this service’s baseline threshold."
                 : "This window did not establish a new spike."}{" "}
-              This is evidence of changed log behavior, not a definitive root
-              cause.
+              This shows a change in log behavior, not a confirmed root cause.
             </p>
             <p>
               Next checks:{" "}
@@ -247,10 +252,19 @@ export function EvidencePane({
               , then compare message details and surrounding evaluated events
               with recent service changes.
             </p>
+            {!switching && !error && (
+              <AnalysisPane
+                key={`${dataset}:${incident}:${data.run}:${data.measurement.id}`}
+                dataset={dataset}
+                incident={incident}
+                evaluation={data.measurement.id}
+                run={data.run}
+              />
+            )}
             <h3>Sample of evaluated logs</h3>
             <p>
-              {data.sample.length} representative events, errors first; this
-              sample is not the complete denominator.
+              {data.sample.length} sample events, errors first. Counts above use
+              all evaluated events.
             </p>
             <ul>
               {data.sample.map((event, index) => (
@@ -272,15 +286,6 @@ export function EvidencePane({
                 </li>
               ))}
             </ul>
-            {!switching && !error && (
-              <AnalysisPane
-                key={`${dataset}:${incident}:${data.run}:${data.measurement.id}`}
-                dataset={dataset}
-                incident={incident}
-                evaluation={data.measurement.id}
-                run={data.run}
-              />
-            )}
           </div>
         </>
       )}

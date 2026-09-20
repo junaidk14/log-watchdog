@@ -1,6 +1,6 @@
 # Observability and Event Watchdog
 
-A local tool for investigating application and platform logs, detecting unusual behavior, and inspecting simulated alert delivery.
+Domain glossary for the local log-investigation product. The [documentation index](docs/README.md) links implementation and UI references.
 
 ## Language
 
@@ -20,7 +20,7 @@ Actual HTTP delivery to a local test receiver, including visible payloads, resul
 A service's recent normal behavior used to evaluate whether its error-log rate is unusual.
 
 **Learning baseline**:
-A state indicating insufficient history or traffic to evaluate a service for anomalies. It does not establish that the service is healthy.
+A state indicating insufficient prior eligible history to establish a service baseline. It does not establish that the service is healthy.
 
 **Incident**:
 A grouped investigation of consecutive abnormal windows for a service, with observed and expected behavior and supporting log evidence.
@@ -46,3 +46,18 @@ The demo's logical time, advanced one minute at a time to exercise the normal de
 
 **Local evidence summary**:
 A non-LLM summary of observed behavior, repeated patterns, and supporting logs available without external credentials.
+
+**Insufficient traffic**:
+A window with too few events to evaluate reliably. It is not a healthy zero and does not advance recovery.
+
+**Evaluated evidence**:
+Logs included when a particular window was evaluated. Later arrivals may be inspected separately but do not change its recorded measurements.
+
+**Notification**:
+A delivery record created for an incident opening or recovery, distinct from its individual delivery attempts and from incident state.
+
+**Trusted synthetic evidence**:
+Evidence known to originate from the built-in seed or simulator. A Demo label or user-provided metadata alone does not establish this trust.
+
+**Configured key**:
+A key is available for optional analysis. This does not establish provider access, billing status or evidence eligibility.

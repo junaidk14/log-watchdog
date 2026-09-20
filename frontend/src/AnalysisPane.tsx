@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { PageLink, viewUrl } from "./navigation";
+import { GeminiSetup } from "./GeminiSetup";
 
 type Reference = Record<string, string | null>;
 type Preview = {
@@ -32,6 +33,8 @@ export function AnalysisPane({
   const [result, setResult] = useState<Result | null>(null);
   const [busy, setBusy] = useState<"preview" | "send" | null>(null);
   const [error, setError] = useState("");
+  const [privacyBlocked, setPrivacyBlocked] = useState(false);
+  const [setupBusy, setSetupBusy] = useState(false);
   const [attempted, setAttempted] = useState(false);
   const active = useRef<AbortController | null>(null);
   useEffect(() => () => active.current?.abort(), []);
@@ -42,6 +45,7 @@ export function AnalysisPane({
     active.current = controller;
     setBusy(send ? "send" : "preview");
     setError("");
+    setPrivacyBlocked(false);
     if (!send) {
       setPreview(null);
       setResult(null);
@@ -64,12 +68,15 @@ export function AnalysisPane({
         },
       );
       const body = await response.json();
-      if (!response.ok)
+      if (!response.ok) {
+        if (!send && response.status === 403 && !controller.signal.aborted)
+          setPrivacyBlocked(true);
         throw new Error(
           typeof body.detail === "string"
             ? body.detail
             : "Analysis unavailable. Retry or use the local summary.",
         );
+      }
       if (!controller.signal.aborted) {
         if (send) setResult(body as Result);
         else setPreview(body as Preview);
@@ -114,12 +121,32 @@ export function AnalysisPane({
 
   return (
     <section className="analysis-pane" aria-labelledby="analysis-heading">
-      <h3 id="analysis-heading">Optional Gemini analysis</h3>
+      <h3 id="analysis-heading" tabIndex={-1}>
+        Optional Gemini analysis
+      </h3>
       <p>
-        Preview a small evidence sample before choosing whether to send it. The
-        local summary above works without Gemini credentials.
+        Preview the evidence before sending it to Gemini. The local summary
+        needs no API key.
       </p>
-      <button disabled={busy !== null} onClick={() => void request(false)}>
+      <GeminiSetup
+        disabled={busy !== null}
+        onBusyChange={setSetupBusy}
+        onStatusRefreshed={() => {
+          setError("");
+          setPrivacyBlocked(false);
+        }}
+        onChanged={() => {
+          setPreview(null);
+          setResult(null);
+          setAttempted(false);
+          setError("");
+          setPrivacyBlocked(false);
+        }}
+      />
+      <button
+        disabled={busy !== null || setupBusy}
+        onClick={() => void request(false)}
+      >
         {preview ? "Create new preview" : "Preview evidence for analysis"}
       </button>
       <p role="status">
@@ -136,9 +163,42 @@ export function AnalysisPane({
                 : ""}
       </p>
       {error && (
-        <p role="alert" className="error">
-          {error}
-        </p>
+        <div role="alert" className="error">
+          {privacyBlocked ? (
+            <>
+              <strong>This evidence is not verified synthetic data</strong>
+              <p>
+                Your key is configured, but this window is not eligible for the
+                unpaid analysis path. Nothing was sent to Gemini. The local
+                evidence summary remains available.
+              </p>
+              {dataset === "demo" && (
+                <>
+                  <p>
+                    Older Demo logs may not be verified as simulated data. Reset
+                    Demo, then advance one minute to create a new simulated
+                    incident. Reset deletes Demo logs, incidents and deliveries;
+                    Live and Historical stay intact.
+                  </p>
+                  <PageLink
+                    href="?view=overview&dataset=demo"
+                    focus="reset-demo"
+                  >
+                    Open Demo reset
+                  </PageLink>
+                </>
+              )}
+              <p>
+                For real or unverified logs, use a key linked to an active
+                paid-service billing project and configure
+                GEMINI_PAID_SERVICE=true on the server. This is a privacy
+                requirement, not a key-validation failure.
+              </p>
+            </>
+          ) : (
+            error
+          )}
+        </div>
       )}
       {preview && (
         <>
@@ -169,12 +229,12 @@ export function AnalysisPane({
             <pre>{preview.packet}</pre>
           </div>
           <p>
-            This frozen preview expires after 10 minutes or a server restart.
-            New arrivals are not added. Each retry after a failure may send the
-            same packet again.
+            This preview expires after 10 minutes or a server restart. It
+            excludes new arrivals. Retrying a failed send may send the same
+            evidence again.
           </p>
           <button
-            disabled={busy !== null || result !== null}
+            disabled={busy !== null || setupBusy || result !== null}
             onClick={() => void request(true)}
           >
             Send for analysis
@@ -182,7 +242,7 @@ export function AnalysisPane({
         </>
       )}
       {result && (
-        <>
+        <div className="analysis-result">
           <h4>Gemini hypotheses — verify with evidence</h4>
           <p>
             Generated text may be wrong or follow misleading log content.
@@ -194,7 +254,7 @@ export function AnalysisPane({
           <ul>{result.analysis.possible_causes.map(claim)}</ul>
           <h4>Suggested next checks</h4>
           <ul>{result.analysis.next_checks.map(claim)}</ul>
-        </>
+        </div>
       )}
     </section>
   );

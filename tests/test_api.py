@@ -228,3 +228,26 @@ def test_offset_filter_normalization(client):
     response = get(client, start="2026-01-01T17:30:00+05:30", end="2026-01-01T11:00:00-01:00")
     assert response.status_code == 200
     assert response.json()["total"] == 1
+
+
+def test_favicon_is_a_real_icon_and_declared_in_dashboard(client):
+    icon = client.get("/favicon.ico")
+    assert icon.status_code == 200
+    assert icon.headers["content-type"] == "image/x-icon"
+    assert icon.content[:4] == b"\x00\x00\x01\x00"
+    assert 'href="/favicon.ico"' in client.get("/").text
+
+
+def test_service_choices_are_dataset_scoped_unfiltered_sorted_and_bounded(client):
+    post(client, [event(service="zebra"), event(service="alpha"), event(service="alpha")])
+    post(client, [event(service="historical-only")], "historical")
+    data = get(client, service="missing").json()
+    assert data["total"] == 0
+    assert data["services"] == ["alpha", "zebra"]
+    assert data["services_truncated"] is False
+    assert get(client, "historical").json()["services"] == ["historical-only"]
+    post(client, [event(service=f"service-{i:03}") for i in range(205)])
+    data = get(client, page_size=1).json()
+    assert len(data["services"]) == 200
+    assert data["services_truncated"] is True
+    assert data["services"] == sorted(data["services"])

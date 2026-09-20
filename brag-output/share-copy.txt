@@ -1,0 +1,1 @@
+Introducing Log Watchdog: follow an error-log spike from overview to evaluated evidence and delivery history, with optional Gemini analysis. Built locally with FastAPI, SQLite and React.

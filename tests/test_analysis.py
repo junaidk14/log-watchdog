@@ -329,3 +329,158 @@ def test_existing_database_migrates_without_trusting_old_metadata(tmp_path):
     with store.connection() as db:
         assert db.execute("SELECT trusted_synthetic FROM events").fetchone()[0] == 0
     assert len(Analysis(store).previews) == 0
+
+
+def test_session_key_is_memory_only_clear_falls_back_and_restarts_forget(
+    tmp_path, monkeypatch, caplog
+):
+    app, client, url, body = setup(tmp_path, monkeypatch)
+    headers = {"X-Log-Watchdog-Settings": "1"}
+    key = "synthetic-session-credential"
+    original = client.post(url, json=body).json()
+    saved = client.put("/api/analysis/key", json={"key": key}, headers=headers)
+    assert saved.json() == {"configured": True}
+    assert saved.headers["cache-control"] == "no-store"
+    assert send(client, original).status_code == 410
+    provider = Mock(return_value=result())
+    monkeypatch.setattr(module, "generate", provider)
+    preview = client.post(url, json=body).json()
+    provider.assert_not_called()
+    assert send(client, preview).status_code == 200
+    assert provider.call_args.args[0].key == key
+    assert key not in repr(provider.call_args.args[0])
+    assert key not in json.dumps(preview)
+    assert client.get("/api/analysis/key").json() == {"configured": True}
+    with app.state.store.connection() as db:
+        assert key not in "\n".join(db.iterdump())
+    assert key not in caplog.text
+    cleared = client.delete("/api/analysis/key", headers=headers)
+    assert cleared.json() == {"configured": True}  # environment fallback
+    fresh = client.post(url, json=body).json()
+    assert send(client, fresh).status_code == 200
+    assert provider.call_args.args[0].key == "test-key-never-real"
+    monkeypatch.delenv("GEMINI_API_KEY")
+    restarted = TestClient(create_app(app.state.store.path))
+    assert restarted.get("/api/analysis/key").json() == {"configured": False}
+    assert restarted.put("/api/analysis/key", json={"key": key}, headers=headers).status_code == 200
+    assert restarted.delete("/api/analysis/key", headers=headers).json() == {"configured": False}
+
+
+@pytest.mark.parametrize(
+    "payload",
+    [
+        {"key": "sensitive value"},
+        {"key": "x\r\ny"},
+        {"key": "x\x00y"},
+        {"key": "non-ascii-\u00e9"},
+        {"key": "x" * 2049},
+        {"key": None},
+        {"key": ""},
+        {"sensitive-field": "secret"},
+        ["secret"],
+    ],
+)
+def test_key_validation_never_echoes_input(tmp_path, monkeypatch, payload):
+    _, client, _, _ = setup(tmp_path, monkeypatch)
+    response = client.put(
+        "/api/analysis/key", json=payload, headers={"X-Log-Watchdog-Settings": "1"}
+    )
+    assert response.status_code == 422
+    assert response.json() == {
+        "detail": "Enter an API key using 1–2048 visible ASCII characters, without spaces."
+    }
+
+
+def test_key_endpoint_bounds_origin_and_inflight_protection(tmp_path, monkeypatch):
+    app, client, _, _ = setup(tmp_path, monkeypatch)
+    headers = {"X-Log-Watchdog-Settings": "1"}
+    for method in (client.put, client.delete):
+        assert method("/api/analysis/key").status_code == 403
+        assert (
+            method(
+                "/api/analysis/key", headers=headers | {"Origin": "https://untrusted.example"}
+            ).status_code
+            == 403
+        )
+    assert (
+        client.put(
+            "/api/analysis/key",
+            content='{"key":"secret"}',
+            headers=headers | {"Content-Type": "text/plain"},
+        ).status_code
+        == 415
+    )
+    assert (
+        client.put(
+            "/api/analysis/key",
+            content=b"x" * 4097,
+            headers=headers | {"Content-Type": "application/json"},
+        ).status_code
+        == 413
+    )
+    assert (
+        client.put(
+            "/api/analysis/key",
+            content=b"{broken",
+            headers=headers | {"Content-Type": "application/json"},
+        ).status_code
+        == 422
+    )
+    assert (
+        client.put(
+            "/api/analysis/key",
+            json={"key": "synthetic"},
+            headers=headers | {"Origin": "http://testserver"},
+        ).status_code
+        == 200
+    )
+    app.state.analysis.sending.acquire()
+    try:
+        assert client.delete("/api/analysis/key", headers=headers).status_code == 409
+        assert app.state.analysis.effective_settings().key == "synthetic"
+    finally:
+        app.state.analysis.sending.release()
+
+
+@pytest.mark.parametrize("replacement", [None, "synthetic-replacement"])
+def test_key_change_rejects_a_preview_already_being_built(tmp_path, monkeypatch, replacement):
+    app, client, url, body = setup(tmp_path, monkeypatch)
+    original_read = module.Evidence.read
+
+    def read_then_change_key(evidence, *args, **kwargs):
+        result = original_read(evidence, *args, **kwargs)
+        # Deterministic interleaving: configuration changes while construction is outside the lock.
+        app.state.analysis.configure_key(replacement)
+        return result
+
+    monkeypatch.setattr(module.Evidence, "read", read_then_change_key)
+    response = client.post(url, json=body)
+    assert response.status_code == 409
+    assert response.json() == {"detail": "Gemini setup changed. Create and review a new preview."}
+    assert not app.state.analysis.previews
+    monkeypatch.setattr(module.Evidence, "read", original_read)
+    assert client.post(url, json=body).status_code == 200
+
+
+@pytest.mark.parametrize("key", ["AQ.synthetic-auth-key", "AQ." + "synthetic" * 60])
+def test_save_auth_key_then_preview_without_environment(tmp_path, monkeypatch, key):
+    app, _, url, body = setup(tmp_path, monkeypatch)
+    monkeypatch.delenv("GEMINI_API_KEY")
+    app = create_app(app.state.store.path)
+    client = TestClient(app, base_url="http://127.0.0.1:8000")
+    provider = Mock()
+    monkeypatch.setattr(module, "generate", provider)
+    assert client.post(url, json=body).status_code == 503
+    saved = client.put(
+        "/api/analysis/key",
+        json={"key": key},
+        headers={"X-Log-Watchdog-Settings": "1", "Origin": "http://127.0.0.1:8000"},
+    )
+    assert saved.status_code == 200
+    assert saved.json() == {"configured": True}
+    assert client.get("/api/analysis/key").json() == {"configured": True}
+    assert app.state.analysis.effective_settings().key == key
+    preview = client.post(url, json=body)
+    assert preview.status_code == 200
+    assert key not in preview.text
+    provider.assert_not_called()

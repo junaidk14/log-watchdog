@@ -79,9 +79,15 @@ beforeEach(() => {
 it("expands payload and attempts with keyboard, retains focus through status updates, and preserves return context", async () => {
   const user = userEvent.setup();
   render(<Router />);
+  expect(document.title).toBe("Deliveries · Log Watchdog");
   const button = await screen.findByRole("button", {
     name: /View payload and attempts/,
   });
+  await waitFor(() =>
+    expect(
+      screen.getByRole("heading", { name: "Deliveries", level: 1 }),
+    ).toHaveFocus(),
+  );
   button.focus();
   await user.keyboard("{Enter}");
   expect(button).toHaveAttribute("aria-expanded", "true");
@@ -222,7 +228,7 @@ it.each(["Overview", "Open overview"])(
     expect(
       await screen.findByRole("heading", { name: "Overview" }),
     ).toBeVisible();
-    expect(screen.getByText("Live · API events")).toBeVisible();
+    expect(screen.getByText("Live · Incoming logs")).toBeVisible();
     expect(screen.getByRole("combobox", { name: "Dataset" })).toHaveValue(
       "live",
     );
@@ -274,4 +280,38 @@ it("announces the first notification after empty history and only changed notifi
   await act(async () => poll?.());
   expect(observer).not.toHaveBeenCalled();
   mutation.disconnect();
+});
+
+it("reveals receiver setup on guide navigation but preserves saved history scroll", async () => {
+  vi.mocked(window.setInterval).mockRestore();
+  window.history.replaceState(
+    { focus: "receiver-heading", revealFocus: true },
+    "",
+    "?view=deliveries&dataset=demo",
+  );
+  const reveal = vi.fn();
+  HTMLElement.prototype.scrollIntoView = reveal;
+  vi.stubGlobal("scrollTo", vi.fn());
+  const { unmount } = render(<Router />);
+  await screen.findByRole("heading", { name: "Demo receiver behavior" });
+  await waitFor(() =>
+    expect(
+      screen.getByRole("heading", { name: "Demo receiver behavior" }),
+    ).toHaveFocus(),
+  );
+  expect(reveal).toHaveBeenCalledWith({
+    block: "start",
+    behavior: "instant",
+  });
+  unmount();
+  reveal.mockClear();
+  window.history.replaceState(
+    { focus: "receiver-heading", revealFocus: true, scrollY: 300 },
+    "",
+    "?view=deliveries&dataset=demo",
+  );
+  render(<Router />);
+  await waitFor(() => expect(window.scrollTo).toHaveBeenCalledWith(0, 300));
+  expect(reveal).not.toHaveBeenCalled();
+  delete (HTMLElement.prototype as Partial<HTMLElement>).scrollIntoView;
 });

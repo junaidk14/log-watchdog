@@ -79,8 +79,8 @@ class Settings:
         if not self.key:
             raise AnalysisError(
                 503,
-                "Gemini is not configured. Set GEMINI_API_KEY on the server and "
-                "restart. The local summary remains available.",
+                "Gemini is not configured. Open Gemini setup to add a key for this "
+                "server session. The local summary remains available.",
             )
         if not re.fullmatch(r"[a-zA-Z0-9][a-zA-Z0-9._-]{0,99}", self.model):
             raise AnalysisError(
@@ -188,9 +188,38 @@ class Analysis:
         self.previews: OrderedDict[str, Preview] = OrderedDict()
         self.lock = Lock()
         self.sending = Lock()
+        self._runtime_key: str | None = None
+        self._key_revision = 0
+
+    def configuration(self) -> dict[str, bool]:
+        with self.lock:
+            return {"configured": bool(self._runtime_key or self.settings.key)}
+
+    def configure_key(self, key: str | None) -> dict[str, bool]:
+        # A clear/replacement cannot race a provider request using the previous key.
+        if not self.sending.acquire(blocking=False):
+            raise AnalysisError(
+                409, "Analysis is sending. Wait for it to finish before changing keys."
+            )
+        try:
+            with self.lock:
+                self._runtime_key = key
+                self._key_revision += 1
+                self.previews.clear()
+                return {"configured": bool(self._runtime_key or self.settings.key)}
+        finally:
+            self.sending.release()
+
+    def effective_settings(self) -> Settings:
+        with self.lock:
+            return Settings(
+                self._runtime_key or self.settings.key, self.settings.model, self.settings.paid
+            )
 
     def preview(self, dataset: str, incident: int, request: PreviewRequest) -> dict[str, Any]:
-        self.settings.require()
+        with self.lock:
+            key_revision = self._key_revision
+        self.effective_settings().require()
         if dataset == "demo" and not request.run:
             raise AnalysisError(422, "Select the current Demo run before previewing.")
         evidence = Evidence(self.store).read(
@@ -261,6 +290,8 @@ class Analysis:
             )
         token = str(uuid4())
         with self.lock:
+            if key_revision != self._key_revision:
+                raise AnalysisError(409, "Gemini setup changed. Create and review a new preview.")
             now = time.monotonic()
             self.previews = OrderedDict(
                 (key, value) for key, value in self.previews.items() if value.expires > now
@@ -288,20 +319,21 @@ class Analysis:
         }
 
     def send(self, request: SendRequest) -> dict[str, Any]:
-        self.settings.require()
-        with self.lock:
-            preview = self.previews.get(request.preview_id)
-        if preview is None or preview.expires <= time.monotonic():
-            raise AnalysisError(
-                410, "Preview expired or server restarted. Create and review a new preview."
-            )
         if not self.sending.acquire(blocking=False):
             raise AnalysisError(409, "An analysis is already sending. Wait for it to finish.")
         try:
+            with self.lock:
+                preview = self.previews.get(request.preview_id)
+            if preview is None or preview.expires <= time.monotonic():
+                raise AnalysisError(
+                    410, "Preview expired or server restarted. Create and review a new preview."
+                )
+            settings = self.effective_settings()
+            settings.require()
             self.check_current(preview)
             if preview.result is not None:
                 return preview.result
-            raw = generate(self.settings, preview.packet)
+            raw = generate(settings, preview.packet)
             try:
                 explanation = Explanation.model_validate(raw)
                 for claim in [

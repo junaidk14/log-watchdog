@@ -1,5 +1,11 @@
+import { ThemeToggle } from "./ThemeToggle";
 import { HistoricalUpload, HistoricalTrends } from "./Historical";
-import { PageLink, viewUrl, usePageRestoration } from "./navigation";
+import {
+  useDocumentTitle,
+  PageLink,
+  viewUrl,
+  usePageRestoration,
+} from "./navigation";
 import { Fragment, useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
 
@@ -30,6 +36,8 @@ type LogEvent = {
   ingested_at: string;
 };
 type Results = {
+  services?: string[];
+  services_truncated?: boolean;
   dataset: Dataset;
   evaluated_total?: number;
   retained_total?: number;
@@ -101,6 +109,7 @@ function timeLabel(timestamp: string): string {
 }
 
 export function App() {
+  useDocumentTitle("Logs");
   const [filters, setFilters] = useState<Filters>(readFilters);
   const [draft, setDraft] = useState<Filters>(filters);
   const [results, setResults] = useState<Results | null>(null);
@@ -337,49 +346,60 @@ export function App() {
             <h1 id="logs-heading" ref={heading} tabIndex={-1}>
               Logs
             </h1>
-            <p>Explore events across a service, interval, or message.</p>
+            <p>Find logs by service, time, or message.</p>
           </div>
-          <label className="dataset-select">
-            Dataset
-            <select
-              value={draft.dataset}
-              onChange={(e) =>
-                navigate({
-                  ...filters,
-                  dataset: e.target.value,
-                  page: 1,
-                  incident: "",
-                  evaluation: "",
-                  run: "",
-                  event_id: "",
-                })
-              }
-            >
-              {!datasets.includes(draft.dataset) && (
-                <option value={draft.dataset}>Unknown dataset</option>
-              )}
-              <option value="demo">Demo</option>
-              <option value="live">Live</option>
-              <option value="historical">Historical</option>
-            </select>
-          </label>
+          <div className="header-controls">
+            <label className="dataset-select">
+              Dataset
+              <select
+                value={draft.dataset}
+                onChange={(e) =>
+                  navigate({
+                    ...filters,
+                    dataset: e.target.value,
+                    page: 1,
+                    incident: "",
+                    evaluation: "",
+                    run: "",
+                    event_id: "",
+                  })
+                }
+              >
+                {!datasets.includes(draft.dataset) && (
+                  <option value={draft.dataset}>Unknown dataset</option>
+                )}
+                <option value="demo">Demo</option>
+                <option value="live">Live</option>
+                <option value="historical">Historical</option>
+              </select>
+            </label>
+            <ThemeToggle />
+          </div>
         </header>
+        {filters.dataset !== "historical" && (
+          <p className="import-entry">
+            <PageLink href="?view=logs&dataset=historical" focus="logs-heading">
+              Import JSON into Historical
+            </PageLink>{" "}
+            · Browse uploaded logs without triggering alerts.
+          </p>
+        )}
         <div className="dataset-context">
           <strong>
             {filters.dataset === "demo"
-              ? "Demo · Synthetic history"
+              ? "Demo · Simulated data"
               : filters.dataset === "live"
-                ? "Live · API events"
+                ? "Live · Incoming logs"
                 : filters.dataset === "historical"
-                  ? "Historical · Stored events"
+                  ? "Historical · Imported logs"
                   : "Unknown dataset"}
           </strong>
           <span>
             {filters.dataset === "demo"
-              ? "Simulation time (UTC). Seeded normal activity from three services."
+              ? "Simulated activity from three services."
               : filters.dataset === "live"
-                ? "Event time (UTC). Only events sent to the live dataset appear here."
-                : "Event time (UTC). Historical data is separate from live activity."}
+                ? "Logs received through the API."
+                : "Imported logs stay separate from live activity."}
           </span>
         </div>
         {filters.dataset === "historical" && (
@@ -460,18 +480,46 @@ export function App() {
         )}
         <section className="explorer" aria-label="Log explorer">
           <form onSubmit={submit} className="filters" aria-label="Filter logs">
-            <label>
-              Service
-              <input
-                readOnly={!!filters.incident}
-                value={draft.service}
-                maxLength={120}
-                placeholder="All services"
-                onChange={(e) =>
-                  setDraft({ ...draft, service: e.target.value })
-                }
-              />
-            </label>
+            <div className="service-filter">
+              <label htmlFor="service-input">Service</label>
+              <div className="service-controls">
+                <select
+                  aria-label="Choose service"
+                  disabled={!!filters.incident || !results}
+                  value={draft.service}
+                  onChange={(e) =>
+                    setDraft({ ...draft, service: e.target.value })
+                  }
+                >
+                  <option value="">All services</option>
+                  {draft.service &&
+                    !(results?.services ?? []).includes(draft.service) && (
+                      <option value={draft.service}>{draft.service}</option>
+                    )}
+                  {(results?.services ?? []).map((service) => (
+                    <option key={service} value={service}>
+                      {service}
+                    </option>
+                  ))}
+                </select>
+                <input
+                  id="service-input"
+                  readOnly={!!filters.incident}
+                  autoComplete="off"
+                  value={draft.service}
+                  maxLength={120}
+                  placeholder="Or type a name"
+                  onChange={(e) =>
+                    setDraft({ ...draft, service: e.target.value })
+                  }
+                />
+              </div>
+              {results?.services_truncated && (
+                <span className="hint">
+                  First 200 services shown; type another exact name.
+                </span>
+              )}
+            </div>
             <label>
               Severity
               <select
@@ -531,7 +579,7 @@ export function App() {
             <p id="time-help" className="hint">
               {filters.incident
                 ? "Service and interval are pinned to the evaluated window. Leave incident scope to change them."
-                : "Use ISO UTC timestamps ending in Z. Both time boundaries are inclusive."}
+                : "Use UTC timestamps ending in Z. Both time boundaries are included."}
             </p>
           </form>
           <div className="result-toolbar">
@@ -677,7 +725,7 @@ export function App() {
                                 <dd>{log.event_id}</dd>
                                 <dt>Full message</dt>
                                 <dd>{log.message}</dd>
-                                <dt>Ingested at (real UTC)</dt>
+                                <dt>Received at (UTC)</dt>
                                 <dd>{log.ingested_at}</dd>
                                 <dt>Metadata</dt>
                                 <dd>
@@ -737,8 +785,7 @@ export function App() {
           />
         )}
         <p className="workspace-footnote">
-          Stored locally in SQLite. Dataset boundaries keep demo, live, and
-          historical events separate.
+          Stored on this device. Demo, Live, and Historical logs stay separate.
         </p>
       </main>
     </div>
