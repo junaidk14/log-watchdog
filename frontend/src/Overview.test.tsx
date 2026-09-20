@@ -59,6 +59,7 @@ function respond(value = data) {
 beforeEach(() => {
   window.history.replaceState({}, "", "/?view=overview&dataset=demo");
   vi.stubGlobal("scrollTo", vi.fn());
+  vi.stubGlobal("scrollY", 0);
   fetchMock.mockReset();
   fetchMock.mockImplementation(() => respond());
   vi.stubGlobal("fetch", (url: string, ...args: unknown[]) => {
@@ -86,6 +87,10 @@ it("selects with keyboard, preserves selection through recovery and returns focu
   const link = await screen.findByRole("link", {
     name: "Investigate checkout incident #1",
   });
+  const focusHeading = vi.spyOn(HTMLElement.prototype, "focus");
+  const revealHeading = vi.fn(() => vi.stubGlobal("scrollY", 123));
+  vi.stubGlobal("scrollY", 330);
+  HTMLElement.prototype.scrollIntoView = revealHeading;
   link.focus();
   await user.keyboard("{Enter}");
   await waitFor(() =>
@@ -93,6 +98,14 @@ it("selects with keyboard, preserves selection through recovery and returns focu
       screen.getByRole("heading", { name: "checkout · open" }),
     ).toHaveFocus(),
   );
+  expect(focusHeading).toHaveBeenLastCalledWith({ preventScroll: true });
+  expect(revealHeading).toHaveBeenCalledWith({
+    block: "nearest",
+    behavior: "instant",
+  });
+  expect(window.history.state.scrollY).toBe(123);
+  focusHeading.mockRestore();
+  delete (HTMLElement.prototype as Partial<HTMLElement>).scrollIntoView;
   expect(window.location.search).toContain("incident=1");
   expect(link).toHaveAttribute("aria-current", "true");
   expect(
@@ -366,6 +379,7 @@ it("confirms a demo-only reset, restores context and focus, and announces comple
   const { container } = render(<Overview />);
   const reset = await screen.findByRole("button", { name: "Reset demo" });
   await waitFor(() => expect(reset).toBeEnabled());
+  const resetFocus = vi.spyOn(reset, "focus");
   reset.focus();
   await user.keyboard("{Enter}");
   expect(
@@ -383,6 +397,7 @@ it("confirms a demo-only reset, restores context and focus, and announces comple
   ).toEqual([]);
   await user.click(screen.getByRole("button", { name: "Cancel reset" }));
   expect(reset).toHaveFocus();
+  expect(resetFocus).toHaveBeenLastCalledWith({ preventScroll: true });
   await user.click(reset);
   await user.click(
     screen.getByRole("button", { name: "Confirm reset Demo only" }),
@@ -399,6 +414,8 @@ it("confirms a demo-only reset, restores context and focus, and announces comple
     "?view=overview&dataset=demo&run=new-run",
   );
   await waitFor(() => expect(reset).toHaveFocus());
+  expect(resetFocus).toHaveBeenLastCalledWith({ preventScroll: true });
+  resetFocus.mockRestore();
   expect(
     screen.queryByRole("heading", { name: "Reset only Demo?" }),
   ).not.toBeInTheDocument();

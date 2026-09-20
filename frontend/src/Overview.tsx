@@ -372,7 +372,9 @@ export function Overview() {
       setResetMessage(
         "Demo reset. Normal history restored; Live and Historical are unchanged.",
       );
-      window.requestAnimationFrame(() => resetButton.current?.focus());
+      window.requestAnimationFrame(() =>
+        resetButton.current?.focus({ preventScroll: true }),
+      );
     } catch (problem) {
       if (mounted.current)
         setResetError(
@@ -430,11 +432,20 @@ export function Overview() {
           document.activeElement !== document.body)
       )
         return;
-      if (id) heading.current?.focus();
-      else
-        (
-          document.getElementById(`incident-${selected}`) ?? queue.current
-        )?.focus();
+      const target = id
+        ? heading.current
+        : (document.getElementById(`incident-${selected}`) ?? queue.current);
+      // Keep visible destinations in place; reveal off-screen headings without
+      // the browser's default focus centering or a second restoration jump.
+      target?.focus({ preventScroll: true });
+      target?.scrollIntoView?.({ block: "nearest", behavior: "instant" });
+      // Capture the destination now, even if Back happens before the browser
+      // emits its scroll event; the outgoing entry keeps its original position.
+      window.history.replaceState(
+        { ...window.history.state, scrollY: window.scrollY },
+        "",
+        window.location.href,
+      );
     });
   }
   const incident = reset
@@ -679,7 +690,7 @@ export function Overview() {
                 onClick={() => {
                   setConfirmReset(false);
                   setResetError("");
-                  resetButton.current?.focus();
+                  resetButton.current?.focus({ preventScroll: true });
                 }}
               >
                 Cancel reset

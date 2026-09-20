@@ -1616,3 +1616,28 @@ go
 ```
 
 Continued the documentation refresh, theme validation and audit updates without expanding scope.
+
+## 2026-09-20 — Demo scroll restoration fix
+
+```text
+I noticed a small navigation/scroll issue in the Demo flow.
+
+When I use actions like:
+- Reset demo
+- Advance one minute
+- Investigate incident
+
+the page shifts/scrolls upward slightly after the action, which makes the interaction feel jumpy.
+
+Please inspect the current focus restoration/history behavior and fix the scroll jump while preserving accessibility and keyboard focus.
+
+Expected behavior:
+- the user should stay at roughly the same scroll position after Reset/Advance unless navigation genuinely requires moving to another page/section
+- Investigate should navigate to the incident workspace and focus the relevant heading/section without an unnecessary extra jump
+- keyboard users should still get correct focus
+- browser Back/Forward behavior should remain intact
+
+Please make the smallest change needed and add/update regression coverage if appropriate.
+```
+
+Reproduced Reset scrolling from 330 to 0 through implicit focus scrolling. Reset completion/cancel now focus without scrolling. Incident selection focuses without implicit scrolling and reveals only the nearest off-screen destination, recording its final scroll immediately for rapid Back/Forward. Advance did not reproduce a jump and remains unchanged. Updated regression coverage, passed frontend checks, and verified targeted desktop/narrow behavior with Playwriter against an isolated fixture. No backend changes.
