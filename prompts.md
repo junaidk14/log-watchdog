@@ -1112,3 +1112,8 @@ The coordinator did not terminate that process or change its database. The user 
 ## Final preparation outcome — 2026-09-20T01:10:26Z
 
 All seven approved issues are closed and PRs #8–#14 merged. The final workbench refinement and local AI-generated Markdown presentation are prepared in PR #15. Impeccable critique/audit/polish/document completed using the approved browser-unavailable fallback. Final verification passed 121 backend tests, 81 frontend tests, build/static checks and actual HTTP/runtime validation. Two fresh independent repo-wide reviews (Standards and Spec) passed with zero findings at `a74989466e8fd2b4e50982fc59a794bd6b834b93`. Final merge remains subject to fresh PR metadata and unchanged-head checks. No next issue, external submission, deployment or live Gemini call is authorized/performed by this completion step. The last user prompt was the server-stopped clarification recorded above.
+
+
+### Publication approval boundary — 2026-09-20T01:11:35Z
+
+Automatic approval review rejected the final `git push`, stating that GitHub publication conflicts with “Do not submit anything externally.” The earlier refinement commit and PR #15 had already been published through approved calls. The later review-record commit was made locally only. The coordinator stopped push/merge and requested explicit clarification rather than bypassing the rejection. Code verification and both independent reviews remain passing; the documentation follow-up corrected wording that could imply merge had already occurred. Local work and external verification logs are preserved.
