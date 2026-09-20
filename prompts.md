@@ -1205,3 +1205,8 @@ Server stopped
 ```
 
 The user stopped their app; the coordinator resumed full backend and real-HTTP verification using temporary databases.
+
+
+### Cleanup verification and review fixes
+
+The initial independent Standards/Spec reviews found two concrete edge cases: preview construction surviving a key change, and direct Investigate navigation leaving the previous title. Both were fixed within the bounded cleanup with regression coverage. Final verification passed 132 backend tests, 86 frontend tests, all configured checks and actual HTTP/runtime validation including synthetic key setup/clear and favicon delivery. User data was untouched; no real key or provider request was used. Rendered checks remain unverified because the supported browser connection is unavailable.

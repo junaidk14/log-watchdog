@@ -125,6 +125,7 @@ it("keeps evaluated scope, filters, measurements and return focus through keyboa
       screen.getByRole("heading", { name: "checkout · open" }),
     ).toHaveFocus(),
   );
+  expect(document.title).toBe("Incidents · Log Watchdog");
   const logs = await screen.findByRole("link", { name: "View evaluated logs" });
   expect(logs).toHaveAttribute(
     "href",

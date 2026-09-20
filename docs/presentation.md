@@ -97,7 +97,7 @@ Incident recovery and notification success are separate facts. The dashboard sho
 
 The non-LLM **Local evidence summary** is always available.
 
-Optional Gemini analysis requires environment configuration, an exact bounded redacted evidence preview, and an explicit **Send for analysis** click. It returns evidence-linked summaries, possible causes and next checks. It cannot fire alerts or execute actions.
+Optional Gemini analysis accepts a server-memory-only key through **Gemini setup**, with an environment-key fallback, then requires an exact bounded redacted evidence preview and an explicit **Send for analysis** click. Clear key removes the session override; no key is returned to the UI. It returns evidence-linked summaries, possible causes and next checks. It cannot fire alerts or execute actions.
 
 Unpaid access is limited to trusted simulator evidence. Real-log eligibility requires appropriate paid-service configuration. Redaction cannot guarantee removal of all secrets. Model references are validated for membership, not truth.
 

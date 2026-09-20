@@ -66,6 +66,22 @@ def main() -> None:
                 asset = re.search(r'src="(/assets/[^\"]+\.js)"', index)
                 assert asset is not None
                 assert client.get(asset.group(1)).status_code == 200
+                icon = client.get("/favicon.ico")
+                assert icon.status_code == 200 and icon.content[:4] == b"\x00\x00\x01\x00"
+                key_headers = {"X-Log-Watchdog-Settings": "1"}
+                assert client.get("/api/analysis/key").json() == {"configured": True}
+                assert client.put("/api/analysis/key", json={"key": "synthetic"}).status_code == 403
+                saved_key = client.put(
+                    "/api/analysis/key",
+                    json={"key": "synthetic-ui-validation-placeholder"},
+                    headers=key_headers,
+                )
+                assert saved_key.status_code == 200
+                assert saved_key.json() == {"configured": True}
+                assert saved_key.headers["cache-control"] == "no-store"
+                assert client.delete("/api/analysis/key", headers=key_headers).json() == {
+                    "configured": True  # startup environment fallback remains configured
+                }
                 assert client.get("/api/datasets/demo/events").json()["total"] == 3600
 
                 fixture_time = datetime.now(UTC).replace(second=0, microsecond=0) - timedelta(
@@ -407,6 +423,9 @@ def main() -> None:
                             "demo_transitions": states,
                             "late_evidence_unchanged": True,
                             "analysis_preview_http": "bounded synthetic packet; no provider call",
+                            "analysis_key_setup_http": "save/status/clear, environment fallback; "
+                            "synthetic only, no provider call",
+                            "favicon_http": "200, valid ICO signature",
                             "evidence_navigation_http": (
                                 "40 evaluated / 41 broader; filters, sample, restart passed"
                             ),

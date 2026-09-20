@@ -127,3 +127,12 @@ Use semantic landmarks, labeled controls, visible keyboard focus, logical tab or
 12. Complete overview → incident → evaluated logs → delivery history using only the keyboard. Expand a log, follow Back, and receive a status update without focus loss or repeated announcements.
 
 Visual tokens, composition, and component details will be documented from the selected implemented direction rather than treated as already approved.
+
+
+## Bounded cleanup after manual walkthrough
+
+- Overview combines recent incidents with latest evaluated service trends. Incidents prioritizes the queue and evidence pane and omits those overview trends; its labels and tab title say Incidents.
+- Rows distinguish the latest abnormal measurement's UTC window from the full incident interval. Service status describes the latest evaluated window, not every point in chart history.
+- Logs exposes Import JSON into Historical as well as the immediate Dataset selector; both reveal the file chooser and Import into Historical action.
+- Optional Gemini analysis includes a setup disclosure: password input, server-session save, configured/not-configured status and Clear key. The field empties on submit; no browser storage or key retrieval. Environment fallback remains; configuration never sends evidence. Changed keys invalidate previews, including construction in progress. The existing preview and explicit-send sequence remains mandatory.
+- Destination components own their document title so direct Investigate selection and browser Back stay correct. Existing focus IDs, selected-window URLs and restoration behavior remain intact.

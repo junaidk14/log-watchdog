@@ -1,5 +1,10 @@
 import { HistoricalUpload, HistoricalTrends } from "./Historical";
-import { PageLink, viewUrl, usePageRestoration } from "./navigation";
+import {
+  useDocumentTitle,
+  PageLink,
+  viewUrl,
+  usePageRestoration,
+} from "./navigation";
 import { Fragment, useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
 
@@ -101,6 +106,7 @@ function timeLabel(timestamp: string): string {
 }
 
 export function App() {
+  useDocumentTitle("Logs");
   const [filters, setFilters] = useState<Filters>(readFilters);
   const [draft, setDraft] = useState<Filters>(filters);
   const [results, setResults] = useState<Results | null>(null);

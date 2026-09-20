@@ -1,5 +1,10 @@
 import { EvidencePane } from "./EvidencePane";
-import { PageLink, viewUrl, usePageRestoration } from "./navigation";
+import {
+  useDocumentTitle,
+  PageLink,
+  viewUrl,
+  usePageRestoration,
+} from "./navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 export type Measurement = {
@@ -181,6 +186,7 @@ export function Overview() {
   const dataset = params.get("dataset") ?? "demo";
   const isIncidents = params.get("view") === "incidents";
   const destination = isIncidents ? "incidents" : "overview";
+  useDocumentTitle(isIncidents ? "Incidents" : "Overview");
   const [selected, setSelected] = useState(params.get("incident"));
   const [data, setData] = useState<OverviewData | null>(null);
   const reset =

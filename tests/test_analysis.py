@@ -437,3 +437,23 @@ def test_key_endpoint_bounds_origin_and_inflight_protection(tmp_path, monkeypatc
         assert app.state.analysis.effective_settings().key == "synthetic"
     finally:
         app.state.analysis.sending.release()
+
+
+@pytest.mark.parametrize("replacement", [None, "synthetic-replacement"])
+def test_key_change_rejects_a_preview_already_being_built(tmp_path, monkeypatch, replacement):
+    app, client, url, body = setup(tmp_path, monkeypatch)
+    original_read = module.Evidence.read
+
+    def read_then_change_key(evidence, *args, **kwargs):
+        result = original_read(evidence, *args, **kwargs)
+        # Deterministic interleaving: configuration changes while construction is outside the lock.
+        app.state.analysis.configure_key(replacement)
+        return result
+
+    monkeypatch.setattr(module.Evidence, "read", read_then_change_key)
+    response = client.post(url, json=body)
+    assert response.status_code == 409
+    assert response.json() == {"detail": "Gemini setup changed. Create and review a new preview."}
+    assert not app.state.analysis.previews
+    monkeypatch.setattr(module.Evidence, "read", original_read)
+    assert client.post(url, json=body).status_code == 200

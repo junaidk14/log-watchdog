@@ -1,5 +1,11 @@
 import { useEffect, useRef, type ComponentProps } from "react";
 
+export function useDocumentTitle(destination: string) {
+  useEffect(() => {
+    document.title = `${destination} · Log Watchdog`;
+  }, [destination]);
+}
+
 export function viewUrl(
   view: string,
   changes: Record<string, string | null> = {},

@@ -189,6 +189,7 @@ class Analysis:
         self.lock = Lock()
         self.sending = Lock()
         self._runtime_key: str | None = None
+        self._key_revision = 0
 
     def configuration(self) -> dict[str, bool]:
         with self.lock:
@@ -203,6 +204,7 @@ class Analysis:
         try:
             with self.lock:
                 self._runtime_key = key
+                self._key_revision += 1
                 self.previews.clear()
                 return {"configured": bool(self._runtime_key or self.settings.key)}
         finally:
@@ -215,6 +217,8 @@ class Analysis:
             )
 
     def preview(self, dataset: str, incident: int, request: PreviewRequest) -> dict[str, Any]:
+        with self.lock:
+            key_revision = self._key_revision
         self.effective_settings().require()
         if dataset == "demo" and not request.run:
             raise AnalysisError(422, "Select the current Demo run before previewing.")
@@ -286,6 +290,8 @@ class Analysis:
             )
         token = str(uuid4())
         with self.lock:
+            if key_revision != self._key_revision:
+                raise AnalysisError(409, "Gemini setup changed. Create and review a new preview.")
             now = time.monotonic()
             self.previews = OrderedDict(
                 (key, value) for key, value in self.previews.items() if value.expires > now

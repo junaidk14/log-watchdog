@@ -1,5 +1,10 @@
 import { useEffect, useRef, useState } from "react";
-import { PageLink, usePageRestoration, viewUrl } from "./navigation";
+import {
+  useDocumentTitle,
+  PageLink,
+  usePageRestoration,
+  viewUrl,
+} from "./navigation";
 
 type Attempt = {
   number: number;
@@ -32,6 +37,7 @@ type DeliveryData = {
 };
 
 export function Deliveries() {
+  useDocumentTitle("Deliveries");
   const params = new URLSearchParams(window.location.search);
   const dataset = params.get("dataset") ?? "demo";
   const incident = params.get("incident");
