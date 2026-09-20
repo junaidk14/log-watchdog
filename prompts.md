@@ -1062,3 +1062,8 @@ Trigger: unattended FIX assignment for https://github.com/junaidk14/log-watchdog
 ## 2026-09-20 — Issue #7 implementation
 
 Trigger: unattended IMPLEMENT assignment for `junaidk14/log-watchdog`, starting main `baa9d2fbff4c1fc27b0765d798c23a8f7cb7519a`. Enumerate every ready issue and open PR, choose the lowest executable approved issue, implement and verify it, commit/push/create a non-draft PR without merging. Selected issue #7, “Optionally analyze previewed evidence with Gemini”; issue #3 prerequisite completed and core #4–#6 complete. Preserve exact JSON handoff and report elapsed time from `2026-09-19T19:42:03Z`. Applied repository policy, approved browser-unavailable fallback, and optional-provider privacy constraints. No real provider call or real-log transmission authorized for testing; controlled responses used. Protected runner files remain untouched.
+
+
+## 2026-09-20T00:48:06.922183+00:00 — FIX issue #7 / PR #14, malformed candidate R1
+
+Trigger: unattended FIX assignment for https://github.com/junaidk14/log-watchdog/issues/7 and existing PR #14 on `issue-7-gemini-evidence`, base `baa9d2fbff4c1fc27b0765d798c23a8f7cb7519a`, reviewed head `aa40a7a997df28f00ddb640348674f6253f97885`. Address only R1: validate non-object Gemini candidates before field access, return bounded JSON 502 guidance, and add regression coverage for null/string/number/array candidates, preserved previews, explicit retry and usable local summaries. Verify, commit without rewriting history, push the same branch, and update existing PR evidence. Never merge, approve, close issues or change protected runner files. Preserve exact JSON handoff and project elapsed time.

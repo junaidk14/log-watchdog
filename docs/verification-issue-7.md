@@ -34,3 +34,25 @@ Browser setup imported the supported runtime and attempted `agent.browsers.getFo
 - [ ] Browser-dependent loading/empty/error states and interactions: missing credentials; unpaid restriction; preview and send progress; provider timeout/rate limit/invalid response; explicit retry with unchanged packet; new preview; selection/window/dataset change during sending; reset/expired preview. Verify the local summary always remains available.
 
 Browser unavailable; rendered desktop, narrow-screen, and keyboard verification require a later manual check. These checks are deferred under the project policy, not passed.
+
+
+## PR #14 review fix R1 — malformed provider candidates
+
+The candidate was accessed with `.get()` before checking that it was an object. Controlled HTTP 200 responses containing a null, string, number or array candidate reproduced an uncaught `AttributeError` through the actual send endpoint. The adapter now requires a list containing one object before checking its finish reason; malformed candidates use the existing bounded invalid-analysis JSON 502 explanation. No architectural or dependency change.
+
+- `.venv/bin/pytest -q tests/test_analysis.py -k non_object_candidate --tb=short` — before: four failures at the reported `.get()` access; after: four passed. Each case verifies the exact bounded JSON explanation, connection cleanup, unchanged evidence and preview, no automatic retry, and a successful explicit retry with the identical provider request.
+- `npm --prefix frontend run build` — passed.
+- `npm --prefix frontend run typecheck` — passed.
+- `npm --prefix frontend run lint` — passed.
+- `npm --prefix frontend run format:check` — passed after formatting the added Router test with `./node_modules/.bin/prettier --write src/Investigation.test.tsx` from `frontend/`.
+- `npm --prefix frontend test` — 80 passed in six files. New Router coverage verifies invalid-analysis guidance, a retained preview and enabled Send control, no automatic send, and usable local summary/evaluated-log navigation. Existing component coverage verifies explicit retry.
+- `.venv/bin/ruff check log_watchdog tests scripts` — passed.
+- `.venv/bin/ruff format --check log_watchdog tests scripts` — passed, 20 files.
+- `.venv/bin/mypy` — passed, 11 source files.
+- `.venv/bin/python scripts/check_contrast.py` — passed, nine palette pairs.
+- `.venv/bin/pytest -q` — 121 passed; existing Starlette/AnyIO deprecation warnings only.
+
+Tests use synthetic temporary-database evidence and controlled provider responses. No live Gemini call or real-log transmission. Existing jsdom canvas diagnostics remain; DOM/axe tests do not establish rendered behavior. Supported browser selection again reported no browser; after bootstrap troubleshooting, recovery discovery returned `[]`. The Manual UI verification pending checklist above remains applicable, especially invalid response → retained preview → explicit retry with the local summary visible.
+
+- `.venv/bin/python scripts/validate_runtime.py` — passed using a temporary database and actual loopback HTTP on Python 3.14.5 / macOS 15.6 arm64. Synthetic preview, assets, ingestion, evaluated evidence, five-step recovery, delivery/process restart, reset/isolation, Historical upload and real-clock worker checks passed. 100k events in 1.399 s; browsing medians 3.00/5.37/9.14 ms; 100 paced events in 4.963 s at 20/s target. Environment-specific measurements; no provider send.
+- `git diff --check` — passed.

@@ -268,3 +268,11 @@ Project-specific AFK policy now authorizes #4–#7 and requires implementation/f
 - Existing React/TypeScript/CSS, Vitest/Testing Library/axe and pytest/HTTPX — Used for explicit disclosure/send, preserved local summaries, scoped state and controlled provider tests. Existing build, lint, type, format, contrast and actual loopback runtime validation reused.
 - Impeccable context/surface brief/craft floor/mechanical detector and separate finish reviewer/documenter — Used for the established incident-pane extension; detector returned `[]`. Browser skill supported setup failed; recovery discovery returned `[]`, so rendered checks remain deferred. No new design tokens or raster assets.
 - `domain-modeling` and `pr` skills; Git/GitHub CLI, official Google documentation via web tools and clock — Used for decisions, eligibility/dependency checks, provider contract, PR evidence and metadata handoff.
+
+
+## PR #14 malformed-candidate review fix R1
+
+- Existing Python/FastAPI and pytest/TestClient with controlled `http.client` responses — Used to reproduce four uncaught candidate-shape failures, validate JSON 502 guidance, and verify unchanged evidence and same-preview explicit retry. No dependencies or architectural decisions added.
+- `diagnosing-bugs` skill — Used for the failing-then-passing endpoint regression; the supplied finding localized the cause, so additional speculative hypotheses/instrumentation were unnecessary. Existing Vitest/Testing Library verifies the invalid-response guidance, retained preview/local summary and evaluated-log navigation.
+- Existing build, lint, type, format, contrast, backend/frontend tests and runtime validator — Used for verification. Browser skill supported setup failed and recovery discovery returned `[]`; rendered checks remain pending.
+- `pr` skill, Git/GitHub CLI and clock — Used for existing-PR evidence, assigned state/dependency checks and elapsed-time handoff.

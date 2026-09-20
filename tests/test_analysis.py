@@ -244,6 +244,45 @@ def test_rest_errors_are_bounded_and_do_not_echo_secrets(monkeypatch, status, ra
     connection.close.assert_called_once()
 
 
+@pytest.mark.parametrize("candidate", [None, "private-provider-content", 42, []])
+def test_non_object_candidate_returns_json_error_and_preserves_preview(
+    tmp_path, monkeypatch, candidate
+):
+    app, client, url, body = setup(tmp_path, monkeypatch)
+    preview = client.post(url, json=body).json()
+    evidence_url = url.replace("/analysis/preview", "/evidence")
+    evidence = client.get(evidence_url, params=body).json()
+    connection = Mock()
+    response = connection.getresponse.return_value
+    response.status = 200
+    response.read.return_value = json.dumps({"candidates": [candidate]}).encode()
+    monkeypatch.setattr(module.http.client, "HTTPSConnection", Mock(return_value=connection))
+
+    failed = send(client, preview)
+    assert failed.status_code == 502
+    assert failed.json() == {
+        "detail": "Gemini returned invalid or incomplete analysis. Retry or use the local summary."
+    }
+    assert len(failed.content) < 200
+    assert connection.request.call_count == 1
+    connection.close.assert_called_once()
+    assert app.state.analysis.previews[preview["preview_id"]].packet == preview["packet"]
+    assert client.get(evidence_url, params=body).json() == evidence
+
+    response.read.return_value = json.dumps(
+        {
+            "candidates": [
+                {"finishReason": "STOP", "content": {"parts": [{"text": json.dumps(result())}]}}
+            ]
+        }
+    ).encode()
+    retried = send(client, preview)
+    assert retried.status_code == 200
+    assert retried.json()["analysis"] == result()
+    assert connection.request.call_count == 2
+    assert connection.request.call_args_list[0] == connection.request.call_args_list[1]
+
+
 def test_rest_contract_timeout_and_invalid_finish(monkeypatch):
     connection = Mock()
     response = connection.getresponse.return_value

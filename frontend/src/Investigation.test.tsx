@@ -745,3 +745,66 @@ it("keeps the local summary and pinned investigation usable when optional Gemini
     ),
   ).toBeInTheDocument();
 });
+
+it("preserves the preview, local summary and evidence navigation after invalid Gemini analysis", async () => {
+  const base = fetchMock.getMockImplementation()!;
+  const packet = '{"sample":[{"message":"Downstream timeout"}]}';
+  fetchMock.mockImplementation((url: string, options?: RequestInit) => {
+    if (url.includes("/analysis/preview"))
+      return Promise.resolve({
+        ok: true,
+        json: async () => ({
+          preview_id: "preview-token",
+          packet,
+          provider: "Gemini",
+          model: "test-model",
+          synthetic_only: true,
+          paid_service: false,
+        }),
+      });
+    if (url === "/api/analysis/send")
+      return Promise.resolve({
+        ok: false,
+        json: async () => ({
+          detail:
+            "Gemini returned invalid or incomplete analysis. Retry or use the local summary.",
+        }),
+      });
+    return base(url, options);
+  });
+  const user = userEvent.setup();
+  render(<Router />);
+  await user.click(
+    await screen.findByRole("link", {
+      name: "Investigate checkout incident #1",
+    }),
+  );
+  await user.click(
+    await screen.findByRole("button", {
+      name: "Preview evidence for analysis",
+    }),
+  );
+  await user.click(
+    await screen.findByRole("button", { name: "Send for analysis" }),
+  );
+  expect(await screen.findByRole("alert")).toHaveTextContent(
+    "Gemini returned invalid or incomplete analysis",
+  );
+  expect(screen.getByText(packet)).toBeInTheDocument();
+  expect(
+    screen.getByRole("button", { name: "Send for analysis" }),
+  ).toBeEnabled();
+  expect(
+    screen.getByRole("heading", { name: "Local evidence summary" }),
+  ).toBeInTheDocument();
+  expect(window.location.search).toContain("incident=1");
+  expect(
+    fetchMock.mock.calls.filter(([url]) => url === "/api/analysis/send"),
+  ).toHaveLength(1);
+  await user.click(screen.getByRole("link", { name: "View evaluated logs" }));
+  expect(
+    await screen.findByText(
+      /40 evaluated events · 40 matching current filters/,
+    ),
+  ).toBeInTheDocument();
+});

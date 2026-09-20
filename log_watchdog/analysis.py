@@ -140,7 +140,12 @@ def generate(settings: Settings, packet: str) -> dict[str, Any]:
             )
         result = json.loads(raw)
         candidates = result["candidates"]
-        if len(candidates) != 1 or candidates[0].get("finishReason") != "STOP":
+        if (
+            not isinstance(candidates, list)
+            or len(candidates) != 1
+            or not isinstance(candidates[0], dict)
+            or candidates[0].get("finishReason") != "STOP"
+        ):
             raise ValueError("Incomplete or blocked result")
         parts = candidates[0]["content"]["parts"]
         if len(parts) != 1 or not isinstance(parts[0]["text"], str):
