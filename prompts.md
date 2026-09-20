@@ -1117,3 +1117,14 @@ All seven approved issues are closed and PRs #8–#14 merged. The final workbenc
 ### Publication approval boundary — 2026-09-20T01:11:35Z
 
 Automatic approval review rejected the final `git push`, stating that GitHub publication conflicts with “Do not submit anything externally.” The earlier refinement commit and PR #15 had already been published through approved calls. The later review-record commit was made locally only. The coordinator stopped push/merge and requested explicit clarification rather than bypassing the rejection. Code verification and both independent reviews remain passing; the documentation follow-up corrected wording that could imply merge had already occurred. Local work and external verification logs are preserved.
+
+
+## GitHub publication approval — 2026-09-20T01:14:33Z
+
+```text
+> May I push the final review-record commit and merge PR #15 on GitHub? All code and checks are complete, and both independent reviews passed. Automatic approval review blocked the push because it interpreted “Do not submit anything externally” as also prohibiting GitHub publication.
+
+Allow GitHub push and merge; no external submission
+```
+
+The user explicitly authorizes GitHub push and merge for PR #15. External submission and deployment remain prohibited. The coordinator rechecked the unchanged main base, expected branch/head, clean checkout, no closing issues, and no conflicting PR metadata before proceeding. Only approval/audit documentation changes follow the independently reviewed implementation.
