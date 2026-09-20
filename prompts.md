@@ -1826,3 +1826,11 @@ Do this: check this for other try-the-demo links as well. The advanced one-minut
 ```
 
 Verified all four walkthrough links with mouse and keyboard at desktop/narrow widths. Reset, Advance and Investigate guide links avoid native hash navigation and unwanted focus/scroll. Fixed the remaining narrow-screen receiver link: explicitly reveal its destination on first navigation and retain saved scroll on history restoration. Added a stable origin ID so Back restores the receiver walkthrough link. Expanded keyboard coverage across all three in-page links and added receiver/history regression coverage. All 103 frontend tests, typecheck, lint, build and formatting passed; Playwriter confirmed receiver visibility and Back/Forward. Committing and pushing the accumulated user-requested UI, screenshot and video revisions on cleanup-main-flows. No backend changes or external submission.
+
+## 2026-09-20 — Commit and push confirmation
+
+```text
+commit and push
+```
+
+Verified the working tree was clean at bffef30 on cleanup-main-flows. Recorded this prompt and the Git verification in the audit/tooling docs, then committed and pushed the documentation update. No application changes.

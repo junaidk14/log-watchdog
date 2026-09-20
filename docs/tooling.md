@@ -40,7 +40,7 @@ The installed stack versions were recorded during implementation (Python 3.14.5,
 | Hyperframes 0.8.53 / GSAP 3.14.2 / FFmpeg 8.1.2 | Used | Local 18-second launch-video composition, browser checks, encoding, poster frame and user-supplied Gemini screenshot revision; no hosted rendering or publication |
 | NumPy / uv isolated tooling cache | Used | Official Hyperframes audio-band extraction for a restrained music-responsive accent; app requirements unchanged |
 | Markdown / Mermaid | Used | Product/architecture docs and local AI-generated presentation; documentation index and grouped verification reports; no slide publication |
-| Python standard library / ripgrep / Git | Used | Documentation path updates, relative-link and heading-anchor checks, preserved audit-history check, commit and push |
+| Python standard library / ripgrep / Git | Used | Documentation path updates, relative-link and heading-anchor checks, preserved audit-history check, commit/push and branch synchronization verification |
 | macOS `open` / Impeccable CLI | Used | Initial local design choices and context/critique/audit/refinement workflows |
 
 No cloud compute, hosted database, cloud storage or deployment resources were provisioned or used for the MVP. GitHub and AI development services are distinct from application infrastructure. The optional external Gemini integration is not described as cloud-free execution if a user elects to send evidence.
