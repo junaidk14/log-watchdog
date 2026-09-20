@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { AnalysisPane } from "./AnalysisPane";
 import { PageLink, viewUrl } from "./navigation";
 import { Trend, type Measurement } from "./Overview";
 
@@ -246,6 +247,15 @@ export function EvidencePane({
               , then compare message details and surrounding evaluated events
               with recent service changes.
             </p>
+            {!switching && !error && (
+              <AnalysisPane
+                key={`${dataset}:${incident}:${data.run}:${data.measurement.id}`}
+                dataset={dataset}
+                incident={incident}
+                evaluation={data.measurement.id}
+                run={data.run}
+              />
+            )}
             <h3>Sample of evaluated logs</h3>
             <p>
               {data.sample.length} representative events, errors first; this

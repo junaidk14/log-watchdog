@@ -749,3 +749,11 @@ button.destructive {
   color: #932a32;
   border-color: #932a32;
 }
+
+.analysis-pane a + a {
+  margin-left: 12px;
+}
+.analysis-packet {
+  max-height: 320px;
+  overflow: auto;
+}

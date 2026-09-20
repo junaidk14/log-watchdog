@@ -91,6 +91,13 @@ class Evidence:
                 included,
             ).fetchall()
             return {
+                "synthetic_only": dataset == "demo"
+                and retained == selected["total"]
+                and retained > 0
+                and not db.execute(
+                    f"SELECT 1 FROM events WHERE {evaluated} AND trusted_synthetic=0 LIMIT 1",
+                    included,
+                ).fetchone(),
                 "deliveries": [
                     dict(row)
                     for row in db.execute(

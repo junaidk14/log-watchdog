@@ -2,7 +2,7 @@
 
 A local, single-user structured log explorer built with FastAPI, SQLite, and React. Ingest events, filter them by dataset, service, severity, UTC interval or message, and inspect their metadata. No login or external credentials are needed.
 
-This implementation delivers structured ingestion and browsing, error-log rate detection, incident investigation, and actual local webhook delivery with persisted retries (issues #1–#6). Overview opens first; Incidents, Logs and Deliveries preserve investigation context. Historical JSON upload and trends are available in Logs → Historical. Seven-day retention and a Demo-only reset are implemented. Optional LLM analysis remains a later approved slice. See [data lifecycle and reset](docs/lifecycle.md). See [delivery behavior and the retry walkthrough](docs/deliveries.md). See [detector behavior and configuration](docs/detection.md) for the complete five-advance demonstration, formula, and persistence boundaries.
+This implementation delivers structured ingestion and browsing, error-log rate detection, incident investigation, and actual local webhook delivery with persisted retries (issues #1–#6). Overview opens first; Incidents, Logs and Deliveries preserve investigation context. Historical JSON upload and trends are available in Logs → Historical. Seven-day retention and a Demo-only reset are implemented. Optional Gemini evidence analysis is available through explicit preview and send; credentials are never needed for the core flow. See [configuration, privacy and analysis limits](docs/analysis.md). See [data lifecycle and reset](docs/lifecycle.md). See [delivery behavior and the retry walkthrough](docs/deliveries.md). See [detector behavior and configuration](docs/detection.md) for the complete five-advance demonstration, formula, and persistence boundaries.
 
 ## Start locally
 
@@ -67,7 +67,7 @@ npm --prefix frontend test
 
 Backend tests cover schema failures, complete-batch rollback, ID generation/deduplication/conflicts, normalization, literal filters, paging, dataset isolation, seed idempotence, and SQLite restart. Frontend tests cover query/Back restoration (including response timing), same-query actions, dataset races, expansion/focus, loading/empty/error/retry, literal rendering of untrusted messages, and available axe DOM accessibility rules. jsdom cannot establish rendered layout, contrast, or real-browser keyboard behavior. ESLint explicitly permits focusable named `region` elements to make the overflowing table keyboard-scrollable; other accessibility rules remain active.
 
-See [issue #1 evidence](docs/verification-issue-1.md), [issue #2 evidence](docs/verification-issue-2.md), [issue #3 evidence](docs/verification-issue-3.md), [issue #4 evidence](docs/verification-issue-4.md), [issue #5 evidence](docs/verification-issue-5.md), and [issue #6 evidence](docs/verification-issue-6.md) for measured results and pending manual UI checks.
+See [issue #1 evidence](docs/verification-issue-1.md), [issue #2 evidence](docs/verification-issue-2.md), [issue #3 evidence](docs/verification-issue-3.md), [issue #4 evidence](docs/verification-issue-4.md), [issue #5 evidence](docs/verification-issue-5.md), [issue #6 evidence](docs/verification-issue-6.md), and [issue #7 evidence](docs/verification-issue-7.md) for measured results and pending manual UI checks.
 
 ## Investigate evaluated evidence
 
