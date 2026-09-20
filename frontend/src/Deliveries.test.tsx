@@ -113,6 +113,18 @@ it("shows exhausted attempts independently from recovered incident and provides 
     screen.getByText(/Incident recovered · Notification exhausted/),
   ).toBeVisible();
   expect(screen.queryByRole("button", { name: /resend/i })).toBeNull();
+  expect(screen.getByRole("link", { name: "Demo Overview" })).toHaveAttribute(
+    "href",
+    "?view=overview&dataset=demo",
+  );
+  expect(
+    screen.getByText(/To repeat the Demo opening scenario/),
+  ).toHaveTextContent(
+    /Reset demo, then Confirm reset Demo only.*restores the receiver to Success/,
+  );
+  expect(screen.getByText(/After resetting,/)).toHaveTextContent(
+    /choose Demo receiver behavior, Save behavior, then return to Overview and Advance one minute/,
+  );
   expect(
     (
       await axe.run(container, {

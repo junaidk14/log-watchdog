@@ -10,6 +10,7 @@ from typing import Any, Literal
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from .delivery import enqueue, initialize
+from .evidence import EvidenceUnavailable
 from .models import EventInput, utc_text
 from .store import Store
 
@@ -181,8 +182,15 @@ class Detector:
         if status == "spike detected" and incident is None:
             notification = "opened"
             incident_id = db.execute(
-                "INSERT INTO incidents(dataset,service,state,start,end) VALUES (?,?,'open',?,?)",
-                (dataset, service, utc_text(start), utc_text(end)),
+                "INSERT INTO incidents(id,dataset,service,state,start,end) "
+                "VALUES (?,?,?,'open',?,?)",
+                (
+                    self.store.reserve_ids(db, "incidents", "id"),
+                    dataset,
+                    service,
+                    utc_text(start),
+                    utc_text(end),
+                ),
             ).lastrowid
         elif incident:
             streak = incident["recovery_streak"] + 1 if status == "no spike detected" else 0
@@ -200,11 +208,12 @@ class Detector:
                 ),
             )
         evaluation_id = db.execute(
-            "INSERT INTO evaluations(dataset,service,start,end,total,errors,rate,"
+            "INSERT INTO evaluations(id,dataset,service,start,end,total,errors,rate,"
             "expected,threshold,"
             "baseline_total,baseline_errors,baseline_count,baseline_member,status,incident_id,"
-            "watermark,config,evaluated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+            "watermark,config,evaluated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
             (
+                self.store.reserve_ids(db, "evaluations", "id"),
                 dataset,
                 service,
                 utc_text(start),
@@ -229,9 +238,14 @@ class Detector:
             assert incident_id is not None and evaluation_id is not None
             enqueue(db, incident_id, notification, evaluation_id)
 
-    def advance(self) -> dict[str, Any]:
+    def advance(self, run: str | None = None) -> dict[str, Any]:
         with self.store.connection() as db:
             db.execute("BEGIN IMMEDIATE")
+            current = db.execute("SELECT value FROM settings WHERE key='demo_run'").fetchone()[0]
+            if run is not None and run != current:
+                raise EvidenceUnavailable(
+                    409, "This demo run was reset. Return to the current demo."
+                )
             progress = db.execute(
                 "SELECT * FROM evaluation_progress WHERE dataset='demo'"
             ).fetchone()

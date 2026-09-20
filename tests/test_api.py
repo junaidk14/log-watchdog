@@ -1,3 +1,4 @@
+from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
@@ -34,7 +35,8 @@ def get(client, dataset="live", **params):
 def test_generated_ids_and_restart(tmp_path):
     path = tmp_path / "events.sqlite3"
     with TestClient(create_app(path)) as first:
-        result = post(first, [event(), event()]).json()
+        recent = event(timestamp=datetime.now(UTC).isoformat())
+        result = post(first, [recent, recent]).json()
         assert result["inserted"] == 2
         assert len(set(result["event_ids"])) == 2
         assert get(first).json()["total"] == 2

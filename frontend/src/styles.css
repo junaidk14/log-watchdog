@@ -736,3 +736,16 @@ summary {
   margin-top: 12px;
   white-space: pre-wrap;
 }
+
+.reset-confirmation {
+  border: 1px solid var(--rule);
+  padding: 20px;
+  margin-bottom: 16px;
+}
+.reset-confirmation p {
+  max-width: 70ch;
+}
+button.destructive {
+  color: #932a32;
+  border-color: #932a32;
+}

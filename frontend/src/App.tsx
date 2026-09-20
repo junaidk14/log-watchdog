@@ -106,6 +106,7 @@ export function App() {
   const [results, setResults] = useState<Results | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [staleRun, setStaleRun] = useState(false);
   const [revision, setRevision] = useState(0);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [fetchedAt, setFetchedAt] = useState<string | null>(null);
@@ -134,6 +135,7 @@ export function App() {
   }, []);
   useEffect(() => {
     const controller = new AbortController();
+    setStaleRun(false);
     const invalid = filterError(filters);
     if (invalid) {
       setError(invalid);
@@ -158,7 +160,14 @@ export function App() {
     })
       .then(async (response) => {
         if (!response.ok) {
-          if (filters.incident && [404, 410].includes(response.status)) {
+          if (response.status === 410 && !controller.signal.aborted) {
+            setResults(null);
+            setStaleRun(filters.dataset === "demo");
+          }
+          if (
+            response.status === 410 ||
+            (filters.incident && response.status === 404)
+          ) {
             const body = await response.json();
             throw new Error(body.detail);
           }
@@ -549,10 +558,10 @@ export function App() {
               <button type="button" onClick={() => setRevision(revision + 1)}>
                 Retry
               </button>
-              {filters.incident && (
+              {(filters.incident || staleRun) && (
                 <PageLink
-                  href={`?view=overview&dataset=${filters.dataset}`}
-                  focus="queue-heading"
+                  href={`?view=${filters.incident ? "overview" : "logs"}&dataset=${filters.dataset}`}
+                  focus={filters.incident ? "queue-heading" : "logs-heading"}
                 >
                   Return to current {filters.dataset}
                 </PageLink>

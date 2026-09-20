@@ -229,3 +229,35 @@ Project-specific AFK policy now authorizes #4–#7 and requires implementation/f
 - Existing Python/FastAPI/SQLite and frontend verification tools — Used without new dependencies or schema changes. Runtime HTTP upload fixtures now supply the dashboard's application/json header.
 - Browser skill/runtime — Used for supported setup and recovery discovery; no browser available and recovery list empty. Rendered checks remain pending.
 - `pr` skill, Git/GitHub CLI and clock tool — Used for existing PR evidence, metadata handoff and elapsed time.
+
+## Issue #6 lifecycle
+
+- Existing Python/FastAPI/SQLite/asyncio and standard-library `threading.RLock` — Used for startup/hourly retention, atomic Demo reset, worker/reset serialization, and monotonic identities in the existing settings table. No runtime dependency added.
+- Existing React/TypeScript/CSS, Vitest/Testing Library/axe — Used for inline run-bound confirmation, cancellation, busy/error/completion states and DOM focus checks. jsdom contrast is covered separately by the existing static palette checker, not represented as rendered verification.
+- Existing pytest/httpx/Uvicorn, Ruff/mypy and runtime validator — Used for protected evidence, expiration boundaries, restart, rollback, in-flight HTTP/evaluation serialization, real HTTP and measured 100k-event/20-events-per-second validation.
+- Impeccable context/craft-floor/detector — Used for the narrow extension; detector returned `[]`. The required finish-reviewer spawn failed with a harness thread error, so the documented inline finish-reviewer/documenter fallbacks were used. Existing design system preserved; no raster assets.
+- Browser skill/runtime — Used for supported setup/recovery; `getForUrl` reported no browser and discovery returned `[]`. Rendered checks remain deferred under the authorized fallback.
+- `domain-modeling` and `pr` skills; Git/GitHub CLI and clock — Used for lifecycle decisions, paginated eligibility/dependency checks, PR evidence, metadata handoff and elapsed time.
+
+## PR #13 review fix R1
+
+- `diagnosing-bugs`, Vitest/jsdom, Testing Library and axe — Used to reproduce stale run URLs with/without incident selection and real History API Back after two mocked successful resets. Existing tests verify return-link recovery and mutation guards; DOM evidence does not establish rendered behavior. The supplied review already localized the cause, so the regression loop replaced speculative hypothesis/instrumentation work.
+- Impeccable context, harden guidance and detector — Used for the scoped stale-state fix with existing error/control styles; no new visual tokens or dependencies.
+- Browser skill/runtime — Used for supported discovery and recovery; no browser available, recovery list empty.
+- Existing frontend/backend build, lint, format, type, contrast, test and runtime tools — Reused for verification; `pr` skill and GitHub CLI used to update the existing PR.
+
+## PR #13 general Logs review fix R1
+
+- Existing FastAPI/SQLite and React/TypeScript — Used to guard general Demo event reads in one snapshot and show the existing reset error/recovery pattern without an incident selection. No new dependency, schema or material architectural decision.
+- `diagnosing-bugs`, pytest/TestClient and Vitest/Testing Library/axe — Used for red/green API and component regressions, a deterministic reset/read interleaving, reload/refresh/Back and recovery. Supplied findings localized the cause, so regression reproduction replaced speculative hypotheses and instrumentation.
+- Impeccable context/harden/craft-floor/detector — Used for the scoped error state within existing styles; detector returned `[]`. Browser skill setup/recovery returned no browser and `[]`; rendered verification remains deferred.
+- Existing Ruff/mypy/ESLint/Prettier/TypeScript/Vite, static contrast and real HTTP runtime validator — Used for verification. jsdom's axe canvas/contrast diagnostic is an environment limit, not rendered contrast evidence; no checks were disabled.
+- `pr` skill, Git/GitHub CLI and clock — Used for existing PR evidence, dependency/metadata checks and handoff.
+
+## PR #13 delivery guidance review fix R1
+
+- Existing React/TypeScript and Markdown — Used for the exhausted-delivery reset instructions and matching retry/exhaustion walkthrough; no new dependency or architectural decision.
+- Impeccable context/clarify/craft-floor/detector and `pr` skill — Used for scoped recovery copy and existing PR evidence. Detector returned `[]`; existing design tokens retained.
+- Existing Vitest/Testing Library/axe, pytest/TestClient, TypeScript/Vite, ESLint/Prettier, Ruff/mypy, static contrast and runtime validator — Used for verification. Temporary-database API walkthrough verifies reset restores Success before configuring each new scenario.
+- Browser skill/runtime — Used for supported setup and recovery; no browser available and recovery list `[]`. Rendered checks remain pending.
+- Git/GitHub CLI, Python standard library and clock — Used for state/dependency checks, audit/evidence updates and elapsed-time handoff.

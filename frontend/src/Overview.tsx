@@ -140,9 +140,20 @@ export function Overview() {
   const dataset = params.get("dataset") ?? "demo";
   const [selected, setSelected] = useState(params.get("incident"));
   const [data, setData] = useState<OverviewData | null>(null);
+  const reset =
+    dataset === "demo" &&
+    params.has("run") &&
+    Boolean(data?.run) &&
+    params.get("run") !== data?.run;
   const [error, setError] = useState<string | null>(null);
   const [fetched, setFetched] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [confirmReset, setConfirmReset] = useState(false);
+  const resetRun = useRef<string | null>(null);
+  const [resetting, setResetting] = useState(false);
+  const [resetMessage, setResetMessage] = useState("");
+  const [resetError, setResetError] = useState("");
+  const resetButton = useRef<HTMLButtonElement>(null);
   const [revision, setRevision] = useState(0);
   const heading = useRef<HTMLHeadingElement>(null);
   const queue = useRef<HTMLHeadingElement>(null);
@@ -168,7 +179,8 @@ export function Overview() {
     );
     setData(next);
     setFetched(new Date().toISOString());
-    if (advanced || changes.length)
+    if (advanced || changes.length) {
+      setResetMessage("");
       setAnnouncement(
         [
           advanced
@@ -179,6 +191,7 @@ export function Overview() {
           .filter(Boolean)
           .join(" "),
       );
+    }
   }, []);
   useEffect(() => {
     mounted.current = true;
@@ -224,7 +237,7 @@ export function Overview() {
   usePageRestoration(
     data !== null || error !== null,
     // A failed initial load has no workbench headings or evidence controls.
-    !data
+    !data || reset
       ? "overview-heading"
       : selected
         ? "incident-heading"
@@ -240,12 +253,16 @@ export function Overview() {
     return () => window.removeEventListener("popstate", back);
   }, []);
   async function advance() {
+    if (reset || advancing.current) return;
     advancing.current = true;
     ++requestNumber.current;
     setBusy(true);
     setError(null);
     try {
-      const response = await fetch("/api/demo/advance", { method: "POST" });
+      const response = await fetch(
+        `/api/demo/advance${data?.run ? `?run=${encodeURIComponent(data.run)}` : ""}`,
+        { method: "POST" },
+      );
       if (!response.ok)
         throw new Error(
           `Could not advance simulation (HTTP ${response.status}). Refresh to check the current simulation time before trying again.`,
@@ -264,6 +281,61 @@ export function Overview() {
     } finally {
       advancing.current = false;
       if (mounted.current) setBusy(false);
+    }
+  }
+  async function resetDemo() {
+    if (reset || advancing.current || !resetRun.current) return;
+    advancing.current = true;
+    ++requestNumber.current;
+    setBusy(true);
+    setResetting(true);
+    setResetError("");
+    setResetMessage("");
+    try {
+      const response = await fetch("/api/demo/reset", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          run: resetRun.current,
+          confirm_demo_only: true,
+        }),
+      });
+      if (!response.ok)
+        throw new Error(
+          response.status === 409
+            ? "This demo run was already reset. Cancel, refresh overview, then open Reset demo again."
+            : `Reset result unknown (HTTP ${response.status}). Refresh overview to check the current run before retrying.`,
+        );
+      const next: OverviewData = await response.json();
+      if (!mounted.current) return;
+      previousIncidents.current = null;
+      acceptResults(next);
+      setError(null);
+      setSelected(null);
+      window.history.pushState(
+        { focus: "reset-demo" },
+        "",
+        `?view=overview&dataset=demo&run=${encodeURIComponent(next.run!)}`,
+      );
+      setLocation(window.location.search);
+      setConfirmReset(false);
+      setResetMessage(
+        "Demo reset. Normal history restored; Live and Historical are unchanged.",
+      );
+      window.requestAnimationFrame(() => resetButton.current?.focus());
+    } catch (problem) {
+      if (mounted.current)
+        setResetError(
+          problem instanceof Error
+            ? problem.message
+            : "Reset result unknown. Refresh overview before retrying.",
+        );
+    } finally {
+      advancing.current = false;
+      if (mounted.current) {
+        setBusy(false);
+        setResetting(false);
+      }
     }
   }
   function select(id: string | null) {
@@ -309,11 +381,6 @@ export function Overview() {
         )?.focus();
     });
   }
-  const reset =
-    dataset === "demo" &&
-    params.has("run") &&
-    data?.run &&
-    params.get("run") !== data.run;
   const incident = reset
     ? undefined
     : data?.incidents.find((i) => String(i.id) === selected);
@@ -419,6 +486,17 @@ export function Overview() {
             </select>
           </label>
         </header>
+        {reset && (
+          <div className="error" role="alert">
+            <p>This demo run was reset. Return to the current demo.</p>
+            <PageLink
+              href={`?view=overview&dataset=demo&run=${encodeURIComponent(data!.run!)}`}
+              focus="queue-heading"
+            >
+              Return to current demo
+            </PageLink>
+          </div>
+        )}
         <div className="overview-controls">
           <div>
             <strong>
@@ -446,10 +524,27 @@ export function Overview() {
             {dataset === "demo" && (
               <button
                 className="primary"
-                disabled={busy || !data}
+                disabled={busy || reset || confirmReset || !data}
                 onClick={() => void advance()}
               >
-                {busy ? "Advancing…" : "Advance one minute"}
+                {busy && !resetting ? "Advancing…" : "Advance one minute"}
+              </button>
+            )}
+            {dataset === "demo" && (
+              <button
+                id="reset-demo"
+                ref={resetButton}
+                disabled={busy || reset || !data?.run}
+                aria-expanded={confirmReset}
+                aria-controls="reset-confirmation"
+                onClick={() => {
+                  resetRun.current = data?.run ?? null;
+                  setConfirmReset(true);
+                  setResetError("");
+                  setResetMessage("");
+                }}
+              >
+                Reset demo
               </button>
             )}
             <button
@@ -463,8 +558,48 @@ export function Overview() {
             </button>
           </div>
         </div>
-        <p className="sr-only" role="status">
-          {announcement}
+        {dataset === "demo" && confirmReset && (
+          <section
+            id="reset-confirmation"
+            className="reset-confirmation"
+            aria-labelledby="reset-title"
+          >
+            <h2 id="reset-title">Reset only Demo?</h2>
+            <p>
+              This deletes Demo logs, incidents, evaluations and delivery
+              history, cancels queued Demo notifications, and restores normal
+              history and the default receiver behavior. Live and Historical
+              data are unchanged.
+            </p>
+            <div className="overview-actions">
+              <button
+                className="destructive"
+                disabled={busy || reset}
+                onClick={() => void resetDemo()}
+              >
+                {resetting ? "Resetting Demo…" : "Confirm reset Demo only"}
+              </button>
+              <button
+                disabled={busy}
+                onClick={() => {
+                  setConfirmReset(false);
+                  setResetError("");
+                  resetButton.current?.focus();
+                }}
+              >
+                Cancel reset
+              </button>
+            </div>
+            {resetError && <p role="alert">{resetError}</p>}
+          </section>
+        )}
+        <p className="workspace-footnote">
+          Routine data expires after seven days. Open investigations, their
+          evaluated evidence and pending deliveries are protected; this is not a
+          hard storage cap. Demo retention follows simulation time.
+        </p>
+        <p className={resetMessage ? undefined : "sr-only"} role="status">
+          {resetMessage || announcement}
         </p>
         {error && (
           <div className="error" role="alert">
@@ -481,7 +616,7 @@ export function Overview() {
             Loading overview…
           </div>
         )}
-        {data && (
+        {data && !reset && (
           <>
             <p className="refresh-time">
               Last evaluated through {time(data.progress.next_start)} · Last
@@ -595,9 +730,7 @@ export function Overview() {
                 )}
                 {selected && !incident && (
                   <p>
-                    {reset
-                      ? "This demo run was reset. Return to the current demo."
-                      : "Incident unavailable in this dataset or no longer retained."}
+                    Incident unavailable in this dataset or no longer retained.
                     <PageLink
                       href={`?view=overview&dataset=${dataset}`}
                       focus="queue-heading"

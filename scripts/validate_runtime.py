@@ -63,18 +63,21 @@ def main() -> None:
                 assert client.get(asset.group(1)).status_code == 200
                 assert client.get("/api/datasets/demo/events").json()["total"] == 3600
 
+                fixture_time = datetime.now(UTC).replace(second=0, microsecond=0) - timedelta(
+                    days=1
+                )
                 historical_file = json.dumps(
                     [
                         {
                             "event_id": "historical-http-1",
-                            "timestamp": "2025-12-01T10:00:00Z",
+                            "timestamp": fixture_time.isoformat(),
                             "service": "import-probe",
                             "severity": "ERROR",
                             "message": "Synthetic file timeout",
                         },
                         {
                             "event_id": "historical-http-2",
-                            "timestamp": "2025-12-01T10:02:00Z",
+                            "timestamp": (fixture_time + timedelta(minutes=2)).isoformat(),
                             "service": "import-probe",
                             "severity": "INFO",
                             "message": "Synthetic file normal",
@@ -122,7 +125,9 @@ def main() -> None:
                     events = [
                         {
                             "event_id": f"bench-{batch}-{i}",
-                            "timestamp": f"2026-01-01T12:{batch % 60:02}:{i % 60:02}Z",
+                            "timestamp": (
+                                fixture_time + timedelta(minutes=batch % 60, seconds=i % 60)
+                            ).isoformat(),
                             "service": ("api-gateway", "checkout", "worker")[i % 3],
                             "severity": "ERROR" if i % 20 == 0 else "INFO",
                             "message": "Downstream timeout"
@@ -170,7 +175,7 @@ def main() -> None:
                         json={
                             "events": [
                                 {
-                                    "timestamp": "2026-01-01T13:00:00Z",
+                                    "timestamp": (fixture_time + timedelta(hours=1)).isoformat(),
                                     "service": "checkout",
                                     "severity": "INFO",
                                     "message": "Paced synthetic event",
@@ -297,6 +302,42 @@ def main() -> None:
                     == "recovered"
                 )
                 assert client.get(evidence_url, params=evidence_params).json() == evaluated
+                # Reset after the complete HTTP retry/recovery walkthrough; preserve other data.
+                run = client.get("/api/datasets/demo/overview").json()["run"]
+                before_live = client.get("/api/datasets/live/events").json()["total"]
+                reset = client.post("/api/demo/reset", json={"run": run, "confirm_demo_only": True})
+                assert reset.status_code == 200
+                new_run = reset.json()["run"]
+                assert new_run != run and reset.json()["progress"]["steps"] == 0
+                assert reset.json()["incidents"] == []
+                stale_logs = client.get("/api/datasets/demo/events", params={"run": run})
+                assert stale_logs.status_code == 410 and "reset" in stale_logs.json()["detail"]
+                assert "events" not in stale_logs.json()
+                assert (
+                    client.get("/api/datasets/demo/events", params={"run": new_run}).json()["total"]
+                    == 3600
+                )
+                assert client.get("/api/datasets/demo/events").json()["total"] == 3600
+                assert client.get("/api/datasets/demo/deliveries").json()["deliveries"] == []
+                assert (
+                    client.get(evidence_url, params=evidence_params | {"run": run}).status_code
+                    == 410
+                )
+                assert client.post("/api/demo/advance", params={"run": run}).status_code == 409
+                process.terminate()
+                process.wait(timeout=10)
+                process = start()
+                assert client.get("/api/datasets/demo/overview").json()["run"] == new_run
+                assert (
+                    client.get("/api/datasets/demo/events", params={"run": run}).status_code == 410
+                )
+                assert client.get("/api/datasets/live/events").json()["total"] == before_live
+                assert client.get("/api/datasets/historical/events").json()["total"] == 2
+                new_incident = client.post("/api/demo/advance", params={"run": new_run}).json()[
+                    "incidents"
+                ][0]
+                assert new_incident["measurement"]["rate"] == 0.4
+                assert new_incident["id"] != recorded["incident_id"]
                 # Exercise the real background loop across one actual minute boundary.
                 window = datetime.now(UTC).replace(second=0, microsecond=0)
                 response = client.post(
@@ -339,6 +380,10 @@ def main() -> None:
                 print(
                     json.dumps(
                         {
+                            "demo_reset_http": (
+                                "confirmed, reseeded, stale URLs rejected; "
+                                "restart and isolation passed"
+                            ),
                             "delivery_http_restart": (
                                 "503 then process restart then 200, same ID; "
                                 "opening and recovery delivered"
