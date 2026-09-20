@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-09-19T21:02:43.359562+00:00",
+  "generatedAt": "2026-09-20T01:02:06.065579+00:00",
   "title": "Design System: Log Watchdog",
   "extensions": {
     "breakpoints": [
@@ -9,22 +9,32 @@
         "value": "1100px"
       },
       {
+        "name": "workbench-stack",
+        "value": "900px"
+      },
+      {
         "name": "narrow",
         "value": "700px"
       }
     ],
     "focus": {
-      "outline": "3px solid var(--focus)",
-      "offset": "3px",
-      "scrollRegionOffset": "-3px"
+      "outline": "2px solid var(--focus)",
+      "offset": "2px",
+      "scrollRegionOffset": "-3px",
+      "heading": "fit-content; max-width:100%; border-radius:2px"
     },
     "provenance": {
       "source": [
         "frontend/src/styles.css",
-        "frontend/src/App.tsx"
+        "frontend/src/Overview.tsx",
+        "frontend/src/EvidencePane.tsx",
+        "frontend/src/App.tsx",
+        "frontend/src/Deliveries.tsx",
+        "frontend/src/Historical.tsx",
+        "frontend/src/AnalysisPane.tsx"
       ],
-      "scope": "Issue #1 Logs only; future incident flow remains planned.",
-      "verification": "Source/DOM fallback. Session reports 14 frontend tests including axe, build/lint pass, and finish source review fixes resolved. Browser getForUrl failed; recovery list returned []. Rendered desktop, narrow, keyboard/focus and browser state/interaction checks remain pending. No tests run by this documentation pass.",
+      "scope": "Completed MVP and final workbench refinement.",
+      "verification": "Source/DOM fallback; supported browser discovery found no browser. No rendered inspection. See docs/final-validation.md for executed checks and manual checklist.",
       "assets": "No comp or raster assets.",
       "palette": "Exact colors live in DESIGN.md. No implementation tonal ramps, shadows, or motion tokens exist."
     }
@@ -36,7 +46,7 @@
       "refersTo": "button-primary",
       "description": "Compact explicit action; immediate state changes.",
       "html": "<button class=\"ds-primary\">Apply filters</button>",
-      "css": ".ds-primary{font-family:-apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif;font-size:16px;line-height:1.5;border:1px solid #8395a1;border-radius:4px;min-height:38px;padding:6px 12px;background:var(--surface, #fff);color:var(--ink, #202c36);cursor:pointer;font-weight:600;white-space:nowrap;}.ds-primary:hover:not(:disabled){background:var(--selected, #e7f1f5);border-color:var(--accent, #246b87)}.ds-primary:active:not(:disabled){background:#d0e4ec}.ds-primary:disabled{background:#edf0f2;color:#64737e;border-color:var(--rule, #cbd4d9);cursor:default}.ds-primary{background:var(--accent, #246b87);border-color:var(--accent, #246b87);color:white}.ds-primary:hover{background:#195773;color:white}.ds-primary:focus-visible{outline:3px solid var(--focus, #125777);outline-offset:3px}@media(max-width:700px){.ds-primary{min-height:44px}}"
+      "css": ".ds-primary{font-family:-apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif;font-size:16px;line-height:1.5;border:1px solid #8395a1;border-radius:4px;min-height:38px;padding:6px 12px;background:var(--surface, #fff);color:var(--ink, #202c36);cursor:pointer;font-weight:600;white-space:nowrap;}.ds-primary:hover:not(:disabled){background:var(--selected, #e7f1f5);border-color:var(--accent, #246b87)}.ds-primary:active:not(:disabled){background:#d0e4ec}.ds-primary:disabled{background:#edf0f2;color:#64737e;border-color:var(--rule, #cbd4d9);cursor:default}.ds-primary:not(:disabled){background:var(--accent, #246b87);border-color:var(--accent, #246b87);color:white}.ds-primary:hover:not(:disabled){background:#195773;color:white}.ds-primary:focus-visible{outline:2px solid var(--focus, #125777);outline-offset:2px}@media(max-width:700px){.ds-primary{min-height:44px}}"
     },
     {
       "name": "Secondary Button",
@@ -44,7 +54,7 @@
       "refersTo": "button-secondary",
       "description": "Compact explicit action; immediate state changes.",
       "html": "<button class=\"ds-secondary\">Clear filters</button>",
-      "css": ".ds-secondary{font-family:-apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif;font-size:16px;line-height:1.5;border:1px solid #8395a1;border-radius:4px;min-height:38px;padding:6px 12px;background:var(--surface, #fff);color:var(--ink, #202c36);cursor:pointer;font-weight:600;white-space:nowrap;}.ds-secondary:hover:not(:disabled){background:var(--selected, #e7f1f5);border-color:var(--accent, #246b87)}.ds-secondary:active:not(:disabled){background:#d0e4ec}.ds-secondary:disabled{background:#edf0f2;color:#64737e;border-color:var(--rule, #cbd4d9);cursor:default}.ds-secondary:focus-visible{outline:3px solid var(--focus, #125777);outline-offset:3px}@media(max-width:700px){.ds-secondary{min-height:44px}}"
+      "css": ".ds-secondary{font-family:-apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif;font-size:16px;line-height:1.5;border:1px solid #8395a1;border-radius:4px;min-height:38px;padding:6px 12px;background:var(--surface, #fff);color:var(--ink, #202c36);cursor:pointer;font-weight:600;white-space:nowrap;}.ds-secondary:hover:not(:disabled){background:var(--selected, #e7f1f5);border-color:var(--accent, #246b87)}.ds-secondary:active:not(:disabled){background:#d0e4ec}.ds-secondary:disabled{background:#edf0f2;color:#64737e;border-color:var(--rule, #cbd4d9);cursor:default}.ds-secondary:focus-visible{outline:2px solid var(--focus, #125777);outline-offset:2px}@media(max-width:700px){.ds-secondary{min-height:44px}}"
     },
     {
       "name": "Service Field",
@@ -52,15 +62,15 @@
       "refersTo": "input",
       "description": "Native labeled text field with a shared focus outline.",
       "html": "<label class=\"ds-label\">Service<input class=\"ds-input\" placeholder=\"All services\"></label>",
-      "css": ".ds-label{font-family:-apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif;font-size:16px;line-height:1.5;display:grid;gap:6px;font-size:13px;font-weight:600;color:var(--ink, #202c36)}.ds-input{font:inherit;width:100%;min-width:0;min-height:38px;padding:6px 10px;border:1px solid #8395a1;border-radius:4px;color:var(--ink, #202c36);background:var(--surface, #fff);caret-color:var(--accent, #246b87)}.ds-input::placeholder{color:#60717c;opacity:1}.ds-input:focus-visible{outline:3px solid var(--focus, #125777);outline-offset:3px}@media(max-width:700px){.ds-input{font-size:16px}}"
+      "css": ".ds-label{font-family:-apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif;font-size:16px;line-height:1.5;display:grid;gap:6px;font-size:13px;font-weight:600;color:var(--ink, #202c36)}.ds-input{font:inherit;width:100%;min-width:0;min-height:38px;padding:6px 10px;border:1px solid #8395a1;border-radius:4px;color:var(--ink, #202c36);background:var(--surface, #fff);caret-color:var(--accent, #246b87)}.ds-input::placeholder{color:#60717c;opacity:1}.ds-input:focus-visible{outline:2px solid var(--focus, #125777);outline-offset:2px}@media(max-width:700px){.ds-input{font-size:16px;min-height:44px}}"
     },
     {
       "name": "Current Navigation",
       "kind": "nav",
       "refersTo": "navigation-current",
-      "description": "Logs-only current destination; no separate hover treatment.",
-      "html": "<nav aria-label=\"Primary\"><a class=\"ds-nav\" href=\"?dataset=demo\" aria-current=\"page\">Logs</a></nav>",
-      "css": ".ds-nav{font-family:-apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif;font-size:16px;line-height:1.5;display:block;padding:10px 12px;border-radius:4px;text-decoration:none;font-weight:650;background:var(--selected, #e7f1f5);color:var(--accent, #246b87)}.ds-nav:focus-visible{outline:3px solid var(--focus, #125777);outline-offset:3px}"
+      "description": "Current destination within the context-preserving operations navigation.",
+      "html": "<nav aria-label=\"Primary\"><a class=\"ds-nav\" href=\"?view=overview&dataset=demo\" aria-current=\"page\">Overview</a></nav>",
+      "css": ".ds-nav{font-family:-apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif;font-size:16px;line-height:1.5;display:block;padding:10px 12px;border-radius:4px;text-decoration:none;font-weight:650;background:var(--selected, #e7f1f5);color:var(--accent, #246b87)}.ds-nav:focus-visible{outline:2px solid var(--focus, #125777);outline-offset:2px}"
     },
     {
       "name": "Severity Labels",
@@ -81,7 +91,7 @@
   ],
   "narrative": {
     "northStar": "Incident workbench",
-    "overview": "A precise, restrained operations workspace. Compact rows, clear labels, and stable context support repeated scanning and investigation. Cool neutral work surfaces, restrained status fills, and visible rules preserve the selected Incident workbench direction.\n\nData and readable controls carry the interface. Context-preserving inspection is the reusable signature: expanded log evidence stays beside its originating row. The current implementation uses immediate state changes without animation or decorative imagery.",
+    "overview": "A precise, restrained operations workspace. Compact ruled rows, clear labels, and stable context support repeated scanning and investigation. Cool neutral surfaces and workbench-blue actions preserve the approved direction. The signature is context-preserving evidence: selected incidents stay beside their queue on desktop; log inspection returns to its originating investigation.",
     "keyCharacteristics": [
       "Cool neutral surfaces and workbench-blue actions.",
       "Compact ruled rows with explicit severity labels.",
@@ -90,19 +100,19 @@
     "rules": [
       {
         "name": "The Explicit Status Rule",
-        "body": "Severity color always accompanies a readable severity label.",
+        "body": "Color supplements readable state; it never establishes health or carries meaning alone.",
         "section": "colors"
       }
     ],
     "dos": [
-      "Do preserve selected context during a refresh and keep dataset identity visible.",
+      "Do preserve selected context during refresh and keep dataset identity visible.",
       "Do pair severity color with its readable label.",
-      "Do keep long evidence readable through wrapping, expansion, and contained table scrolling."
+      "Do keep long evidence readable through wrapping, expansion and contained scrolling."
     ],
     "donts": [
-      "Don't let decorative treatment compete with investigation evidence.",
-      "Don't present future incident screens as implemented components.",
-      "Don't treat source or DOM checks as rendered layout or real-browser keyboard verification."
+      "Don\u2019t let decorative treatment compete with investigation evidence.",
+      "Don\u2019t imply volume is anomalous or absent traffic proves health.",
+      "Don\u2019t treat source or DOM checks as rendered layout or real-browser keyboard verification."
     ]
   }
 }

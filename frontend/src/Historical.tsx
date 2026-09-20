@@ -232,9 +232,13 @@ function HistoricalChart({ data, volume }: { data: Trends; volume?: boolean }) {
         role="img"
         aria-label={`Historical ${volume ? "volume" : "error-log rate"}. Exact UTC bucket values in the table below.`}
       >
+        <path d="M42 20H520M42 77.5H520" className="chart-grid" />
         <path d="M42 20V135H520" className="chart-axis" />
         <text x="0" y="25">
           {volume ? ceiling : "100%"}
+        </text>
+        <text x="0" y="81.5">
+          {volume ? ceiling / 2 : "50%"}
         </text>
         <text x="10" y="139">
           0
@@ -257,7 +261,7 @@ function HistoricalChart({ data, volume }: { data: Trends; volume?: boolean }) {
         <text x="42" y="165">
           First bucket
         </text>
-        <text x="435" y="165">
+        <text x="520" y="165" textAnchor="end">
           Last bucket
         </text>
       </svg>

@@ -1067,3 +1067,43 @@ Trigger: unattended IMPLEMENT assignment for `junaidk14/log-watchdog`, starting 
 ## 2026-09-20T00:48:06.922183+00:00 — FIX issue #7 / PR #14, malformed candidate R1
 
 Trigger: unattended FIX assignment for https://github.com/junaidk14/log-watchdog/issues/7 and existing PR #14 on `issue-7-gemini-evidence`, base `baa9d2fbff4c1fc27b0765d798c23a8f7cb7519a`, reviewed head `aa40a7a997df28f00ddb640348674f6253f97885`. Address only R1: validate non-object Gemini candidates before field access, return bounded JSON 502 guidance, and add regression coverage for null/string/number/array candidates, preserved previews, explicit retry and usable local summaries. Verify, commit without rewriting history, push the same branch, and update existing PR evidence. Never merge, approve, close issues or change protected runner files. Preserve exact JSON handoff and project elapsed time.
+
+
+## Read-only status prompts — audit completion
+
+Transcribed from the conversation during the authorized final audit completion. Original receipt timestamps were not retained here; no timestamps are invented. The read-only turns did not modify the repository.
+
+```text
+Can you show me the latest progress from the AFK run? Include a log tail as well.
+```
+
+```text
+What if the AFK runner status? do not change anything?
+```
+
+```text
+Is the fix session not started yet?
+```
+
+```text
+Review the completed one-issue AFK run and give me a concise summary of what happened: implementation, independent review findings, fixes, re-review, merge result, tests/checks, and anything still pending.
+
+Also verify that issue #1 is closed, PR #8 is merged, and main is clean and synchronized with origin/main.
+
+Don’t start the next issue yet.
+```
+
+```text
+What's the status?
+```
+
+
+## Final verification clarification — 2026-09-20T01:05:24Z
+
+```text
+> A separately launched Log Watchdog server (PID 10027) is using port 8000, which the required HTTP tests need exclusively. May I briefly stop it, run verification against temporary databases, and restart it with the standard launcher? Its database will remain untouched; any custom environment configuration would need to be retained.
+
+I stopped the server.
+```
+
+The coordinator did not terminate that process or change its database. The user freed port 8000; backend and real-HTTP validation resumed using temporary databases. All seven issues and PRs had already completed the independent review/merge gates. Final refinement, review and local Markdown presentation remain within the earlier authorization. No external submission is authorized. Progress timestamps now use the clock tool directly; several estimated intermediate timestamps during the final critique were corrected rather than treated as timing evidence.

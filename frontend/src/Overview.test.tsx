@@ -2,7 +2,7 @@ import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, expect, it, vi } from "vitest";
 import axe from "axe-core";
-import { Overview, type OverviewData } from "./Overview";
+import { Overview, Trend, type OverviewData } from "./Overview";
 
 const measurement = {
   id: 1,
@@ -201,6 +201,49 @@ it("renders loading, initial failure, retry and honest empty live baseline", asy
     screen.queryByRole("button", { name: "Advance one minute" }),
   ).not.toBeInTheDocument();
   expect(screen.getByText(/No active incidents/)).toBeInTheDocument();
+  expect(
+    screen.queryByRole("table", { name: "Incident queue" }),
+  ).not.toBeInTheDocument();
+  expect(
+    screen.queryByRole("heading", { name: "Select an incident" }),
+  ).not.toBeInTheDocument();
+  expect(
+    screen.getByRole("link", { name: "local ingestion API" }),
+  ).toHaveAttribute("href", "/docs");
+});
+
+it("shows one recorded window as an honest comparison and keeps volume non-anomalous", () => {
+  const { container, rerender } = render(<Trend rows={[measurement]} />);
+  expect(
+    screen.getByText("Error-log rate · recorded window"),
+  ).toBeInTheDocument();
+  expect(screen.getByText("40.00%")).toBeInTheDocument();
+  expect(screen.getByText("0.04%")).toBeInTheDocument();
+  expect(screen.getByText("5.04%")).toBeInTheDocument();
+  expect(screen.queryByRole("img")).not.toBeInTheDocument();
+  rerender(<Trend rows={[measurement]} volume />);
+  expect(screen.getByRole("img")).toHaveAccessibleName(/volume/);
+  expect(container.querySelector(".chart-abnormal")).toBeNull();
+  rerender(
+    <Trend
+      rows={[
+        measurement,
+        {
+          ...measurement,
+          id: 2,
+          rate: null,
+          expected: null,
+          threshold: null,
+          total: 0,
+          errors: 0,
+          status: "insufficient traffic",
+        },
+      ]}
+    />,
+  );
+  expect(container.querySelectorAll("circle")).toHaveLength(1);
+  expect(container.querySelector("path.chart-observed")).toBeNull();
+  expect(screen.getByText("Latest: Not evaluated")).toBeInTheDocument();
 });
 
 it("shows sparse recovery, delayed live windows and exact chart values accessibly", async () => {

@@ -247,15 +247,6 @@ export function EvidencePane({
               , then compare message details and surrounding evaluated events
               with recent service changes.
             </p>
-            {!switching && !error && (
-              <AnalysisPane
-                key={`${dataset}:${incident}:${data.run}:${data.measurement.id}`}
-                dataset={dataset}
-                incident={incident}
-                evaluation={data.measurement.id}
-                run={data.run}
-              />
-            )}
             <h3>Sample of evaluated logs</h3>
             <p>
               {data.sample.length} representative events, errors first; this
@@ -281,6 +272,15 @@ export function EvidencePane({
                 </li>
               ))}
             </ul>
+            {!switching && !error && (
+              <AnalysisPane
+                key={`${dataset}:${incident}:${data.run}:${data.measurement.id}`}
+                dataset={dataset}
+                incident={incident}
+                evaluation={data.measurement.id}
+                run={data.run}
+              />
+            )}
           </div>
         </>
       )}

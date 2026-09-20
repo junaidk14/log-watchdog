@@ -1,8 +1,8 @@
 # Published MVP tickets
 
-Status: Approved and published to `junaidk14/log-watchdog`. All seven issues carry `ready-for-agent`. Native GitHub blocking relationships and textual blocker references were verified. The original draft numbers match the published issue numbers.
+Status: All seven issues closed after reviewed PR merges (#8–#14), verified 2026-09-20 UTC. Originally approved and published to `junaidk14/log-watchdog`. All seven issues carry `ready-for-agent`. Native GitHub blocking relationships and textual blocker references were verified. The original draft numbers match the published issue numbers.
 
-Each slice delivers a working user-visible path through persistence, API, UI, and meaningful tests. There is no implementation to prefactor. Styling and accessibility ship with each slice rather than waiting for a final horizontal UI ticket.
+Each slice delivers a working user-visible path through persistence, API, UI, and meaningful tests. The original ticket drafts below preserve the planned vertical slices; implementation is now complete. Styling and accessibility ship with each slice rather than waiting for a final horizontal UI ticket.
 
 1. [Ingest structured events and browse them locally](01-ingest-and-browse.md). Blocked by: none.
 

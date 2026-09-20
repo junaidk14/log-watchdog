@@ -126,7 +126,7 @@ Record material architectural decisions here once made. Each entry states the de
 
 - **Decision:** Use the Gemini API through a small server-side REST adapter, with `GEMINI_API_KEY` and optional `GEMINI_MODEL` environment configuration; default to `gemini-3.5-flash-lite`. Restrict unpaid access to synthetic demo evidence; require appropriate paid-service configuration before enabling external analysis of live/imported evidence.
 - **Rationale:** The documented stable model offers free-tier and low-cost paid access without an orchestration framework. Unpaid-service data-use terms make synthetic demo evidence the suitable default; basic redaction does not establish that real logs are suitable for unpaid processing.
-- **Status:** Accepted under delegated provider selection; integration planned, no live provider call verified. Model availability and account quotas must be checked during implementation.
+- **Status:** Accepted under delegated provider selection; implemented in issue #7 and refined by ADR-031. No live provider call or account quota verified.
 - **Sources:** [Models](https://ai.google.dev/gemini-api/docs/models), [pricing](https://ai.google.dev/gemini-api/docs/pricing), [terms](https://ai.google.dev/gemini-api/terms), [REST API](https://ai.google.dev/api/generate-content). Checked 2026-09-20 IST.
 
 ## ADR-022 — Evaluated evidence as the incident log default

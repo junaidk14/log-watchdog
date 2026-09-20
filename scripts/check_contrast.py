@@ -25,9 +25,17 @@ for foreground, background in [
     ("accent", "selected"),
     ("surface", "accent"),
     ("error", "error-bg"),
+    ("error", "surface"),
     ("warning", "warning-bg"),
 ]:
     first, second = sorted((luminance(tokens[foreground]), luminance(tokens[background])))
     ratio = (second + 0.05) / (first + 0.05)
     print(f"{foreground} on {background}: {ratio:.2f}:1")
     assert ratio >= 4.5, f"Text contrast below 4.5:1: {foreground} on {background}"
+
+# Offset outlines sit on surrounding surfaces, including beside primary buttons.
+for background in ("surface", "ground", "selected"):
+    first, second = sorted((luminance(tokens["focus"]), luminance(tokens[background])))
+    ratio = (second + 0.05) / (first + 0.05)
+    print(f"focus on {background}: {ratio:.2f}:1")
+    assert ratio >= 3, f"Focus contrast below 3:1 on {background}"

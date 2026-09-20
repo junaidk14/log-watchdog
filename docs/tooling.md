@@ -11,8 +11,8 @@ Status: **Used** means exercised in this project; **Configured** means selected 
 | OpenAI Codex | Used | AI coding agent for repository inspection, architecture collaboration, code and documentation changes, and verification. |
 | Codex CLI 0.155.1 | Used | Checked local version and non-interactive flags for runner compatibility; initial version check preceded execution; issue #1 implementation has now run under the project policy. |
 | Bash 3.2.57 | Used | Validate the copied AFK runner with `bash -n`; also its execution shell when launched. |
-| AFK Codex runner (`junaidk14/tools`) | Used | The initial run stopped for browser absence; the subsequent issue #1 run completed implementation, independent review, fixes, re-review and merge (PR #8). The authorized continuation is capped at five core issues (#2–#6), with Gemini #7 deferred and safe-stop requirements in project policy. Project policy now permits an explicitly documented automated-check fallback with rendered UI checks pending manual verification. Generic runner and prompts remain unchanged from commit `0e7016fd713b3306df0f44fb636b2d4c19ddc3f0`. |
-| `jq` | Configured | Installed dependency used by the upstream runner to validate session results and GitHub state. |
+| AFK Codex runner (`junaidk14/tools`) | Used | The initial run stopped for browser absence; the subsequent issue #1 run completed implementation, independent review, fixes, re-review and merge (PR #8). All seven approved issues subsequently completed the implementation/review/fix/re-review/merge workflow. Gemini #7 followed the core MVP. Ordinary failures were repaired within configured retries; genuine blockers retain safe-stop behavior. Project policy now permits an explicitly documented automated-check fallback with rendered UI checks pending manual verification. Generic runner and prompts remain unchanged from commit `0e7016fd713b3306df0f44fb636b2d4c19ddc3f0`. |
+| `jq` | Used | Installed dependency used by the upstream runner to validate session results and GitHub state. |
 | Git | Used | Repository inspection and version control; inspected the remote and working-tree status. |
 | GitHub | Used | Remote repository at `junaidk14/log-watchdog`; queried issue and label inventory. |
 | GitHub Issues | Used | Published seven approved MVP tickets, labeled ready-for-agent, with eight verified native blocking relationships. Conventions are in [issue-tracker.md](agents/issue-tracker.md). |
@@ -64,12 +64,12 @@ Only skills actually applied or explicitly configured for this project are liste
 | API framework | Used | FastAPI 0.141.1 for typed ingestion/browsing and static dashboard serving; Pydantic 2.13.5 validates shared events. |
 | Database | Used | SQLite through Python sqlite3, WAL mode, dataset-scoped uniqueness and indexed browsing; no separate service or ORM. |
 | Dashboard framework | Used | React with TypeScript; Vite builds the Logs explorer for serving by FastAPI. Exact versions are in frontend/package-lock.json. |
-| Optional LLM provider | Planned | Google Gemini API via server-side REST; default `gemini-3.5-flash-lite`, configurable through environment variables. No live integration verified yet; see ADR-021. |
+| Optional LLM provider | Used | Google Gemini API via server-side REST; default `gemini-3.5-flash-lite`, configurable through environment variables. Implemented and tested with controlled responses; no live provider request verified. See ADR-031. |
 
 ## Project records
 
 - [Product context](../PRODUCT.md): durable users, purpose, operating context, constraints, and open product details.
-- [Design system](../DESIGN.md): implemented issue #1 tokens and components, with browser-dependent verification explicitly pending.
+- [Design system](../DESIGN.md): completed MVP tokens and components, with browser-dependent verification explicitly pending.
 - [AFK runner setup](../afk-Codex/README.md): pinned provenance, unchanged execution flow, launch prerequisites, and validation.
 - [UI investigation flow](ui-flow.md): workbench interactions, evaluated-evidence scope, clock/recovery feedback, delivery endings, and keyboard acceptance cases.
 - [Agent instructions](../AGENTS.md): entry point for repository-specific engineering conventions and the ongoing tooling documentation requirement.
@@ -276,3 +276,14 @@ Project-specific AFK policy now authorizes #4–#7 and requires implementation/f
 - `diagnosing-bugs` skill — Used for the failing-then-passing endpoint regression; the supplied finding localized the cause, so additional speculative hypotheses/instrumentation were unnecessary. Existing Vitest/Testing Library verifies the invalid-response guidance, retained preview/local summary and evaluated-log navigation.
 - Existing build, lint, type, format, contrast, backend/frontend tests and runtime validator — Used for verification. Browser skill supported setup failed and recovery discovery returned `[]`; rendered checks remain pending.
 - `pr` skill, Git/GitHub CLI and clock — Used for existing-PR evidence, assigned state/dependency checks and elapsed-time handoff.
+
+
+## Final refinement and handoff
+
+- **Impeccable critique, audit, polish, document — Used.** Two isolated source assessments and a deterministic scan inform a bounded refinement of sparse states, chart readings, evidence order, focus geometry and spacing. DESIGN.md and its schema-v2 sidecar capture the result. No decorative motion added.
+- **Browser skill — Used for discovery.** Supported selection reported no browser; recovery returned `[]`. Rendered desktop/narrow/keyboard checks remain deferred, not passed.
+- **code-review — Used.** Separate read-only Standards and Spec assessments of the entire implementation since the pre-code policy commit, plus final changes. Findings/results are recorded in final validation.
+- **Markdown and Mermaid — Used.** Local AI-generated presentation and architecture diagram; no deck upload or external submission.
+- Existing React, inline SVG, CSS, Vitest/axe, Ruff, mypy, pytest and real-HTTP validation tooling are reused. No runtime dependency or architecture was added for polish.
+
+- **pr skill — Used.** Structured final refinement PR description with concrete change, evidence and rollback scope.

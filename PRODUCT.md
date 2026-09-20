@@ -44,7 +44,7 @@ An explainable local observability MVP with a reproducible incident demonstratio
 - Send actual HTTP notifications on opening and recovery to the built-in local receiver only. Persist delivery state and attempt history; allow three attempts and resume pending work after restart.
 - Always provide a clearly labeled local evidence summary. Optional LLM output supplies evidence-linked summaries, possible causes, and next checks, never alert decisions or definitive root causes.
 - External analysis requires preview and an explicit "Send for analysis" action. Credentials and provider settings come only from environment variables. Basic redaction does not guarantee removal of secrets in arbitrary messages.
-- Gemini is the delegated provider selection, conditional on lightweight integration. Unpaid processing is limited to synthetic demo evidence; real-log analysis needs appropriate paid-service configuration. Provider integration and live access remain unverified.
+- Gemini is the delegated provider selection, conditional on lightweight integration. Unpaid processing is limited to synthetic demo evidence; real-log analysis needs appropriate paid-service configuration. The REST integration is implemented and tested with controlled responses; live account access remains unverified.
 - Apply seven-day retention to logs and completed investigations while preserving open incidents, their evidence, and pending deliveries. Demo reset clears and reseeds only demo data.
 - Three services, approximately 100,000 stored events, and roughly 20 events/second are design/test targets, not performance guarantees.
 - Defer arbitrary text parsing, external platform connectors, arbitrary webhook destinations, multi-user hosting, acknowledgment, assignment, and escalation.
@@ -53,10 +53,10 @@ An explainable local observability MVP with a reproducible incident demonstratio
 ## Evidence on Hand
 
 - [Architectural decisions](docs/adr/decisions.md): confirmed choices and rationale.
-- [MVP specification](docs/mvp-spec.md): consolidated workflow and acceptance criteria, awaiting final shared-understanding confirmation before implementation.
+- [MVP specification](docs/mvp-spec.md): approved workflow and acceptance criteria, implemented across issues #1–#7.
 - [Domain glossary](CONTEXT.md): agreed terminology.
 - [Tooling inventory](docs/tooling.md): used and planned tools.
-- The repository currently contains planning documentation, not an implemented application, measured benchmarks, or a running seeded demonstration. Future UI must distinguish simulated evidence from real operational data.
+- The repository contains the implemented local application, seeded demonstration and measured synthetic validation. The UI distinguishes simulated evidence from real operational data; these measurements are not performance guarantees. See docs/final-validation.md for current verification limits.
 
 ## Product Principles
 
@@ -70,4 +70,4 @@ An explainable local observability MVP with a reproducible incident demonstratio
 
 - "Intelligent Observability & Event Watchdog" is the working project description; no final brand identity or assets have been established.
 - No product-specific accessibility standard or additional device audience has been specified. This does not waive ordinary accessible interface implementation.
-- Final implementation confirmation is still pending; invoking product initialization and choosing code-first do not by themselves approve the outstanding build checkpoint.
+- All seven approved issues have merged. Final refinement and handoff are authorized separately; no external submission or deployment is authorized.
