@@ -23,6 +23,7 @@ Historical JSON ingestion, schema, API examples and exact upload limits are in t
 
 - [Current validation summary](final-validation.md): latest check scope, earlier full runtime evidence and remaining limitations.
 - [Rendered UX checks](verification-ux.md): dated browser, polish, walkthrough, motion and theme passes.
+- [Launch video](../brag-output/README.md): 18-second local MP4, poster, editable composition and share caption.
 - [Presentation handoff](presentation-handoff.md): concise project facts, screenshot manifest and final-deck confirmation items.
 - [Presentation](presentation.md): AI-generated Markdown deck; local artifact, not externally submitted.
 - [Tooling](tooling.md): consolidated inventory and infrastructure boundary.

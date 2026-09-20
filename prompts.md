@@ -1722,3 +1722,26 @@ At the end, report:
 ```
 
 Captured all six requested images with Playwriter at a consistent desktop viewport using a separate synthetic database copy, no background delivery or provider call, and no real key. Historical uses 60 newly generated synthetic records imported through the UI. Handoff documents capture provenance, test scope, no cloud application infrastructure, and absence of a documented Tagle result. User app remained untouched; no application source changed or external submission occurred.
+
+## 2026-09-20 — Polished launch video
+
+```text
+Use $brag with --duration 18 --tone polished to make a launch video for this project.
+
+Focus the story on:
+Overview -> incident investigation -> evaluated evidence -> delivery history -> optional Gemini analysis.
+
+Use the current app state and screenshots where useful. Keep it professional and product-focused, not flashy.
+```
+
+Applied the user-supplied brag skill. Parsed 18 seconds, polished, landscape, music/SFX enabled, no narration. Created plan/brief and a local Hyperframes composition using the current synthetic screenshots. Five real-product beats, quiet music, two sparse SFX, no provider output or invented claims. No application source change, cloud rendering or publication.
+
+## 2026-09-20 — NumPy for video tooling
+
+```text
+install numpy if required
+```
+
+Used NumPy through uv tooling to run the official audio extraction helper. Only a thin accent rule responds to extracted music data; UI/text remain steady. The uv command unexpectedly synchronized the repository's local virtual environment; immediately restored requirements-dev.lock, removed its generated uv.lock, and verified all 27 installed project packages are compatible. NumPy stays in the separate uv tooling cache. No dependency manifest changed.
+
+Launch-video outcome: full Hyperframes check passed (zero errors, 90/90 contrast checks), final 18-second 1080p/30fps H.264/AAC render completed locally. Selected a settled 1.4-second poster and baked frame zero; preserved duration, 540 frames and original encoded audio. Inspected rendered evidence/closing frames, saved share copy and verification notes. No publication. Bundled music redistribution terms remain to be confirmed before public posting.

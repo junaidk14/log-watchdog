@@ -37,6 +37,8 @@ The installed stack versions were recorded during implementation (Python 3.14.5,
 | Chrome DevTools MCP | Not used | Reserved for diagnosis when needed |
 | Codex execution/patch, clock, question and collaboration tools | Used | Local edits, timing, clarification and explicitly scoped independent agents |
 | Web tool / official provider docs | Used | Architecture, statistical and provider-contract research; no account/key provisioning |
+| Hyperframes 0.8.53 / GSAP 3.14.2 / FFmpeg 8.1.2 | Used | Local 18-second launch-video composition, browser checks, encoding and poster frame; no hosted rendering or publication |
+| NumPy / uv isolated tooling cache | Used | Official Hyperframes audio-band extraction for a restrained music-responsive accent; app requirements unchanged |
 | Markdown / Mermaid | Used | Product/architecture docs and local AI-generated presentation; no slide publication |
 | macOS `open` / Impeccable CLI | Used | Initial local design choices and context/critique/audit/refinement workflows |
 
@@ -55,6 +57,7 @@ No cloud compute, hosted database, cloud storage or deployment resources were pr
 | `diagnosing-bugs` | Reproducible regressions and scoped fixes |
 | `code-review`, `pr` | Independent Standards/Spec review and concrete PR descriptions |
 | `browser:control-in-app-browser`, `playwriter` | Browser discovery and actual rendered checks |
+| `brag`, Hyperframes core/animation/creative/keyframes/CLI domain skills | Launch-video story, real UI composition, validation and local render |
 | `emil-design-eng` | Purposeful restrained micro-interactions |
 | `triage` | Configured during setup; no triage run recorded |
 

@@ -1,0 +1,5 @@
+# Hyperframes local preview caches
+composition/.thumbnails/
+composition/.waveform-cache/
+composition/.hyperframes/
+composition/node_modules/
