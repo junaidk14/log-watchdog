@@ -459,3 +459,96 @@ it("binds confirmation to its original run even if a refresh discovers another r
     "Cancel, refresh overview",
   );
 });
+
+it.each([null, "1"])(
+  "blocks a stale run URL with incident %s until returning to current Demo",
+  async (incident) => {
+    const oldRun = "00000000-0000-4000-8000-000000000001";
+    const currentRun = "00000000-0000-4000-8000-000000000002";
+    window.history.replaceState(
+      {},
+      "",
+      `?view=overview&dataset=demo&run=${oldRun}${incident ? `&incident=${incident}` : ""}`,
+    );
+    fetchMock.mockImplementation(() => respond({ ...data, run: currentRun }));
+    const user = userEvent.setup();
+    const { container } = render(<Overview />);
+    expect(await screen.findByText(/This demo run was reset/)).toBeVisible();
+    const advance = screen.getByRole("button", { name: "Advance one minute" });
+    const reset = screen.getByRole("button", { name: "Reset demo" });
+    expect(advance).toBeDisabled();
+    expect(reset).toBeDisabled();
+    await user.click(advance);
+    await user.click(reset);
+    expect(
+      fetchMock.mock.calls.some(([, options]) => options?.method === "POST"),
+    ).toBe(false);
+    expect(
+      (
+        await axe.run(container, {
+          rules: { "color-contrast": { enabled: false } },
+        })
+      ).violations,
+    ).toEqual([]);
+    await user.click(
+      screen.getByRole("link", { name: "Return to current demo" }),
+    );
+    await waitFor(() => expect(advance).toBeEnabled());
+    expect(reset).toBeEnabled();
+    expect(
+      screen.queryByText(/This demo run was reset/),
+    ).not.toBeInTheDocument();
+    await user.click(advance);
+    expect(fetchMock).toHaveBeenLastCalledWith(
+      `/api/demo/advance?run=${currentRun}`,
+      { method: "POST" },
+    );
+  },
+);
+
+it("explains a stale Overview on Back after two successful resets", async () => {
+  const runs = [
+    "00000000-0000-4000-8000-000000000001",
+    "00000000-0000-4000-8000-000000000002",
+    "00000000-0000-4000-8000-000000000003",
+  ];
+  let index = 0;
+  fetchMock.mockImplementation((url: string) => {
+    if (url === "/api/demo/reset") index += 1;
+    return respond({ ...data, run: runs[index], incidents: [] });
+  });
+  const user = userEvent.setup();
+  render(<Overview />);
+  const reset = await screen.findByRole("button", { name: "Reset demo" });
+  await waitFor(() => expect(reset).toBeEnabled());
+  for (const run of runs.slice(1)) {
+    await user.click(reset);
+    await user.click(
+      screen.getByRole("button", { name: "Confirm reset Demo only" }),
+    );
+    await waitFor(() =>
+      expect(window.location.search).toBe(
+        `?view=overview&dataset=demo&run=${run}`,
+      ),
+    );
+  }
+  await act(async () => window.history.back());
+  await waitFor(() => expect(window.location.search).toContain(runs[1]));
+  expect(await screen.findByText(/This demo run was reset/)).toBeVisible();
+  expect(
+    screen.getByRole("button", { name: "Advance one minute" }),
+  ).toBeDisabled();
+  expect(reset).toBeDisabled();
+  await user.click(screen.getByRole("button", { name: "Refresh overview" }));
+  expect(await screen.findByText(/This demo run was reset/)).toBeVisible();
+  await user.click(
+    screen.getByRole("link", { name: "Return to current demo" }),
+  );
+  await waitFor(() => expect(reset).toBeEnabled());
+  expect(
+    screen.getByRole("button", { name: "Advance one minute" }),
+  ).toBeEnabled();
+  expect(
+    fetchMock.mock.calls.filter(([url]) => url === "/api/demo/reset"),
+  ).toHaveLength(2);
+});

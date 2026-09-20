@@ -238,3 +238,10 @@ Project-specific AFK policy now authorizes #4–#7 and requires implementation/f
 - Impeccable context/craft-floor/detector — Used for the narrow extension; detector returned `[]`. The required finish-reviewer spawn failed with a harness thread error, so the documented inline finish-reviewer/documenter fallbacks were used. Existing design system preserved; no raster assets.
 - Browser skill/runtime — Used for supported setup/recovery; `getForUrl` reported no browser and discovery returned `[]`. Rendered checks remain deferred under the authorized fallback.
 - `domain-modeling` and `pr` skills; Git/GitHub CLI and clock — Used for lifecycle decisions, paginated eligibility/dependency checks, PR evidence, metadata handoff and elapsed time.
+
+## PR #13 review fix R1
+
+- `diagnosing-bugs`, Vitest/jsdom, Testing Library and axe — Used to reproduce stale run URLs with/without incident selection and real History API Back after two mocked successful resets. Existing tests verify return-link recovery and mutation guards; DOM evidence does not establish rendered behavior. The supplied review already localized the cause, so the regression loop replaced speculative hypothesis/instrumentation work.
+- Impeccable context, harden guidance and detector — Used for the scoped stale-state fix with existing error/control styles; no new visual tokens or dependencies.
+- Browser skill/runtime — Used for supported discovery and recovery; no browser available, recovery list empty.
+- Existing frontend/backend build, lint, format, type, contrast, test and runtime tools — Reused for verification; `pr` skill and GitHub CLI used to update the existing PR.

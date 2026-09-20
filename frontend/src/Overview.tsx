@@ -140,6 +140,11 @@ export function Overview() {
   const dataset = params.get("dataset") ?? "demo";
   const [selected, setSelected] = useState(params.get("incident"));
   const [data, setData] = useState<OverviewData | null>(null);
+  const reset =
+    dataset === "demo" &&
+    params.has("run") &&
+    Boolean(data?.run) &&
+    params.get("run") !== data?.run;
   const [error, setError] = useState<string | null>(null);
   const [fetched, setFetched] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -232,7 +237,7 @@ export function Overview() {
   usePageRestoration(
     data !== null || error !== null,
     // A failed initial load has no workbench headings or evidence controls.
-    !data
+    !data || reset
       ? "overview-heading"
       : selected
         ? "incident-heading"
@@ -248,6 +253,7 @@ export function Overview() {
     return () => window.removeEventListener("popstate", back);
   }, []);
   async function advance() {
+    if (reset || advancing.current) return;
     advancing.current = true;
     ++requestNumber.current;
     setBusy(true);
@@ -278,7 +284,7 @@ export function Overview() {
     }
   }
   async function resetDemo() {
-    if (advancing.current || !resetRun.current) return;
+    if (reset || advancing.current || !resetRun.current) return;
     advancing.current = true;
     ++requestNumber.current;
     setBusy(true);
@@ -375,11 +381,6 @@ export function Overview() {
         )?.focus();
     });
   }
-  const reset =
-    dataset === "demo" &&
-    params.has("run") &&
-    data?.run &&
-    params.get("run") !== data.run;
   const incident = reset
     ? undefined
     : data?.incidents.find((i) => String(i.id) === selected);
@@ -485,6 +486,17 @@ export function Overview() {
             </select>
           </label>
         </header>
+        {reset && (
+          <div className="error" role="alert">
+            <p>This demo run was reset. Return to the current demo.</p>
+            <PageLink
+              href={`?view=overview&dataset=demo&run=${encodeURIComponent(data!.run!)}`}
+              focus="queue-heading"
+            >
+              Return to current demo
+            </PageLink>
+          </div>
+        )}
         <div className="overview-controls">
           <div>
             <strong>
@@ -512,7 +524,7 @@ export function Overview() {
             {dataset === "demo" && (
               <button
                 className="primary"
-                disabled={busy || confirmReset || !data}
+                disabled={busy || reset || confirmReset || !data}
                 onClick={() => void advance()}
               >
                 {busy && !resetting ? "Advancing…" : "Advance one minute"}
@@ -522,7 +534,7 @@ export function Overview() {
               <button
                 id="reset-demo"
                 ref={resetButton}
-                disabled={busy || !data?.run}
+                disabled={busy || reset || !data?.run}
                 aria-expanded={confirmReset}
                 aria-controls="reset-confirmation"
                 onClick={() => {
@@ -562,7 +574,7 @@ export function Overview() {
             <div className="overview-actions">
               <button
                 className="destructive"
-                disabled={busy}
+                disabled={busy || reset}
                 onClick={() => void resetDemo()}
               >
                 {resetting ? "Resetting Demo…" : "Confirm reset Demo only"}
@@ -604,7 +616,7 @@ export function Overview() {
             Loading overview…
           </div>
         )}
-        {data && (
+        {data && !reset && (
           <>
             <p className="refresh-time">
               Last evaluated through {time(data.progress.next_start)} · Last
@@ -718,9 +730,7 @@ export function Overview() {
                 )}
                 {selected && !incident && (
                   <p>
-                    {reset
-                      ? "This demo run was reset. Return to the current demo."
-                      : "Incident unavailable in this dataset or no longer retained."}
+                    Incident unavailable in this dataset or no longer retained.
                     <PageLink
                       href={`?view=overview&dataset=${dataset}`}
                       focus="queue-heading"

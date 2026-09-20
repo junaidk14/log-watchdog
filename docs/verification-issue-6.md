@@ -70,3 +70,39 @@ Initial disposition: **fix**.
 Verdict pass: the finding is **resolved** by `resetRun` captured only when Reset demo opens, with a passing refresh-to-new-run regression. No remaining source/DOM finding from this scoped pass. Disposition: **ship**, scoped to the resolved finding and authorized browser fallback.
 
 Documenter fallback: **No changes** to the incumbent DESIGN.md or design sidecar. Checked DESIGN.md, the surface brief, Overview.tsx and styles.css. Palette remains cool neutrals/workbench blue with the existing error red for the destructive action. Type remains system sans with the existing hierarchy. Flat borders group confirmation content. Existing spacing/control radii and action wrapping apply. Explicit text, visible focus and persistent context remain the named rules. Pre-existing DESIGN.md feature-coverage drift is not repaired in this issue; the local extension introduces no new durable visual system.
+
+## PR #13 review fix R1 — 2026-09-20
+
+The stale-run check previously gated only selected-incident detail. A run-only Overview URL (including Back after two resets) therefore omitted the explanation and allowed Advance to mutate the loaded replacement run. The reset explanation and current-Demo link now appear above the controls for every mismatched Demo run URL. Advance, Reset and confirmation are disabled; mutation handlers also guard stale state. Replacement investigation/trend content is withheld until returning to the current Demo, whose link carries the loaded UUID. Existing visual tokens/styles and ADR-027/030 semantics are preserved; no new architectural decision.
+
+Regression evidence uses synthetic UUIDs and mocked fetch responses with the real Overview component and jsdom History API. `npm --prefix frontend test -- src/Overview.test.tsx -t 'stale'` initially failed all three new cases: missing explanation without an incident and after two resets/Back, plus enabled controls with an incident. After the fix, `npm --prefix frontend test -- src/Overview.test.tsx` passed all 15 tests. Tests cover disabled mutations, current-run link recovery, advancing with the current UUID, Back after two successful resets, refresh while stale, and available axe rules.
+
+Completed verification for this fix:
+
+- `npm --prefix frontend run build` — passed; 35 modules.
+- `npm --prefix frontend run typecheck` — passed.
+- `npm --prefix frontend run lint` — passed.
+- `npm --prefix frontend run format:check` — passed.
+- `npm --prefix frontend test` — 73 passed across 5 files.
+- `.venv/bin/ruff check log_watchdog tests scripts` — passed.
+- `.venv/bin/ruff format --check log_watchdog tests scripts` — passed, 18 files.
+- `.venv/bin/mypy` — passed, 10 source files.
+- `.venv/bin/python scripts/check_contrast.py` — passed; minimum reported 5.19:1, static palette only.
+- `.venv/bin/pytest -q` — 96 passed, 2 existing deprecation warnings, 19.26 seconds.
+- `/Users/junaidahamad/.agents/skills/impeccable/scripts/impeccable detect --json frontend/src/Overview.tsx` — `[]`.
+- `git diff --check` — passed.
+
+The initial formatting invocation `npm --prefix frontend exec -- prettier --write src/Overview.tsx src/Overview.test.tsx` used paths relative to the wrong working directory and changed nothing. Corrected command: `./node_modules/.bin/prettier --write src/Overview.tsx src/Overview.test.tsx` from `frontend/`; passed, followed by the passing configured format check.
+
+Browser availability was rechecked through the supported setup: `getForUrl('http://127.0.0.1:8000')` returned **No browser is available**. Read `bootstrap-troubleshooting`; recovery `browsers.list()` returned `[]`. Source/DOM checks do not establish rendered layout or real-browser keyboard behavior.
+
+### Manual UI verification pending for R1
+
+- [ ] Desktop: visit an old Demo Overview URL with `run=<old UUID>` and no incident; inspect reset explanation, current-Demo link and disabled controls.
+- [ ] Narrow-screen/200% zoom: repeat and verify explanation/control wrapping and overflow.
+- [ ] Keyboard/focus: reset twice, use browser Back, follow Return to current demo; verify focus recovery and normal Advance/Reset controls.
+- [ ] Loading/empty/error/changed interactions: load a stale URL slowly, retry a failed refresh, refresh while stale, and return to the current Demo's empty queue.
+
+**Browser unavailable; rendered desktop, narrow-screen, and keyboard verification require a later manual check.**
+
+Runtime rerun: `.venv/bin/python scripts/validate_runtime.py` completed successfully with actual loopback HTTP, temporary synthetic SQLite data and process restarts. Confirmed reset/reseed, stale API rejection, Demo/Live/Historical isolation, five-step spike/retry/recovery, 503 → restart → 200 delivery, 40 evaluated/41 broader evidence, and the real-clock worker. Python 3.14.5/macOS 15.6 arm64: 100k events in 1.510 s; first/deep/filtered browse medians 3.44/5.82/10.18 ms (maxima 3.96/6.08/30.10 ms); 100 writes at target 20/s in 4.962 s, median 4.47 ms, max 7.41 ms. These synthetic measurements retain the existing performance limits and are not browser-navigation evidence.
